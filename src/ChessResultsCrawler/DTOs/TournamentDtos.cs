@@ -90,6 +90,26 @@ public class TeamPairingResponse
     };
 }
 
+public class PairingResponse
+{
+    public int Id { get; set; }
+    public int RoundNumber { get; set; }
+    public int BoardNumber { get; set; }
+    public string White { get; set; } = "";
+    public string Black { get; set; } = "";
+    public string? Result { get; set; }
+
+    public static PairingResponse FromEntity(Pairing p) => new()
+    {
+        Id = p.Id,
+        RoundNumber = p.Round?.RoundNumber ?? 0,
+        BoardNumber = p.BoardNumber,
+        White = p.WhitePlayer?.Name ?? "",
+        Black = p.BlackPlayer?.Name ?? "",
+        Result = p.Result
+    };
+}
+
 public class RoundResponse
 {
     public int Id { get; set; }

@@ -11,5 +11,6 @@ public class Round
 
     public Tournament Tournament { get; set; } = null!;
     public ICollection<TeamPairing> TeamPairings { get; set; } = [];
+    public ICollection<Pairing> Pairings { get; set; } = [];
     public ICollection<PlayerResult> PlayerResults { get; set; } = [];
 }

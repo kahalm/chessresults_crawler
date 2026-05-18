@@ -66,8 +66,18 @@ public class TournamentsController : ControllerBase
         var tournament = await _service.GetTournamentAsync(id);
         if (tournament is null) return NotFound();
 
-        var pairings = await _service.GetPairingsAsync(id, round);
-        return Ok(pairings.Select(TeamPairingResponse.FromEntity));
+        // Return team pairings if available, otherwise individual pairings
+        var hasTeam = await _service.HasTeamPairingsAsync(id);
+        if (hasTeam)
+        {
+            var pairings = await _service.GetPairingsAsync(id, round);
+            return Ok(pairings.Select(TeamPairingResponse.FromEntity));
+        }
+        else
+        {
+            var pairings = await _service.GetIndividualPairingsAsync(id, round);
+            return Ok(pairings.Select(PairingResponse.FromEntity));
+        }
     }
 
     [HttpGet("{id:int}/pairings/latest")]

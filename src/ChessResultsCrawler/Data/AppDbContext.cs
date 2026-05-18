@@ -12,6 +12,7 @@ public class AppDbContext : DbContext
     public DbSet<Player> Players => Set<Player>();
     public DbSet<Round> Rounds => Set<Round>();
     public DbSet<TeamPairing> TeamPairings => Set<TeamPairing>();
+    public DbSet<Pairing> Pairings => Set<Pairing>();
     public DbSet<PlayerResult> PlayerResults => Set<PlayerResult>();
     public DbSet<CrawlJob> CrawlJobs => Set<CrawlJob>();
 
@@ -78,6 +79,23 @@ public class AppDbContext : DbContext
                 .WithMany(t => t.AwayPairings)
                 .HasForeignKey(tp => tp.AwayTeamId)
                 .OnDelete(DeleteBehavior.Restrict);
+        });
+
+        modelBuilder.Entity<Pairing>(e =>
+        {
+            e.Property(p => p.Result).HasMaxLength(10);
+            e.HasOne(p => p.Round)
+                .WithMany(r => r.Pairings)
+                .HasForeignKey(p => p.RoundId)
+                .OnDelete(DeleteBehavior.Cascade);
+            e.HasOne(p => p.WhitePlayer)
+                .WithMany()
+                .HasForeignKey(p => p.WhitePlayerId)
+                .OnDelete(DeleteBehavior.SetNull);
+            e.HasOne(p => p.BlackPlayer)
+                .WithMany()
+                .HasForeignKey(p => p.BlackPlayerId)
+                .OnDelete(DeleteBehavior.SetNull);
         });
 
         modelBuilder.Entity<PlayerResult>(e =>

@@ -101,6 +101,27 @@ public class TournamentService
             .ToListAsync();
     }
 
+    public async Task<List<Pairing>> GetIndividualPairingsAsync(int tournamentId, int? round = null)
+    {
+        var query = _db.Pairings
+            .Include(p => p.WhitePlayer)
+            .Include(p => p.BlackPlayer)
+            .Include(p => p.Round)
+            .Where(p => p.Round.TournamentId == tournamentId);
+
+        if (round.HasValue)
+            query = query.Where(p => p.Round.RoundNumber == round.Value);
+
+        return await query.OrderBy(p => p.Round.RoundNumber)
+            .ThenBy(p => p.BoardNumber)
+            .ToListAsync();
+    }
+
+    public async Task<bool> HasTeamPairingsAsync(int tournamentId)
+    {
+        return await _db.TeamPairings.AnyAsync(tp => tp.Round.TournamentId == tournamentId);
+    }
+
     public async Task<List<Round>> GetRoundsAsync(int tournamentId)
     {
         return await _db.Rounds

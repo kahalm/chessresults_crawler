@@ -68,6 +68,8 @@ public class HtmlParserService
 
     /// <summary>
     /// Parses art=2 page (team pairings / Auslosungen) for a specific round.
+    /// Format: Nr | HomeTeam | AwayTeam | HomeScore | : | AwayScore
+    /// First row may be a date header (colspan), second row is the column header.
     /// </summary>
     public async Task<List<ParsedTeamPairing>> ParseTeamPairingsAsync(string html)
     {
@@ -75,43 +77,44 @@ public class HtmlParserService
         var context = BrowsingContext.New(Configuration.Default);
         var document = await context.OpenAsync(req => req.Content(html));
 
-        var table = FindTableByHeaders(document, ["Nr."]);
-        if (table is null)
-        {
-            // Try alternate: look for tables with team pairing patterns
-            table = FindPairingTable(document);
-        }
+        var table = document.QuerySelector("table.CRs1")
+            ?? document.QuerySelector("table.CRs2");
         if (table is null) return pairings;
 
-        var rows = table.QuerySelectorAll("tr").Skip(1);
+        var allRows = table.QuerySelectorAll(":scope > tr, :scope > tbody > tr");
         int matchNum = 0;
 
-        foreach (var row in rows)
+        foreach (var row in allRows)
         {
-            var cells = row.QuerySelectorAll("td").ToList();
+            var cells = row.QuerySelectorAll(":scope > td").ToList();
+
+            // Skip rows with colspan (date headers like "1. Runde am ...") or too few cells
             if (cells.Count < 4) continue;
+            if (cells.Any(c => c.HasAttribute("colspan"))) continue;
+
+            // Skip header rows (th cells)
+            if (row.QuerySelectorAll(":scope > th").Length > 0) continue;
+
+            // First cell should be match number
+            var nrText = cells[0].TextContent.Trim();
+            if (!int.TryParse(nrText, out _)) continue;
 
             matchNum++;
-
-            // Typical art=2 format: Nr | HomeTeam | AwayTeam | Result
-            // or: Nr | HomeTeam | - | AwayTeam | Result
             var pairing = new ParsedTeamPairing { MatchNumber = matchNum };
 
             if (cells.Count >= 6)
             {
-                // Wide format: Nr | Snr | HomeTeam | AwayTeam | Snr | Result
-                pairing.HomeTeamName = CleanTeamName(cells[2].TextContent);
-                pairing.AwayTeamName = CleanTeamName(cells[3].TextContent);
-                var scoreText = cells.Count > 5 ? cells[5].TextContent.Trim() : null;
-                ParseScore(scoreText, pairing);
+                // Standard format: Nr | HomeTeam | AwayTeam | HomeScore | : | AwayScore
+                pairing.HomeTeamName = CleanTeamName(cells[1].TextContent);
+                pairing.AwayTeamName = CleanTeamName(cells[2].TextContent);
+                ParseSplitScore(cells[3].TextContent.Trim(), cells[5].TextContent.Trim(), pairing);
             }
             else
             {
-                // Compact format: Nr | HomeTeam | AwayTeam | Result
+                // Compact format: Nr | HomeTeam | AwayTeam | CombinedScore
                 pairing.HomeTeamName = CleanTeamName(cells[1].TextContent);
                 pairing.AwayTeamName = CleanTeamName(cells[2].TextContent);
-                var scoreText = cells.Count > 3 ? cells[3].TextContent.Trim() : null;
-                ParseScore(scoreText, pairing);
+                ParseScore(cells.Count > 3 ? cells[3].TextContent.Trim() : null, pairing);
             }
 
             if (!string.IsNullOrWhiteSpace(pairing.HomeTeamName) &&
@@ -122,6 +125,82 @@ public class HtmlParserService
         }
 
         return pairings;
+    }
+
+    /// <summary>
+    /// Parses art=2 page for individual (non-team) pairings.
+    /// Format: Br | Nr | Title | Name | Elo | Pts | Result | Pts | Title | Name | Elo | Nr | (PGN)
+    /// </summary>
+    public async Task<List<ParsedPairing>> ParseIndividualPairingsAsync(string html)
+    {
+        var pairings = new List<ParsedPairing>();
+        var context = BrowsingContext.New(Configuration.Default);
+        var document = await context.OpenAsync(req => req.Content(html));
+
+        var table = document.QuerySelector("table.CRs1")
+            ?? document.QuerySelector("table.CRs2");
+        if (table is null) return pairings;
+
+        var allRows = table.QuerySelectorAll(":scope > tr, :scope > tbody > tr");
+
+        foreach (var row in allRows)
+        {
+            var cells = row.QuerySelectorAll(":scope > td").ToList();
+            if (cells.Count < 10) continue;
+            if (row.QuerySelectorAll(":scope > th").Length > 0) continue;
+
+            var boardText = cells[0].TextContent.Trim();
+            if (!int.TryParse(boardText, out var board)) continue;
+
+            // cells: Br(0) | Nr(1) | Title(2) | Name(3) | Elo(4) | Pts(5) | Result(6) | Pts(7) | Title(8) | Name(9) | Elo(10) | Nr(11)
+            var whiteName = cells[3].TextContent.Trim();
+            var blackName = cells[9].TextContent.Trim();
+            var result = cells[6].TextContent.Trim().Replace(" ", "");
+
+            int.TryParse(cells[1].TextContent.Trim(), out var whiteSnr);
+            int.TryParse(cells.Count > 11 ? cells[11].TextContent.Trim() : "", out var blackSnr);
+
+            pairings.Add(new ParsedPairing
+            {
+                BoardNumber = board,
+                WhiteName = whiteName,
+                BlackName = blackName,
+                WhiteSnr = whiteSnr,
+                BlackSnr = blackSnr,
+                Result = NormalizeResult(result)
+            });
+        }
+
+        return pairings;
+    }
+
+    /// <summary>
+    /// Detects whether an art=2 page contains team pairings or individual pairings.
+    /// </summary>
+    public async Task<bool> IsTeamPairingsPageAsync(string html)
+    {
+        var context = BrowsingContext.New(Configuration.Default);
+        var document = await context.OpenAsync(req => req.Content(html));
+        var text = document.Body?.TextContent ?? "";
+        // Team pages have "Teamauslosung" or "Team Composition" headers
+        // Individual pages have "Paarungen" or "Pairings" headers
+        // Also: team tables have "Erg." columns, individual have "Br." as first column
+        if (text.Contains("Teamauslosung", StringComparison.OrdinalIgnoreCase)) return true;
+        if (text.Contains("Team Composition", StringComparison.OrdinalIgnoreCase)) return true;
+
+        var table = document.QuerySelector("table.CRs1") ?? document.QuerySelector("table.CRs2");
+        if (table is null) return false;
+        var firstRow = table.QuerySelector(":scope > tr, :scope > tbody > tr");
+        var headerText = firstRow?.TextContent ?? "";
+        return headerText.Contains("Erg.", StringComparison.OrdinalIgnoreCase);
+    }
+
+    private static string NormalizeResult(string result)
+    {
+        // Normalize: "1-0", "0-1", "½-½", "+--", "--+" etc.
+        return result
+            .Replace("½", "½")  // already correct
+            .Replace("&frac12;", "½");
     }
 
     /// <summary>
@@ -264,21 +343,33 @@ public class HtmlParserService
         return text.Trim().Trim('-', ' ');
     }
 
+    private static decimal? ParseSingleScore(string text)
+    {
+        if (string.IsNullOrWhiteSpace(text)) return null;
+        // Strip forfeit marker, normalize fractions
+        text = text.Replace("F", "").Replace("½", ".5").Replace(",", ".").Trim();
+        if (string.IsNullOrWhiteSpace(text)) return null;
+        return decimal.TryParse(text, System.Globalization.NumberStyles.Any,
+            System.Globalization.CultureInfo.InvariantCulture, out var val) ? val : null;
+    }
+
+    private static void ParseSplitScore(string homeText, string awayText, ParsedTeamPairing pairing)
+    {
+        pairing.HomeScore = ParseSingleScore(homeText);
+        pairing.AwayScore = ParseSingleScore(awayText);
+    }
+
     private static void ParseScore(string? scoreText, ParsedTeamPairing pairing)
     {
         if (string.IsNullOrWhiteSpace(scoreText)) return;
 
         // Score format: "3½:½" or "3.5:0.5" or "3:1" etc.
-        scoreText = scoreText.Replace("½", ".5").Replace(",", ".");
+        scoreText = scoreText.Replace("½", ".5").Replace(",", ".").Replace("F", "");
         var parts = scoreText.Split(':');
         if (parts.Length == 2)
         {
-            if (decimal.TryParse(parts[0].Trim(), System.Globalization.NumberStyles.Any,
-                System.Globalization.CultureInfo.InvariantCulture, out var home))
-                pairing.HomeScore = home;
-            if (decimal.TryParse(parts[1].Trim(), System.Globalization.NumberStyles.Any,
-                System.Globalization.CultureInfo.InvariantCulture, out var away))
-                pairing.AwayScore = away;
+            pairing.HomeScore = ParseSingleScore(parts[0]);
+            pairing.AwayScore = ParseSingleScore(parts[1]);
         }
     }
 }
@@ -302,4 +393,14 @@ public class ParsedTeamPairing
     public string AwayTeamName { get; set; } = "";
     public decimal? HomeScore { get; set; }
     public decimal? AwayScore { get; set; }
+}
+
+public class ParsedPairing
+{
+    public int BoardNumber { get; set; }
+    public string WhiteName { get; set; } = "";
+    public string BlackName { get; set; } = "";
+    public int WhiteSnr { get; set; }
+    public int BlackSnr { get; set; }
+    public string? Result { get; set; }
 }

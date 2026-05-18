@@ -190,33 +190,36 @@ public class CrawlerService
 
         if (availableRounds.Count == 0 && tournament.TotalRounds > 0)
         {
-            // If no round links found, try rounds 1..TotalRounds
             availableRounds = Enumerable.Range(1, tournament.TotalRounds).ToList();
         }
 
+        // Detect tournament type from first round page
+        var isTeam = await _parser.IsTeamPairingsPageAsync(art2Html);
+        _logger.LogInformation("Tournament {Id} pairings type: {Type}", tournament.ChessResultsId, isTeam ? "Team" : "Individual");
+
+        if (isTeam)
+        {
+            await CrawlTeamPairingsAsync(tournament, baseUrl, availableRounds);
+        }
+        else
+        {
+            await CrawlIndividualPairingsAsync(tournament, baseUrl, availableRounds);
+        }
+    }
+
+    private async Task CrawlTeamPairingsAsync(Tournament tournament, string baseUrl, List<int> availableRounds)
+    {
         var teams = await _db.Teams
             .Where(t => t.TournamentId == tournament.Id)
             .ToDictionaryAsync(t => t.Name);
 
         foreach (var roundNum in availableRounds)
         {
-            var round = await _db.Rounds
-                .FirstOrDefaultAsync(r => r.TournamentId == tournament.Id && r.RoundNumber == roundNum);
-
-            if (round is null)
-            {
-                round = new Round
-                {
-                    TournamentId = tournament.Id,
-                    RoundNumber = roundNum,
-                    PairingsPublished = true
-                };
-                _db.Rounds.Add(round);
-                await _db.SaveChangesAsync();
-            }
+            var round = await GetOrCreateRoundAsync(tournament.Id, roundNum);
 
             var roundHtml = await FetchPageAsync(baseUrl, $"art=2&rd={roundNum}");
             var parsedPairings = await _parser.ParseTeamPairingsAsync(roundHtml);
+            _logger.LogInformation("Round {Round}: parsed {Count} team pairings", roundNum, parsedPairings.Count);
 
             // Remove existing pairings for this round (re-crawl)
             var existingPairings = await _db.TeamPairings
@@ -235,7 +238,7 @@ public class CrawlerService
                     continue;
                 }
 
-                var pairing = new TeamPairing
+                _db.TeamPairings.Add(new TeamPairing
                 {
                     RoundId = round.Id,
                     MatchNumber = pp.MatchNumber,
@@ -243,13 +246,72 @@ public class CrawlerService
                     AwayTeamId = awayTeam.Id,
                     HomeScore = pp.HomeScore,
                     AwayScore = pp.AwayScore
-                };
-                _db.TeamPairings.Add(pairing);
+                });
             }
 
             round.ResultsPublished = parsedPairings.Any(p => p.HomeScore.HasValue);
             await _db.SaveChangesAsync();
         }
+    }
+
+    private async Task CrawlIndividualPairingsAsync(Tournament tournament, string baseUrl, List<int> availableRounds)
+    {
+        var playersBySnr = await _db.Players
+            .Where(p => p.TournamentId == tournament.Id)
+            .ToDictionaryAsync(p => p.Snr);
+
+        foreach (var roundNum in availableRounds)
+        {
+            var round = await GetOrCreateRoundAsync(tournament.Id, roundNum);
+
+            var roundHtml = await FetchPageAsync(baseUrl, $"art=2&rd={roundNum}");
+            var parsedPairings = await _parser.ParseIndividualPairingsAsync(roundHtml);
+            _logger.LogInformation("Round {Round}: parsed {Count} individual pairings", roundNum, parsedPairings.Count);
+
+            // Remove existing pairings for this round (re-crawl)
+            var existingPairings = await _db.Pairings
+                .Where(p => p.RoundId == round.Id)
+                .ToListAsync();
+            _db.Pairings.RemoveRange(existingPairings);
+
+            foreach (var pp in parsedPairings)
+            {
+                playersBySnr.TryGetValue(pp.WhiteSnr, out var whitePlayer);
+                playersBySnr.TryGetValue(pp.BlackSnr, out var blackPlayer);
+
+                _db.Pairings.Add(new Pairing
+                {
+                    RoundId = round.Id,
+                    BoardNumber = pp.BoardNumber,
+                    WhitePlayerId = whitePlayer?.Id,
+                    BlackPlayerId = blackPlayer?.Id,
+                    Result = pp.Result
+                });
+            }
+
+            round.ResultsPublished = parsedPairings.Any(p => !string.IsNullOrEmpty(p.Result));
+            await _db.SaveChangesAsync();
+        }
+    }
+
+    private async Task<Round> GetOrCreateRoundAsync(int tournamentId, int roundNum)
+    {
+        var round = await _db.Rounds
+            .FirstOrDefaultAsync(r => r.TournamentId == tournamentId && r.RoundNumber == roundNum);
+
+        if (round is null)
+        {
+            round = new Round
+            {
+                TournamentId = tournamentId,
+                RoundNumber = roundNum,
+                PairingsPublished = true
+            };
+            _db.Rounds.Add(round);
+            await _db.SaveChangesAsync();
+        }
+
+        return round;
     }
 
     public async Task<string> FetchPageAsync(string baseUrl, string queryParams)
