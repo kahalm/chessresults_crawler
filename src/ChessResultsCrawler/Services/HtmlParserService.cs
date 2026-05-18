@@ -17,19 +17,27 @@ public class HtmlParserService
         var context = BrowsingContext.New(Configuration.Default);
         var document = await context.OpenAsync(req => req.Content(html));
 
-        var table = FindTableByHeaders(document, ["Nr.", "Name"]);
+        // Prefer CRs1/CRs2 tables (chess-results data tables), fall back to header search
+        var table = document.QuerySelector("table.CRs1")
+            ?? document.QuerySelector("table.CRs2")
+            ?? FindTableByHeaders(document, ["Nr.", "Name"]);
         if (table is null) return players;
 
-        var headers = table.QuerySelectorAll("tr").FirstOrDefault()
+        var headerCells = table.QuerySelectorAll(":scope > tr, :scope > thead > tr, :scope > tbody > tr").FirstOrDefault()
             ?.QuerySelectorAll("th, td")
-            .Select((cell, idx) => (cell.TextContent.Trim(), idx))
-            .ToDictionary(x => x.Item1, x => x.idx, StringComparer.OrdinalIgnoreCase)
-            ?? [];
+            .Select((cell, idx) => (Name: cell.TextContent.Trim(), Index: idx))
+            .ToList() ?? [];
+        var headers = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
+        foreach (var h in headerCells)
+        {
+            headers.TryAdd(h.Name, h.Index);
+        }
 
-        var rows = table.QuerySelectorAll("tr").Skip(1);
+        var allRows = table.QuerySelectorAll(":scope > tr, :scope > tbody > tr");
+        var rows = allRows.Skip(1);
         foreach (var row in rows)
         {
-            var cells = row.QuerySelectorAll("td").ToList();
+            var cells = row.QuerySelectorAll(":scope > td").ToList();
             if (cells.Count < 3) continue;
 
             var snrText = GetCellValue(cells, headers, "Nr.");

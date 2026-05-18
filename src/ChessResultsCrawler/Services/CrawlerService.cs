@@ -105,7 +105,9 @@ public class CrawlerService
     {
         _logger.LogInformation("Crawling players for tournament {Id}", tournament.ChessResultsId);
         var html = await FetchPageAsync(baseUrl, "art=15");
+        _logger.LogInformation("Fetched art=15 page, HTML length: {Length}", html.Length);
         var parsedPlayers = await _parser.ParsePlayerListAsync(html);
+        _logger.LogInformation("Parsed {Count} players from HTML", parsedPlayers.Count);
 
         // Load existing teams for name-matching
         var existingTeams = await _db.Teams
