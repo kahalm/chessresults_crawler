@@ -47,9 +47,9 @@ public class HtmlParserService
             {
                 Snr = snr,
                 Name = GetCellValue(cells, headers, "Name") ?? "",
-                Title = GetCellValue(cells, headers, "Title") ?? GetCellValue(cells, headers, "Ti."),
+                Title = GetCellValue(cells, headers, "Title") ?? GetCellValue(cells, headers, "Ti.") ?? GetCellValue(cells, headers, ""),
                 FideId = GetCellValue(cells, headers, "FideID") ?? GetCellValue(cells, headers, "FIDE-ID"),
-                Country = GetCellValue(cells, headers, "FED") ?? GetCellValue(cells, headers, "Fed"),
+                Country = GetCellValue(cells, headers, "FED") ?? GetCellValue(cells, headers, "Fed") ?? GetCellValue(cells, headers, "Land"),
                 TeamName = GetCellValue(cells, headers, "Team") ?? GetCellValue(cells, headers, "Club/City"),
             };
 
