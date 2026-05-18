@@ -95,10 +95,14 @@ tests/ChessResultsCrawler.Tests/
 
 ## Lokales Development
 
-Der komplette Stack (Crawler + RookHub) wird ueber RookHub's compose.yml gestartet:
+Der komplette Stack (Crawler + RookHub) wird ueber RookHub's Compose-Dateien gestartet:
 ```bash
 cd C:/git/rookhub
-docker compose -f compose.yml up --build
+# Development (ohne VPN):
+docker compose -f compose.dev.yml --env-file .env.dev up --build
+
+# Production (mit Gluetun VPN):
+docker compose -f compose.vpn.yml --env-file .env.vpn up --build
 ```
 Crawler-Swagger: http://localhost:8080/swagger/ui/index.html
 

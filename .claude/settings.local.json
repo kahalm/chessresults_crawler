@@ -1,0 +1,25 @@
+{
+  "permissions": {
+    "allow": [
+      "WebFetch(domain:chess-results.com)",
+      "WebFetch(domain:s2.chess-results.com)",
+      "WebFetch(domain:s1.chess-results.com)",
+      "WebSearch",
+      "WebFetch(domain:github.com)",
+      "WebFetch(domain:www.nuget.org)",
+      "Bash(cd /c/git/chessreslults_crawler && dotnet build 2>&1)",
+      "Bash(cd /c/git/chessreslults_crawler && git add .gitignore ChessResultsCrawler.sln src/ tests/ && git status 2>&1)",
+      "Bash(cd:*)",
+      "Bash(cd C:/git/rookhub/src/api/RookHub.Api && dotnet ef migrations add InitialCreate 2>&1)",
+      "Bash(tail:*)",
+      "Bash(cd C:/git/rookhub/tests/RookHub.Api.Tests && dotnet test 2>&1)",
+      "Bash(cd C:/git/rookhub && docker compose -f compose.dev.yml --env-file .env.dev up --build 2>&1)",
+      "Bash(cd C:/git/rookhub && docker compose -f compose.dev.yml --env-file .env.dev up --build -d 2>&1)",
+      "Bash(cd /c/git/rookhub && docker compose up -d --build api frontend 2>&1)",
+      "Bash(docker exec:*)",
+      "Bash(cd C:/git/chessreslults_crawler/src/ChessResultsCrawler && dotnet build --nologo -v q 2>&1)",
+      "Bash(cd C:/git/rookhub/src/api/RookHub.Api && dotnet build --nologo -v q 2>&1)",
+      "Bash(cd \"C:/git/rookhub/src/frontend/app\" && npx ng build 2>&1)"
+    ]
+  }
+}
