@@ -4,6 +4,7 @@ using ChessResultsCrawler.Models;
 using ChessResultsCrawler.Services;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using System.Text.RegularExpressions;
 
 namespace ChessResultsCrawler.Controllers;
 
@@ -29,9 +30,13 @@ public class CrawlController : ControllerBase
         if (!Enum.TryParse<CrawlJobType>(request.JobType, true, out var jobType))
             return BadRequest(new { error = $"Invalid job type: {request.JobType}" });
 
+        // Normalize: strip "tnr" prefix and any URL parts so both "1394015" and "tnr1394015" work
+        var chessResultsId = Regex.Replace(request.ChessResultsId.Trim(), @"^(.*tnr)", "", RegexOptions.IgnoreCase)
+            .Replace(".aspx", "").Split('?')[0].Trim();
+
         var job = new CrawlJob
         {
-            ChessResultsId = request.ChessResultsId,
+            ChessResultsId = chessResultsId,
             JobType = jobType
         };
 
