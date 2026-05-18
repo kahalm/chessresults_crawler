@@ -20,6 +20,7 @@ builder.Services.AddHttpClient<CrawlerService>(client =>
 builder.Services.AddScoped<HtmlParserService>();
 builder.Services.AddScoped<TournamentService>();
 builder.Services.AddScoped<RoundDetectionService>();
+builder.Services.AddHttpClient(); // For HealthController IP check
 
 // API
 builder.Services.AddControllers();

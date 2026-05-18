@@ -38,7 +38,7 @@ public class HtmlParserService
             var player = new ParsedPlayer
             {
                 Snr = snr,
-                Name = GetCellValue(cells, headers, "Name"),
+                Name = GetCellValue(cells, headers, "Name") ?? "",
                 Title = GetCellValue(cells, headers, "Title") ?? GetCellValue(cells, headers, "Ti."),
                 FideId = GetCellValue(cells, headers, "FideID") ?? GetCellValue(cells, headers, "FIDE-ID"),
                 Country = GetCellValue(cells, headers, "FED") ?? GetCellValue(cells, headers, "Fed"),

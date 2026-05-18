@@ -1,0 +1,55 @@
+services:
+  mariadb:
+    image: mariadb:11
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-rootpassword}
+      MYSQL_DATABASE: ${MYSQL_DATABASE:-chessresults}
+      MYSQL_USER: ${MYSQL_USER:-chessresults}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD:-chessresults}
+    ports:
+      - "3306:3306"
+    volumes:
+      - mariadb_data:/var/lib/mysql
+    command: --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci
+    healthcheck:
+      test: ["CMD", "healthcheck.sh", "--connect", "--innodb_initialized"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  gluetun:
+    image: qmcgaw/gluetun
+    restart: unless-stopped
+    cap_add:
+      - NET_ADMIN
+    devices:
+      - /dev/net/tun:/dev/net/tun
+    environment:
+      VPN_SERVICE_PROVIDER: ${VPN_SERVICE_PROVIDER:-airvpn}
+      VPN_TYPE: ${VPN_TYPE:-wireguard}
+      WIREGUARD_PRIVATE_KEY: ${WIREGUARD_PRIVATE_KEY}
+      WIREGUARD_PRESHARED_KEY: ${WIREGUARD_PRESHARED_KEY:-}
+      WIREGUARD_ADDRESSES: ${WIREGUARD_ADDRESSES}
+      SERVER_COUNTRIES: ${SERVER_COUNTRIES:-Germany}
+      FIREWALL_VPN_INPUT_PORTS: ${FIREWALL_VPN_INPUT_PORTS:-8080}
+    ports:
+      - "8080:8080"
+
+  app:
+    build:
+      context: ./src/ChessResultsCrawler
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    network_mode: "service:gluetun"
+    depends_on:
+      mariadb:
+        condition: service_healthy
+      gluetun:
+        condition: service_started
+    environment:
+      ConnectionStrings__DefaultConnection: "Server=mariadb;Port=3306;Database=${MYSQL_DATABASE:-chessresults};User=${MYSQL_USER:-chessresults};Password=${MYSQL_PASSWORD:-chessresults};"
+      ASPNETCORE_ENVIRONMENT: Production
+
+volumes:
+  mariadb_data:
