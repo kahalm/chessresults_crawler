@@ -36,6 +36,10 @@ public class CrawlController : ControllerBase
         var chessResultsId = Regex.Replace(request.ChessResultsId.Trim(), @"^(.*tnr)", "", RegexOptions.IgnoreCase)
             .Replace(".aspx", "").Split('?')[0].Trim();
 
+        // S-12: Whitelist – only numeric IDs allowed (prevents SSRF via manipulated IDs)
+        if (!Regex.IsMatch(chessResultsId, @"^\d{1,10}$"))
+            return BadRequest(new { error = "Invalid ChessResultsId. Only numeric IDs (1-10 digits) are allowed." });
+
         // M-13: Prevent duplicate crawl jobs for the same tournament
         var existingJob = await _db.CrawlJobs.AnyAsync(j =>
             j.ChessResultsId == chessResultsId &&

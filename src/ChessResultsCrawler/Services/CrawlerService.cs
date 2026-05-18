@@ -34,6 +34,12 @@ public class CrawlerService
             // Resolve tournament base URL and SNode
             var baseUrl = $"https://chess-results.com/tnr{job.ChessResultsId}.aspx?lan=0";
             var (resolvedUrl, html) = await FetchWithRedirectAsync(baseUrl);
+
+            // S-7: SSRF protection – only allow redirects to chess-results.com
+            var resolvedUri = new Uri(resolvedUrl);
+            if (!resolvedUri.Host.EndsWith("chess-results.com", StringComparison.OrdinalIgnoreCase))
+                throw new InvalidOperationException($"Redirect to unexpected domain: {resolvedUri.Host}");
+
             var sNode = HtmlParserService.ExtractSNode(resolvedUrl);
 
             // Find or create tournament

@@ -25,9 +25,9 @@ public class HealthController : ControllerBase
             var ip = await client.GetStringAsync("https://api.ipify.org");
             return Ok(new { ip, timestamp = DateTime.UtcNow });
         }
-        catch (Exception ex)
+        catch (Exception)
         {
-            return Ok(new { ip = "unknown", error = ex.Message, timestamp = DateTime.UtcNow });
+            return Ok(new { ip = "unknown", error = "Failed to retrieve IP", timestamp = DateTime.UtcNow });
         }
     }
 }
