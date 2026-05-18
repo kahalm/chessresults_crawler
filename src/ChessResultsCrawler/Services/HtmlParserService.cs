@@ -47,7 +47,7 @@ public class HtmlParserService
             {
                 Snr = snr,
                 Name = GetCellValue(cells, headers, "Name") ?? "",
-                Title = GetCellValue(cells, headers, "Title") ?? GetCellValue(cells, headers, "Ti.") ?? GetCellValue(cells, headers, "Typ") ?? GetCellValue(cells, headers, ""),
+                Title = GetCellValue(cells, headers, "Title") ?? GetCellValue(cells, headers, "Ti.") ?? GetCellValue(cells, headers, "Typ"),
                 FideId = GetCellValue(cells, headers, "FideID") ?? GetCellValue(cells, headers, "FIDE-ID"),
                 Country = GetCellValue(cells, headers, "FED") ?? GetCellValue(cells, headers, "Fed") ?? GetCellValue(cells, headers, "Land"),
                 TeamName = GetCellValue(cells, headers, "Team") ?? GetCellValue(cells, headers, "Club/City") ?? GetCellValue(cells, headers, "Verein/Ort"),
@@ -197,10 +197,7 @@ public class HtmlParserService
 
     private static string NormalizeResult(string result)
     {
-        // Normalize: "1-0", "0-1", "½-½", "+--", "--+" etc.
-        return result
-            .Replace("½", "½")  // already correct
-            .Replace("&frac12;", "½");
+        return result.Replace("&frac12;", "½");
     }
 
     /// <summary>
@@ -305,22 +302,6 @@ public class HtmlParserService
 
             if (requiredHeaders.All(h =>
                 headerTexts.Any(ht => ht.Contains(h, StringComparison.OrdinalIgnoreCase))))
-            {
-                return table;
-            }
-        }
-        return null;
-    }
-
-    private static IElement? FindPairingTable(IDocument document)
-    {
-        // Look for tables that look like pairing tables (contain team-like data)
-        var tables = document.QuerySelectorAll("table.CRs1, table.CRs2, table");
-        foreach (var table in tables)
-        {
-            var text = table.TextContent;
-            if (text.Contains(":", StringComparison.Ordinal) &&
-                table.QuerySelectorAll("tr").Length > 2)
             {
                 return table;
             }

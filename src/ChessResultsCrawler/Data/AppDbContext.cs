@@ -65,6 +65,7 @@ public class AppDbContext : DbContext
 
         modelBuilder.Entity<TeamPairing>(e =>
         {
+            e.HasIndex(tp => new { tp.RoundId, tp.MatchNumber }).IsUnique();
             e.Property(tp => tp.HomeScore).HasColumnType("decimal(4,1)");
             e.Property(tp => tp.AwayScore).HasColumnType("decimal(4,1)");
             e.HasOne(tp => tp.Round)
@@ -83,6 +84,7 @@ public class AppDbContext : DbContext
 
         modelBuilder.Entity<Pairing>(e =>
         {
+            e.HasIndex(p => new { p.RoundId, p.BoardNumber }).IsUnique();
             e.Property(p => p.Result).HasMaxLength(10);
             e.HasOne(p => p.Round)
                 .WithMany(r => r.Pairings)

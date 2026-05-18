@@ -13,12 +13,14 @@ namespace ChessResultsCrawler.Controllers;
 public class CrawlController : ControllerBase
 {
     private readonly AppDbContext _db;
-    private readonly CrawlerService _crawler;
+    private readonly IServiceScopeFactory _scopeFactory;
+    private readonly ILogger<CrawlController> _logger;
 
-    public CrawlController(AppDbContext db, CrawlerService crawler)
+    public CrawlController(AppDbContext db, IServiceScopeFactory scopeFactory, ILogger<CrawlController> logger)
     {
         _db = db;
-        _crawler = crawler;
+        _scopeFactory = scopeFactory;
+        _logger = logger;
     }
 
     /// <summary>
@@ -34,6 +36,13 @@ public class CrawlController : ControllerBase
         var chessResultsId = Regex.Replace(request.ChessResultsId.Trim(), @"^(.*tnr)", "", RegexOptions.IgnoreCase)
             .Replace(".aspx", "").Split('?')[0].Trim();
 
+        // M-13: Prevent duplicate crawl jobs for the same tournament
+        var existingJob = await _db.CrawlJobs.AnyAsync(j =>
+            j.ChessResultsId == chessResultsId &&
+            (j.Status == CrawlJobStatus.Queued || j.Status == CrawlJobStatus.Running));
+        if (existingJob)
+            return Conflict(new { error = $"A crawl job for '{chessResultsId}' is already running." });
+
         var job = new CrawlJob
         {
             ChessResultsId = chessResultsId,
@@ -43,15 +52,24 @@ public class CrawlController : ControllerBase
         _db.CrawlJobs.Add(job);
         await _db.SaveChangesAsync();
 
-        // Fire and forget - run crawl in background
+        // C-5/C-6: Capture scope factory before Task.Run to avoid accessing disposed HttpContext
+        var scopeFactory = _scopeFactory;
+        var jobId = job.Id;
         _ = Task.Run(async () =>
         {
-            using var scope = HttpContext.RequestServices.GetRequiredService<IServiceScopeFactory>().CreateScope();
-            var crawler = scope.ServiceProvider.GetRequiredService<CrawlerService>();
-            var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-            var jobToRun = await db.CrawlJobs.FindAsync(job.Id);
-            if (jobToRun is not null)
-                await crawler.ExecuteCrawlAsync(jobToRun);
+            try
+            {
+                using var scope = scopeFactory.CreateScope();
+                var crawler = scope.ServiceProvider.GetRequiredService<CrawlerService>();
+                var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+                var jobToRun = await db.CrawlJobs.FindAsync(jobId);
+                if (jobToRun is not null)
+                    await crawler.ExecuteCrawlAsync(jobToRun);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Background crawl job {JobId} failed unexpectedly", jobId);
+            }
         });
 
         return Accepted(CrawlJobResponse.FromEntity(job));

@@ -101,6 +101,24 @@ public class TournamentService
             .ToListAsync();
     }
 
+    public async Task<List<Pairing>> GetLatestIndividualPairingsAsync(int tournamentId)
+    {
+        var latestRound = await _db.Rounds
+            .Where(r => r.TournamentId == tournamentId)
+            .OrderByDescending(r => r.RoundNumber)
+            .FirstOrDefaultAsync();
+
+        if (latestRound is null) return [];
+
+        return await _db.Pairings
+            .Include(p => p.WhitePlayer)
+            .Include(p => p.BlackPlayer)
+            .Include(p => p.Round)
+            .Where(p => p.RoundId == latestRound.Id)
+            .OrderBy(p => p.BoardNumber)
+            .ToListAsync();
+    }
+
     public async Task<List<Pairing>> GetIndividualPairingsAsync(int tournamentId, int? round = null)
     {
         var query = _db.Pairings

@@ -221,7 +221,9 @@ public class CrawlerService
             var parsedPairings = await _parser.ParseTeamPairingsAsync(roundHtml);
             _logger.LogInformation("Round {Round}: parsed {Count} team pairings", roundNum, parsedPairings.Count);
 
-            // Remove existing pairings for this round (re-crawl)
+            // H-9: Wrap delete+insert in transaction for re-crawl safety
+            await using var tx = await _db.Database.BeginTransactionAsync();
+
             var existingPairings = await _db.TeamPairings
                 .Where(tp => tp.RoundId == round.Id)
                 .ToListAsync();
@@ -251,6 +253,7 @@ public class CrawlerService
 
             round.ResultsPublished = parsedPairings.Any(p => p.HomeScore.HasValue);
             await _db.SaveChangesAsync();
+            await tx.CommitAsync();
         }
     }
 
@@ -268,7 +271,9 @@ public class CrawlerService
             var parsedPairings = await _parser.ParseIndividualPairingsAsync(roundHtml);
             _logger.LogInformation("Round {Round}: parsed {Count} individual pairings", roundNum, parsedPairings.Count);
 
-            // Remove existing pairings for this round (re-crawl)
+            // H-9: Wrap delete+insert in transaction for re-crawl safety
+            await using var tx = await _db.Database.BeginTransactionAsync();
+
             var existingPairings = await _db.Pairings
                 .Where(p => p.RoundId == round.Id)
                 .ToListAsync();
@@ -291,6 +296,7 @@ public class CrawlerService
 
             round.ResultsPublished = parsedPairings.Any(p => !string.IsNullOrEmpty(p.Result));
             await _db.SaveChangesAsync();
+            await tx.CommitAsync();
         }
     }
 
@@ -342,7 +348,8 @@ public class CrawlerService
 
     private static async Task RateLimitAsync()
     {
-        await _rateLimiter.WaitAsync();
+        if (!await _rateLimiter.WaitAsync(TimeSpan.FromSeconds(60)))
+            throw new TimeoutException("Rate limiter acquisition timed out after 60 seconds.");
         try
         {
             var elapsed = (DateTime.UtcNow - _lastRequest).TotalMilliseconds;
