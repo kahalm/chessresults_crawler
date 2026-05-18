@@ -1,0 +1,38 @@
+## .NET
+bin/
+obj/
+*.user
+*.suo
+*.sln.docstates
+*.userprefs
+
+## NuGet
+*.nupkg
+**/packages/
+project.lock.json
+project.fragment.lock.json
+
+## Build results
+[Dd]ebug/
+[Rr]elease/
+x64/
+x86/
+build/
+bld/
+
+## IDE
+.vs/
+.vscode/
+*.swp
+*~
+
+## OS
+Thumbs.db
+.DS_Store
+
+## Environment
+.env
+*.local
+
+## Docker
+docker-compose.override.yml

@@ -1,0 +1,6 @@
+@ChessResultsCrawler_HostAddress = http://localhost:5065
+
+GET {{ChessResultsCrawler_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###

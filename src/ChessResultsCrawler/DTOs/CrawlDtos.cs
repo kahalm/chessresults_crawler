@@ -1,0 +1,33 @@
+using ChessResultsCrawler.Models;
+
+namespace ChessResultsCrawler.DTOs;
+
+public class CrawlRequest
+{
+    public required string ChessResultsId { get; set; }
+    public string JobType { get; set; } = "Full";
+}
+
+public class CrawlJobResponse
+{
+    public int Id { get; set; }
+    public string ChessResultsId { get; set; } = "";
+    public string JobType { get; set; } = "";
+    public string Status { get; set; } = "";
+    public string? ErrorMessage { get; set; }
+    public DateTime CreatedAt { get; set; }
+    public DateTime? StartedAt { get; set; }
+    public DateTime? CompletedAt { get; set; }
+
+    public static CrawlJobResponse FromEntity(CrawlJob job) => new()
+    {
+        Id = job.Id,
+        ChessResultsId = job.ChessResultsId,
+        JobType = job.JobType.ToString(),
+        Status = job.Status.ToString(),
+        ErrorMessage = job.ErrorMessage,
+        CreatedAt = job.CreatedAt,
+        StartedAt = job.StartedAt,
+        CompletedAt = job.CompletedAt
+    };
+}
