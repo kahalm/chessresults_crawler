@@ -104,10 +104,18 @@ public class CrawlerService
     private async Task CrawlPlayersAsync(Tournament tournament, string baseUrl)
     {
         _logger.LogInformation("Crawling players for tournament {Id}", tournament.ChessResultsId);
+
+        // Try art=16 (team tournaments full list), fall back to art=0 (individual tournaments)
         var html = await FetchPageAsync(baseUrl, "art=16&zeilen=99999");
-        _logger.LogInformation("Fetched art=15 page, HTML length: {Length}", html.Length);
         var parsedPlayers = await _parser.ParsePlayerListAsync(html);
-        _logger.LogInformation("Parsed {Count} players from HTML", parsedPlayers.Count);
+        _logger.LogInformation("art=16: parsed {Count} players", parsedPlayers.Count);
+
+        if (parsedPlayers.Count == 0)
+        {
+            html = await FetchPageAsync(baseUrl, "art=0&zeilen=99999");
+            parsedPlayers = await _parser.ParsePlayerListAsync(html);
+            _logger.LogInformation("art=0: parsed {Count} players", parsedPlayers.Count);
+        }
 
         // Load existing teams for name-matching
         var existingTeams = await _db.Teams
