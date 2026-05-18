@@ -9,7 +9,7 @@ var connectionString = builder.Configuration.GetConnectionString("DefaultConnect
     ?? "Server=localhost;Port=3306;Database=chessresults;User=chessresults;Password=chessresults;";
 
 builder.Services.AddDbContext<AppDbContext>(options =>
-    options.UseMySql(connectionString, ServerVersion.AutoDetect(connectionString)));
+    options.UseMySql(connectionString, new MariaDbServerVersion(new Version(11, 0, 0))));
 
 // Services
 builder.Services.AddHttpClient<CrawlerService>(client =>
@@ -36,7 +36,7 @@ var app = builder.Build();
 using (var scope = app.Services.CreateScope())
 {
     var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-    db.Database.Migrate();
+    db.Database.EnsureCreated();
 }
 
 app.UseSwagger();
