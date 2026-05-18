@@ -90,7 +90,7 @@ public class HtmlParserServiceTests
     [Fact]
     public async Task ParseTeamPairingsAsync_CompactFormat_ParsesPairings()
     {
-        var html = @"<html><body><table>
+        var html = @"<html><body><table class='CRs1'>
             <tr><th>Nr.</th><th>Home</th><th>Away</th><th>Result</th></tr>
             <tr><td>1</td><td>Team Alpha</td><td>Team Beta</td><td>3.5:0.5</td></tr>
             <tr><td>2</td><td>Team Gamma</td><td>Team Delta</td><td>2:2</td></tr>
@@ -108,7 +108,7 @@ public class HtmlParserServiceTests
     [Fact]
     public async Task ParseTeamPairingsAsync_HalfSymbol_ParsesCorrectly()
     {
-        var html = @"<html><body><table>
+        var html = @"<html><body><table class='CRs1'>
             <tr><th>Nr.</th><th>Home</th><th>Away</th><th>Result</th></tr>
             <tr><td>1</td><td>Team A</td><td>Team B</td><td>3½:½</td></tr>
             </table></body></html>";
@@ -123,7 +123,7 @@ public class HtmlParserServiceTests
     [Fact]
     public async Task ParseTeamPairingsAsync_NoResult_ScoresAreNull()
     {
-        var html = @"<html><body><table>
+        var html = @"<html><body><table class='CRs1'>
             <tr><th>Nr.</th><th>Home</th><th>Away</th><th>Result</th></tr>
             <tr><td>1</td><td>Team A</td><td>Team B</td><td></td></tr>
             </table></body></html>";
@@ -243,6 +243,75 @@ public class HtmlParserServiceTests
         var name = await _parser.ParseTournamentNameAsync(html);
 
         Assert.Null(name);
+    }
+
+    #endregion
+
+    #region ParseTournamentDetailsAsync
+
+    [Fact]
+    public async Task ParseTournamentDetailsAsync_EnglishLabels_ExtractsDateAndLocation()
+    {
+        var html = @"<html><body><table>
+            <tr><td>Date</td><td>17.05.2026</td></tr>
+            <tr><td>Location</td><td>Berlin, Germany</td></tr>
+            </table></body></html>";
+
+        var details = await _parser.ParseTournamentDetailsAsync(html);
+
+        Assert.Equal("17.05.2026", details.DateText);
+        Assert.Equal("Berlin, Germany", details.Location);
+    }
+
+    [Fact]
+    public async Task ParseTournamentDetailsAsync_GermanLabels_ExtractsDateAndLocation()
+    {
+        var html = @"<html><body><table>
+            <tr><td>Datum</td><td>2026/05/17</td></tr>
+            <tr><td>Ort</td><td>München</td></tr>
+            </table></body></html>";
+
+        var details = await _parser.ParseTournamentDetailsAsync(html);
+
+        Assert.Equal("2026/05/17", details.DateText);
+        Assert.Equal("München", details.Location);
+    }
+
+    [Fact]
+    public async Task ParseTournamentDetailsAsync_DateRange_PreservesFullText()
+    {
+        var html = @"<html><body><table>
+            <tr><td>Date</td><td>17.05.2026 - 19.05.2026</td></tr>
+            </table></body></html>";
+
+        var details = await _parser.ParseTournamentDetailsAsync(html);
+
+        Assert.Equal("17.05.2026 - 19.05.2026", details.DateText);
+    }
+
+    [Fact]
+    public async Task ParseTournamentDetailsAsync_NoDetails_ReturnsNulls()
+    {
+        var html = "<html><body><table><tr><td>Foo</td><td>Bar</td></tr></table></body></html>";
+
+        var details = await _parser.ParseTournamentDetailsAsync(html);
+
+        Assert.Null(details.DateText);
+        Assert.Null(details.Location);
+    }
+
+    [Fact]
+    public async Task ParseTournamentDetailsAsync_EmptyValues_ReturnsNulls()
+    {
+        var html = @"<html><body><table>
+            <tr><td>Date</td><td>  </td></tr>
+            <tr><td>Location</td><td></td></tr>
+            </table></body></html>";
+
+        var details = await _parser.ParseTournamentDetailsAsync(html);
+
+        Assert.Null(details.DateText);
+        Assert.Null(details.Location);
     }
 
     #endregion

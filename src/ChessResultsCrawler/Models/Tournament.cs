@@ -8,6 +8,8 @@ public class Tournament
     public int TotalRounds { get; set; }
     public string? BaseUrl { get; set; }
     public string? SNode { get; set; }
+    public string? Location { get; set; }
+    public string? DateText { get; set; }
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
     public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
 

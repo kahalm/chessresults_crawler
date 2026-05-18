@@ -15,6 +15,7 @@ public class AppDbContext : DbContext
     public DbSet<Pairing> Pairings => Set<Pairing>();
     public DbSet<PlayerResult> PlayerResults => Set<PlayerResult>();
     public DbSet<CrawlJob> CrawlJobs => Set<CrawlJob>();
+    public DbSet<RequestLog> RequestLogs => Set<RequestLog>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -25,6 +26,8 @@ public class AppDbContext : DbContext
             e.Property(t => t.Name).HasMaxLength(500);
             e.Property(t => t.BaseUrl).HasMaxLength(500);
             e.Property(t => t.SNode).HasMaxLength(10);
+            e.Property(t => t.Location).HasMaxLength(500);
+            e.Property(t => t.DateText).HasMaxLength(100);
         });
 
         modelBuilder.Entity<Team>(e =>
@@ -111,6 +114,12 @@ public class AppDbContext : DbContext
                 .WithMany(p => p.Results)
                 .HasForeignKey(pr => pr.PlayerId)
                 .OnDelete(DeleteBehavior.Cascade);
+        });
+
+        modelBuilder.Entity<RequestLog>(e =>
+        {
+            e.HasIndex(r => r.Timestamp).IsDescending();
+            e.HasIndex(r => r.Path);
         });
 
         modelBuilder.Entity<CrawlJob>(e =>

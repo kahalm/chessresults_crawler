@@ -280,6 +280,42 @@ public class HtmlParserService
     }
 
     /// <summary>
+    /// Parses turdet=YES page to extract tournament date and location.
+    /// Looks for table rows where the first cell is "Date"/"Datum" or "Location"/"Ort".
+    /// </summary>
+    public async Task<ParsedTournamentDetails> ParseTournamentDetailsAsync(string html)
+    {
+        var details = new ParsedTournamentDetails();
+        var context = BrowsingContext.New(Configuration.Default);
+        var document = await context.OpenAsync(req => req.Content(html));
+
+        var rows = document.QuerySelectorAll("table tr");
+        foreach (var row in rows)
+        {
+            var cells = row.QuerySelectorAll("td").ToList();
+            if (cells.Count < 2) continue;
+
+            var label = cells[0].TextContent.Trim().TrimEnd(':');
+            var value = cells[1].TextContent.Trim();
+
+            if (string.IsNullOrWhiteSpace(value)) continue;
+
+            if (label.Equals("Date", StringComparison.OrdinalIgnoreCase) ||
+                label.Equals("Datum", StringComparison.OrdinalIgnoreCase))
+            {
+                details.DateText = value;
+            }
+            else if (label.Equals("Location", StringComparison.OrdinalIgnoreCase) ||
+                     label.Equals("Ort", StringComparison.OrdinalIgnoreCase))
+            {
+                details.Location = value;
+            }
+        }
+
+        return details;
+    }
+
+    /// <summary>
     /// Extracts the SNode (s1/s2/s3) from a redirect URL or page content.
     /// </summary>
     public static string? ExtractSNode(string url)
@@ -384,4 +420,10 @@ public class ParsedPairing
     public int WhiteSnr { get; set; }
     public int BlackSnr { get; set; }
     public string? Result { get; set; }
+}
+
+public class ParsedTournamentDetails
+{
+    public string? DateText { get; set; }
+    public string? Location { get; set; }
 }

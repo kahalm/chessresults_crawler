@@ -9,6 +9,8 @@ public class TournamentResponse
     public string Name { get; set; } = "";
     public int TotalRounds { get; set; }
     public int KnownRounds { get; set; }
+    public string? Date { get; set; }
+    public string? Location { get; set; }
     public DateTime CreatedAt { get; set; }
     public DateTime UpdatedAt { get; set; }
 
@@ -19,6 +21,8 @@ public class TournamentResponse
         Name = t.Name,
         TotalRounds = t.TotalRounds,
         KnownRounds = t.Rounds?.Count ?? 0,
+        Date = t.DateText,
+        Location = t.Location,
         CreatedAt = t.CreatedAt,
         UpdatedAt = t.UpdatedAt
     };

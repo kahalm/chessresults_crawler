@@ -1,3 +1,5 @@
+using System.Text;
+using System.Text.Json;
 using ChessResultsCrawler.Data;
 using ChessResultsCrawler.Models;
 using Microsoft.EntityFrameworkCore;
@@ -11,16 +13,23 @@ public class CrawlerService
     private readonly HtmlParserService _parser;
     private readonly AppDbContext _db;
     private readonly ILogger<CrawlerService> _logger;
+    private readonly string _gluetunApiUrl;
     private static readonly SemaphoreSlim _rateLimiter = new(1, 1);
     private static DateTime _lastRequest = DateTime.MinValue;
+    private static int _requestCount;
     private const int DelayMs = 1500;
+    private const int RetryDelayMs = 5000;
+    private const int VpnRestartPauseMs = 3000;
+    private const int RotateAfterRequests = 20;
 
-    public CrawlerService(HttpClient httpClient, HtmlParserService parser, AppDbContext db, ILogger<CrawlerService> logger)
+    public CrawlerService(HttpClient httpClient, HtmlParserService parser, AppDbContext db,
+        ILogger<CrawlerService> logger, IConfiguration configuration)
     {
         _httpClient = httpClient;
         _parser = parser;
         _db = db;
         _logger = logger;
+        _gluetunApiUrl = configuration["Gluetun__ApiUrl"] ?? "http://localhost:8000";
     }
 
     public async Task<CrawlJob> ExecuteCrawlAsync(CrawlJob job)
@@ -68,11 +77,18 @@ public class CrawlerService
 
             job.TournamentId = tournament.Id;
 
-            // Get total rounds from art=0
-            var art0Html = await FetchPageAsync(resolvedUrl, "art=0");
+            // Get total rounds + tournament details from art=0 with turdet=YES
+            var art0Html = await FetchPageAsync(resolvedUrl, "art=0&turdet=YES");
             var totalRounds = await _parser.ParseTotalRoundsAsync(art0Html);
             if (totalRounds.HasValue)
                 tournament.TotalRounds = totalRounds.Value;
+
+            // Parse tournament date and location from turdet details
+            var details = await _parser.ParseTournamentDetailsAsync(art0Html);
+            if (details.Location is not null)
+                tournament.Location = details.Location;
+            if (details.DateText is not null)
+                tournament.DateText = details.DateText;
 
             switch (job.JobType)
             {
@@ -336,28 +352,86 @@ public class CrawlerService
     public async Task<(string Url, string Html)> FetchWithRedirectAsync(string url)
     {
         await RateLimitAsync();
-        var response = await _httpClient.GetAsync(url);
-        response.EnsureSuccessStatusCode();
-        var finalUrl = response.RequestMessage?.RequestUri?.ToString() ?? url;
-        var html = await response.Content.ReadAsStringAsync();
-        return (finalUrl, html);
+        try
+        {
+            var response = await _httpClient.GetAsync(url);
+            response.EnsureSuccessStatusCode();
+            var finalUrl = response.RequestMessage?.RequestUri?.ToString() ?? url;
+            var html = await response.Content.ReadAsStringAsync();
+            return (finalUrl, html);
+        }
+        catch (HttpRequestException ex)
+        {
+            _logger.LogWarning(ex, "Fetch failed for {Url}, retrying in {Delay}ms", url, RetryDelayMs);
+            await Task.Delay(RetryDelayMs);
+            await RateLimitAsync();
+            var response = await _httpClient.GetAsync(url);
+            response.EnsureSuccessStatusCode();
+            var finalUrl = response.RequestMessage?.RequestUri?.ToString() ?? url;
+            var html = await response.Content.ReadAsStringAsync();
+            return (finalUrl, html);
+        }
     }
 
     public async Task<string> FetchHtmlAsync(string url)
     {
         await RateLimitAsync();
         _logger.LogDebug("Fetching {Url}", url);
-        var response = await _httpClient.GetAsync(url);
-        response.EnsureSuccessStatusCode();
-        return await response.Content.ReadAsStringAsync();
+        try
+        {
+            var response = await _httpClient.GetAsync(url);
+            response.EnsureSuccessStatusCode();
+            return await response.Content.ReadAsStringAsync();
+        }
+        catch (HttpRequestException ex)
+        {
+            _logger.LogWarning(ex, "Fetch failed for {Url}, retrying in {Delay}ms", url, RetryDelayMs);
+            await Task.Delay(RetryDelayMs);
+            await RateLimitAsync();
+            _logger.LogDebug("Retrying {Url}", url);
+            var response = await _httpClient.GetAsync(url);
+            response.EnsureSuccessStatusCode();
+            return await response.Content.ReadAsStringAsync();
+        }
     }
 
-    private static async Task RateLimitAsync()
+    private async Task RotateVpnAsync()
+    {
+        try
+        {
+            var statusUrl = $"{_gluetunApiUrl}/v1/vpn/status";
+            var stopContent = new StringContent("""{"status":"stopped"}""", Encoding.UTF8, "application/json");
+            var startContent = new StringContent("""{"status":"running"}""", Encoding.UTF8, "application/json");
+
+            _logger.LogInformation("Rotating VPN IP...");
+            await _httpClient.PutAsync(statusUrl, stopContent);
+            await Task.Delay(VpnRestartPauseMs);
+            await _httpClient.PutAsync(statusUrl, startContent);
+            _logger.LogInformation("VPN IP rotated");
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning(ex, "VPN rotation failed (non-critical)");
+        }
+    }
+
+    private async Task RateLimitAsync()
     {
         if (!await _rateLimiter.WaitAsync(TimeSpan.FromSeconds(60)))
             throw new TimeoutException("Rate limiter acquisition timed out after 60 seconds.");
         try
         {
+            // Rotate VPN IP every N requests
+            _requestCount++;
+            if (_requestCount >= RotateAfterRequests)
+            {
+                _requestCount = 0;
+                _rateLimiter.Release();
+                await RotateVpnAsync();
+                if (!await _rateLimiter.WaitAsync(TimeSpan.FromSeconds(60)))
+                    throw new TimeoutException("Rate limiter acquisition timed out after 60 seconds.");
+            }
+
             var elapsed = (DateTime.UtcNow - _lastRequest).TotalMilliseconds;
             if (elapsed < DelayMs)
             {
