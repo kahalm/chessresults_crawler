@@ -104,7 +104,7 @@ public class CrawlerService
     private async Task CrawlPlayersAsync(Tournament tournament, string baseUrl)
     {
         _logger.LogInformation("Crawling players for tournament {Id}", tournament.ChessResultsId);
-        var html = await FetchPageAsync(baseUrl, "art=15");
+        var html = await FetchPageAsync(baseUrl, "art=16&zeilen=99999");
         _logger.LogInformation("Fetched art=15 page, HTML length: {Length}", html.Length);
         var parsedPlayers = await _parser.ParsePlayerListAsync(html);
         _logger.LogInformation("Parsed {Count} players from HTML", parsedPlayers.Count);
