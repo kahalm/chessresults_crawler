@@ -1,10 +1,14 @@
+using System.ComponentModel.DataAnnotations;
 using ChessResultsCrawler.Models;
 
 namespace ChessResultsCrawler.DTOs;
 
 public class CrawlRequest
 {
+    [Required, MaxLength(20)]
     public required string ChessResultsId { get; set; }
+
+    [Required, MaxLength(20)]
     public string JobType { get; set; } = "Full";
 }
 

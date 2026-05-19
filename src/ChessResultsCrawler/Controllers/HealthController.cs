@@ -7,10 +7,12 @@ namespace ChessResultsCrawler.Controllers;
 public class HealthController : ControllerBase
 {
     private readonly IHttpClientFactory _httpClientFactory;
+    private readonly ILogger<HealthController> _logger;
 
-    public HealthController(IHttpClientFactory httpClientFactory)
+    public HealthController(IHttpClientFactory httpClientFactory, ILogger<HealthController> logger)
     {
         _httpClientFactory = httpClientFactory;
+        _logger = logger;
     }
 
     [HttpGet]
@@ -25,9 +27,10 @@ public class HealthController : ControllerBase
             var ip = await client.GetStringAsync("https://api.ipify.org");
             return Ok(new { ip, timestamp = DateTime.UtcNow });
         }
-        catch (Exception)
+        catch (Exception ex)
         {
-            return Ok(new { ip = "unknown", error = "Failed to retrieve IP", timestamp = DateTime.UtcNow });
+            _logger.LogWarning(ex, "Failed to retrieve external IP");
+            return StatusCode(503, new { error = "Failed to retrieve IP", timestamp = DateTime.UtcNow });
         }
     }
 }
