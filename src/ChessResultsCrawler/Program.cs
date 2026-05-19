@@ -73,6 +73,7 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
+app.UseMiddleware<ApiKeyMiddleware>();
 app.UseMiddleware<RequestLoggingMiddleware>();
 app.MapControllers();
 
