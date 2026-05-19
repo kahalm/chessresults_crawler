@@ -118,7 +118,28 @@ docker compose up --build
 
 ## Tests
 
+**Pflicht**: Jedes neue Feature, jeder neue Endpoint und jeder Bugfix MUSS mit mindestens einem Test abgedeckt werden. Kein PR/Commit ohne passenden Test.
+
 ```bash
 cd tests/ChessResultsCrawler.Tests
 dotnet test
+```
+
+### Test-Pattern
+- **InMemory DB** pro Testklasse via `UseInMemoryDatabase(Guid.NewGuid().ToString())`
+- **IDisposable** fuer DB-Cleanup
+- **xUnit `[Fact]`** / `[Theory]` Attribute
+- **Namenskonvention**: `MethodName_Scenario_ExpectedResult`
+- **Service-Tests** testen direkt gegen InMemory-DB (kein Mocking noetig)
+- **Controller mit Inline-Logik** (z.B. CrawlController, RequestLogController) werden direkt gegen DB getestet
+- **Parser-Tests** (HtmlParserService) brauchen keine DB, HTML wird als String uebergeben
+
+### Teststruktur
+```
+tests/ChessResultsCrawler.Tests/
+  Services/                HtmlParserServiceTests, HtmlParserServiceExtendedTests,
+                           TournamentServiceTests, TournamentServiceExtendedTests
+  Controllers/             CrawlControllerTests, RequestLogQueryTests
+  Models/                  EntityModelTests
+  DTOs/                    DtoMappingTests
 ```
