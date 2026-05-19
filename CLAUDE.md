@@ -18,10 +18,13 @@ RookHub API (.NET :5001)  -- proxy -->  Crawler API (.NET :8080)  -- crawl -->  
 
 **Wichtig**: Aenderungen an API-Endpoints hier muessen in RookHub's `src/api/RookHub.Api/Services/CrawlerProxyService.cs` und `src/api/RookHub.Api/Controllers/TournamentProxyController.cs` nachgezogen werden.
 
-**Wichtig**: Nach jedem Feature/Fix MUSS die Version in RookHub hochgezaehlt und der Changelog gepflegt werden:
-1. `version` und `changelog`-Array in `C:/git/rookhub/src/frontend/app/src/environments/environment.ts` aktualisieren (Patch fuer Fixes, Minor fuer Features)
-2. `Aktuelle Version` in `C:/git/rookhub/CLAUDE.md` anpassen
-3. Aenderung in RookHub committen
+**Wichtig – Checkliste vor JEDEM Commit (beide Projekte)**:
+1. [ ] Tests vorhanden fuer die Aenderung?
+2. [ ] `version` und `changelog`-Array in `C:/git/rookhub/src/frontend/app/src/environments/environment.ts` aktualisiert? (Patch fuer Fixes, Minor fuer Features)
+3. [ ] `Aktuelle Version` in `C:/git/rookhub/CLAUDE.md` angepasst?
+4. [ ] Versionsaenderung in RookHub committet?
+
+**NIEMALS committen ohne diese Checkliste abzuarbeiten.** Auch reine Test- oder Doku-Aenderungen erhoehen die Patch-Version.
 
 ## Tech Stack
 
