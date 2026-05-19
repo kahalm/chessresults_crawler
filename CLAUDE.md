@@ -13,7 +13,7 @@ RookHub API (.NET :5001)  -- proxy -->  Crawler API (.NET :8080)  -- crawl -->  
   rookhub DB (MariaDB)                 chessresults DB (MariaDB)
 ```
 
-- **chessreslults_crawler** (dieses Projekt): Backend-only REST-API. Crawlt chess-results.com und speichert Turniere, Spieler, Teams, Paarungen in eigener MariaDB (`chessresults`). Kein Frontend.
+- **chessresults_crawler** (dieses Projekt): Backend-only REST-API. Crawlt chess-results.com und speichert Turniere, Spieler, Teams, Paarungen in eigener MariaDB (`chessresults`). Kein Frontend.
 - **RookHub** (`C:/git/rookhub`): Webportal mit Angular-Frontend + eigener .NET API. Leitet Turnier-Anfragen als Proxy an diesen Crawler weiter (`CrawlerProxyService` / `TournamentProxyController`). Eigene Datenbank `rookhub`.
 
 **Wichtig**: Aenderungen an API-Endpoints hier muessen in RookHub's `src/api/RookHub.Api/Services/CrawlerProxyService.cs` und `src/api/RookHub.Api/Controllers/TournamentProxyController.cs` nachgezogen werden.

@@ -41,7 +41,7 @@ Crawler  ──>  Gluetun (WireGuard)  ──>  chess-results.com
   ```
   git/
     rookhub/
-    chessreslults_crawler/   # dieses Repo
+    chessresults_crawler/   # dieses Repo
   ```
 
 ## Schnellstart
@@ -184,7 +184,7 @@ dotnet run    # braucht MariaDB auf localhost:3306
 ## Projektstruktur
 
 ```
-chessreslults_crawler/
+chessresults_crawler/
   docker-compose.yml          Standalone mit Gluetun VPN
   src/ChessResultsCrawler/
     Controllers/              CrawlController, HealthController, TournamentsController
