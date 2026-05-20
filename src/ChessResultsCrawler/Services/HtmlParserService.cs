@@ -316,6 +316,59 @@ public class HtmlParserService
     }
 
     /// <summary>
+    /// Parses the SpielerSuche.aspx player search results page.
+    /// Returns list of players with Name, FideId, ChessResultsId (Ident-Number), Elo, Country, Title.
+    /// </summary>
+    public async Task<List<ParsedPlayerSearchResult>> ParsePlayerSearchAsync(string html)
+    {
+        var results = new List<ParsedPlayerSearchResult>();
+        var context = BrowsingContext.New(Configuration.Default);
+        var document = await context.OpenAsync(req => req.Content(html));
+
+        var table = document.QuerySelector("table.CRs1")
+            ?? document.QuerySelector("table.CRs2")
+            ?? FindTableByHeaders(document, ["Name"]);
+        if (table is null) return results;
+
+        var headerCells = table.QuerySelectorAll(":scope > tr, :scope > thead > tr, :scope > tbody > tr").FirstOrDefault()
+            ?.QuerySelectorAll("th, td")
+            .Select((cell, idx) => (Name: cell.TextContent.Trim(), Index: idx))
+            .ToList() ?? [];
+        var headers = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
+        foreach (var h in headerCells)
+        {
+            headers.TryAdd(h.Name, h.Index);
+        }
+
+        var allRows = table.QuerySelectorAll(":scope > tr, :scope > tbody > tr");
+        var rows = allRows.Skip(1);
+        foreach (var row in rows)
+        {
+            var cells = row.QuerySelectorAll(":scope > td").ToList();
+            if (cells.Count < 2) continue;
+
+            var name = GetCellValue(cells, headers, "Name");
+            if (string.IsNullOrWhiteSpace(name)) continue;
+
+            var result = new ParsedPlayerSearchResult
+            {
+                Name = name,
+                Title = GetCellValue(cells, headers, "Title") ?? GetCellValue(cells, headers, "Ti.") ?? GetCellValue(cells, headers, "Typ"),
+                FideId = GetCellValue(cells, headers, "FideID") ?? GetCellValue(cells, headers, "FIDE-ID") ?? GetCellValue(cells, headers, "Fide-ID"),
+                Country = GetCellValue(cells, headers, "FED") ?? GetCellValue(cells, headers, "Fed") ?? GetCellValue(cells, headers, "Land"),
+                ChessResultsId = GetCellValue(cells, headers, "Ident-Number") ?? GetCellValue(cells, headers, "Ident-Nummer") ?? GetCellValue(cells, headers, "Ident")
+            };
+
+            var eloText = GetCellValue(cells, headers, "Rtg") ?? GetCellValue(cells, headers, "Elo");
+            if (int.TryParse(eloText, out var elo)) result.Elo = elo;
+
+            results.Add(result);
+        }
+
+        return results;
+    }
+
+    /// <summary>
     /// Extracts the SNode (s1/s2/s3) from a redirect URL or page content.
     /// </summary>
     public static string? ExtractSNode(string url)
@@ -426,4 +479,14 @@ public class ParsedTournamentDetails
 {
     public string? DateText { get; set; }
     public string? Location { get; set; }
+}
+
+public class ParsedPlayerSearchResult
+{
+    public string Name { get; set; } = "";
+    public string? FideId { get; set; }
+    public string? ChessResultsId { get; set; }
+    public int? Elo { get; set; }
+    public string? Country { get; set; }
+    public string? Title { get; set; }
 }

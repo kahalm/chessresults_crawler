@@ -415,6 +415,23 @@ public class CrawlerService
         }
     }
 
+    public async Task<List<ParsedPlayerSearchResult>> SearchPlayersAsync(string lastName, string? firstName)
+    {
+        var url = $"https://chess-results.com/SpielerSuche.aspx?lan=0&sn={Uri.EscapeDataString(lastName)}";
+        if (!string.IsNullOrWhiteSpace(firstName))
+            url += $"&vn={Uri.EscapeDataString(firstName)}";
+
+        var (resolvedUrl, html) = await FetchWithRedirectAsync(url);
+
+        // SSRF protection: only allow chess-results.com domains
+        var resolvedUri = new Uri(resolvedUrl);
+        if (!resolvedUri.Host.EndsWith("chess-results.com", StringComparison.OrdinalIgnoreCase))
+            throw new InvalidOperationException($"Redirect to unexpected domain: {resolvedUri.Host}");
+
+        var results = await _parser.ParsePlayerSearchAsync(html);
+        return results.Take(50).ToList();
+    }
+
     private async Task RateLimitAsync()
     {
         if (!await _rateLimiter.WaitAsync(TimeSpan.FromSeconds(60)))
