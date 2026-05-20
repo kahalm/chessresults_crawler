@@ -415,15 +415,11 @@ public class CrawlerService
         }
     }
 
-    public async Task<List<ParsedPlayerSearchResult>> SearchPlayersAsync(string? lastName, string? firstName, string? identNumber = null)
+    public async Task<List<ParsedPlayerSearchResult>> SearchPlayersAsync(string lastName, string? firstName)
     {
-        var url = "https://chess-results.com/SpielerSuche.aspx?lan=0";
-        if (!string.IsNullOrWhiteSpace(lastName))
-            url += $"&sn={Uri.EscapeDataString(lastName)}";
+        var url = $"https://chess-results.com/SpielerSuche.aspx?lan=0&sn={Uri.EscapeDataString(lastName)}";
         if (!string.IsNullOrWhiteSpace(firstName))
             url += $"&vn={Uri.EscapeDataString(firstName)}";
-        if (!string.IsNullOrWhiteSpace(identNumber))
-            url += $"&in={Uri.EscapeDataString(identNumber)}";
 
         var (resolvedUrl, html) = await FetchWithRedirectAsync(url);
 

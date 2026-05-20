@@ -17,19 +17,15 @@ public class PlayerSearchController : ControllerBase
 
     [HttpGet("search")]
     public async Task<ActionResult<List<PlayerSearchResponse>>> Search(
-        [FromQuery] string? lastName, [FromQuery] string? firstName, [FromQuery] string? identNumber)
+        [FromQuery] string lastName, [FromQuery] string? firstName)
     {
-        var hasName = !string.IsNullOrWhiteSpace(lastName) && lastName.Trim().Length >= 2;
-        var hasIdent = !string.IsNullOrWhiteSpace(identNumber) && identNumber.Trim().Length >= 1;
+        if (string.IsNullOrWhiteSpace(lastName) || lastName.Trim().Length < 2)
+            return BadRequest(new { message = "lastName must be at least 2 characters." });
 
-        if (!hasName && !hasIdent)
-            return BadRequest(new { message = "lastName (min 2 chars) or identNumber required." });
-
-        if (lastName?.Length > 100) lastName = lastName[..100];
+        if (lastName.Length > 100) lastName = lastName[..100];
         if (firstName?.Length > 100) firstName = firstName[..100];
-        if (identNumber?.Length > 20) identNumber = identNumber[..20];
 
-        var results = await _crawlerService.SearchPlayersAsync(lastName?.Trim(), firstName?.Trim(), identNumber?.Trim());
+        var results = await _crawlerService.SearchPlayersAsync(lastName.Trim(), firstName?.Trim());
         return Ok(results.Select(PlayerSearchResponse.FromParsed).ToList());
     }
 }
