@@ -2,6 +2,20 @@ using ChessResultsCrawler.Services;
 
 namespace ChessResultsCrawler.DTOs;
 
+public class PlayerTournamentResponse
+{
+    public string TournamentId { get; set; } = "";
+    public string TournamentName { get; set; } = "";
+    public string? EndDate { get; set; }
+
+    public static PlayerTournamentResponse FromParsed(ParsedPlayerTournament p) => new()
+    {
+        TournamentId = p.TournamentId,
+        TournamentName = p.TournamentName,
+        EndDate = p.EndDate
+    };
+}
+
 public class PlayerSearchResponse
 {
     public string Name { get; set; } = "";

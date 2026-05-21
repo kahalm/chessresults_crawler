@@ -417,19 +417,96 @@ public class CrawlerService
 
     public async Task<List<ParsedPlayerSearchResult>> SearchPlayersAsync(string lastName, string? firstName)
     {
-        var url = $"https://chess-results.com/SpielerSuche.aspx?lan=0&sn={Uri.EscapeDataString(lastName)}";
-        if (!string.IsNullOrWhiteSpace(firstName))
-            url += $"&vn={Uri.EscapeDataString(firstName)}";
-
-        var (resolvedUrl, html) = await FetchWithRedirectAsync(url);
+        // Step 1: GET the search page to obtain ASP.NET ViewState
+        var url = "https://chess-results.com/SpielerSuche.aspx?lan=0";
+        var (resolvedUrl, formHtml) = await FetchWithRedirectAsync(url);
 
         // SSRF protection: only allow chess-results.com domains
         var resolvedUri = new Uri(resolvedUrl);
         if (!resolvedUri.Host.EndsWith("chess-results.com", StringComparison.OrdinalIgnoreCase))
             throw new InvalidOperationException($"Redirect to unexpected domain: {resolvedUri.Host}");
 
-        var results = await _parser.ParsePlayerSearchAsync(html);
-        return results.Take(50).ToList();
+        // Step 2: Extract hidden form fields (__VIEWSTATE, __EVENTVALIDATION, __VIEWSTATEGENERATOR)
+        var viewState = ExtractHiddenField(formHtml, "__VIEWSTATE");
+        var eventValidation = ExtractHiddenField(formHtml, "__EVENTVALIDATION");
+        var viewStateGenerator = ExtractHiddenField(formHtml, "__VIEWSTATEGENERATOR");
+
+        // Step 3: POST the search form
+        var formData = new Dictionary<string, string>
+        {
+            ["__VIEWSTATE"] = viewState ?? "",
+            ["__EVENTVALIDATION"] = eventValidation ?? "",
+            ["__VIEWSTATEGENERATOR"] = viewStateGenerator ?? "",
+            ["ctl00$P1$txt_nachname"] = lastName,
+            ["ctl00$P1$txt_vorname"] = firstName ?? "",
+            ["ctl00$P1$cb_suchen"] = "Suchen"
+        };
+
+        await RateLimitAsync();
+        var content = new FormUrlEncodedContent(formData);
+        var response = await _httpClient.PostAsync(resolvedUrl, content);
+        response.EnsureSuccessStatusCode();
+
+        var resultHtml = await response.Content.ReadAsStringAsync();
+        var results = await _parser.ParsePlayerSearchAsync(resultHtml);
+
+        // Deduplicate: SpielerSuche returns one row per tournament per player
+        // Prefer entries with a real ChessResultsId (not "0" or empty)
+        var deduplicated = results
+            .GroupBy(r => r.Name)
+            .Select(g => g.FirstOrDefault(r => !string.IsNullOrWhiteSpace(r.ChessResultsId) && r.ChessResultsId != "0") ?? g.First())
+            .Take(50)
+            .ToList();
+
+        return deduplicated;
+    }
+
+    public async Task<List<ParsedPlayerTournament>> SearchPlayerTournamentsAsync(string lastName, string? firstName)
+    {
+        // Same POST flow as SearchPlayersAsync
+        var url = "https://chess-results.com/SpielerSuche.aspx?lan=0";
+        var (resolvedUrl, formHtml) = await FetchWithRedirectAsync(url);
+
+        var resolvedUri = new Uri(resolvedUrl);
+        if (!resolvedUri.Host.EndsWith("chess-results.com", StringComparison.OrdinalIgnoreCase))
+            throw new InvalidOperationException($"Redirect to unexpected domain: {resolvedUri.Host}");
+
+        var viewState = ExtractHiddenField(formHtml, "__VIEWSTATE");
+        var eventValidation = ExtractHiddenField(formHtml, "__EVENTVALIDATION");
+        var viewStateGenerator = ExtractHiddenField(formHtml, "__VIEWSTATEGENERATOR");
+
+        var formData = new Dictionary<string, string>
+        {
+            ["__VIEWSTATE"] = viewState ?? "",
+            ["__EVENTVALIDATION"] = eventValidation ?? "",
+            ["__VIEWSTATEGENERATOR"] = viewStateGenerator ?? "",
+            ["ctl00$P1$txt_nachname"] = lastName,
+            ["ctl00$P1$txt_vorname"] = firstName ?? "",
+            ["ctl00$P1$cb_suchen"] = "Suchen"
+        };
+
+        await RateLimitAsync();
+        var content = new FormUrlEncodedContent(formData);
+        var response = await _httpClient.PostAsync(resolvedUrl, content);
+        response.EnsureSuccessStatusCode();
+
+        var resultHtml = await response.Content.ReadAsStringAsync();
+        var results = await _parser.ParsePlayerTournamentsAsync(resultHtml);
+
+        // Deduplicate and limit
+        return results
+            .GroupBy(r => r.TournamentId)
+            .Select(g => g.First())
+            .Take(50)
+            .ToList();
+    }
+
+    private static string? ExtractHiddenField(string html, string fieldName)
+    {
+        // Match: name="fieldName" ... value="..."
+        var pattern = $"name=\"{fieldName}\"[^>]*value=\"([^\"]*)\"";
+        var match = System.Text.RegularExpressions.Regex.Match(html, pattern);
+        return match.Success ? System.Net.WebUtility.HtmlDecode(match.Groups[1].Value) : null;
     }
 
     private async Task RateLimitAsync()
