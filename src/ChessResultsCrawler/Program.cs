@@ -65,6 +65,27 @@ using (var scope = app.Services.CreateScope())
     {
         // Columns may already exist — safe to ignore
     }
+
+    // Add player detail fields to PlayerResults (for existing DBs)
+    try
+    {
+        await db.Database.ExecuteSqlRawAsync("""
+            ALTER TABLE PlayerResults ADD COLUMN IF NOT EXISTS OpponentSnr INT NULL
+            """);
+        await db.Database.ExecuteSqlRawAsync("""
+            ALTER TABLE PlayerResults ADD COLUMN IF NOT EXISTS OpponentName VARCHAR(500) NULL
+            """);
+        await db.Database.ExecuteSqlRawAsync("""
+            ALTER TABLE PlayerResults ADD COLUMN IF NOT EXISTS OpponentElo INT NULL
+            """);
+        await db.Database.ExecuteSqlRawAsync("""
+            ALTER TABLE PlayerResults ADD COLUMN IF NOT EXISTS Points VARCHAR(10) NULL
+            """);
+    }
+    catch
+    {
+        // Columns may already exist — safe to ignore
+    }
 }
 
 if (app.Environment.IsDevelopment())

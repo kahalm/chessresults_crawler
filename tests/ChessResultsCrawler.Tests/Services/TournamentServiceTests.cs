@@ -241,4 +241,51 @@ public class TournamentServiceTests : IDisposable
         Assert.Single(result);
         Assert.Equal(r1.Id, result[0].RoundId);
     }
+
+    [Fact]
+    public async Task GetPlayerResultsAsync_ReturnsSortedByRound()
+    {
+        var t = new Tournament { ChessResultsId = "1", Name = "T" };
+        _db.Tournaments.Add(t);
+        await _db.SaveChangesAsync();
+
+        var player = new Player { TournamentId = t.Id, Snr = 5, Name = "Test Player" };
+        _db.Players.Add(player);
+        await _db.SaveChangesAsync();
+
+        var r3 = new Round { TournamentId = t.Id, RoundNumber = 3 };
+        var r1 = new Round { TournamentId = t.Id, RoundNumber = 1 };
+        _db.Rounds.AddRange(r3, r1);
+        await _db.SaveChangesAsync();
+
+        _db.PlayerResults.Add(new PlayerResult
+        {
+            RoundId = r3.Id, PlayerId = player.Id, BoardNumber = 1,
+            Result = "1", OpponentName = "Opponent3", Points = "2"
+        });
+        _db.PlayerResults.Add(new PlayerResult
+        {
+            RoundId = r1.Id, PlayerId = player.Id, BoardNumber = 3,
+            Result = "0", OpponentName = "Opponent1", Points = "0"
+        });
+        await _db.SaveChangesAsync();
+
+        var results = await _service.GetPlayerResultsAsync(t.Id, 5);
+
+        Assert.Equal(2, results.Count);
+        Assert.Equal(1, results[0].Round.RoundNumber);
+        Assert.Equal(3, results[1].Round.RoundNumber);
+    }
+
+    [Fact]
+    public async Task GetPlayerResultsAsync_NoResults_ReturnsEmpty()
+    {
+        var t = new Tournament { ChessResultsId = "1", Name = "T" };
+        _db.Tournaments.Add(t);
+        await _db.SaveChangesAsync();
+
+        var results = await _service.GetPlayerResultsAsync(t.Id, 999);
+
+        Assert.Empty(results);
+    }
 }

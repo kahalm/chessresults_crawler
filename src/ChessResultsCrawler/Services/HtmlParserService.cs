@@ -448,6 +448,69 @@ public class HtmlParserService
     }
 
     /// <summary>
+    /// Parses art=9 page (player detail / Einzelergebnisse).
+    /// Columns: Rd. | Br. | Snr | Name | Elo | Land | Verein/Ort | Pkt. | Erg.
+    /// Returns list of parsed results per round.
+    /// </summary>
+    public async Task<List<ParsedPlayerResult>> ParsePlayerDetailPageAsync(string html)
+    {
+        var results = new List<ParsedPlayerResult>();
+        var context = BrowsingContext.New(Configuration.Default);
+        var document = await context.OpenAsync(req => req.Content(html));
+
+        var table = document.QuerySelector("table.CRs1")
+            ?? document.QuerySelector("table.CRs2")
+            ?? FindTableByHeaders(document, ["Rd.", "Name"]);
+        if (table is null)
+        {
+            // Try German header variant
+            table = FindTableByHeaders(document, ["Rd.", "Erg."]);
+            if (table is null) return results;
+        }
+
+        var headerCells = table.QuerySelectorAll(":scope > tr, :scope > thead > tr, :scope > tbody > tr").FirstOrDefault()
+            ?.QuerySelectorAll("th, td")
+            .Select((cell, idx) => (Name: cell.TextContent.Trim(), Index: idx))
+            .ToList() ?? [];
+        var headers = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
+        foreach (var h in headerCells)
+        {
+            headers.TryAdd(h.Name, h.Index);
+        }
+
+        var allRows = table.QuerySelectorAll(":scope > tr, :scope > tbody > tr");
+        var rows = allRows.Skip(1);
+        foreach (var row in rows)
+        {
+            var cells = row.QuerySelectorAll(":scope > td").ToList();
+            if (cells.Count < 3) continue;
+
+            var rdText = GetCellValue(cells, headers, "Rd.");
+            if (!int.TryParse(rdText, out var roundNumber)) continue;
+
+            var result = new ParsedPlayerResult { RoundNumber = roundNumber };
+
+            var boardText = GetCellValue(cells, headers, "Br.") ?? GetCellValue(cells, headers, "Bo.");
+            if (int.TryParse(boardText, out var board)) result.BoardNumber = board;
+
+            var snrText = GetCellValue(cells, headers, "SNr") ?? GetCellValue(cells, headers, "SNo");
+            if (int.TryParse(snrText, out var snr)) result.OpponentSnr = snr;
+
+            result.OpponentName = GetCellValue(cells, headers, "Name");
+
+            var eloText = GetCellValue(cells, headers, "Rtg") ?? GetCellValue(cells, headers, "Elo");
+            if (int.TryParse(eloText, out var elo)) result.OpponentElo = elo;
+
+            result.Points = GetCellValue(cells, headers, "Pkt.") ?? GetCellValue(cells, headers, "Pts.");
+            result.Result = GetCellValue(cells, headers, "Erg.") ?? GetCellValue(cells, headers, "Res.");
+
+            results.Add(result);
+        }
+
+        return results;
+    }
+
+    /// <summary>
     /// Extracts the SNode (s1/s2/s3) from a redirect URL or page content.
     /// </summary>
     public static string? ExtractSNode(string url)
@@ -575,4 +638,15 @@ public class ParsedPlayerSearchResult
     public int? Elo { get; set; }
     public string? Country { get; set; }
     public string? Title { get; set; }
+}
+
+public class ParsedPlayerResult
+{
+    public int RoundNumber { get; set; }
+    public int BoardNumber { get; set; }
+    public int? OpponentSnr { get; set; }
+    public string? OpponentName { get; set; }
+    public int? OpponentElo { get; set; }
+    public string? Points { get; set; }
+    public string? Result { get; set; }
 }

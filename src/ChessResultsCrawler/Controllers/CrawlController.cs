@@ -80,6 +80,51 @@ public class CrawlController : ControllerBase
     }
 
     /// <summary>
+    /// Crawl player detail pages (art=9) for specific player SNRs.
+    /// </summary>
+    [HttpPost("player-details")]
+    public async Task<IActionResult> CrawlPlayerDetails([FromBody] PlayerDetailCrawlRequest request)
+    {
+        // Normalize ChessResultsId
+        var chessResultsId = Regex.Replace(request.ChessResultsId.Trim(), @"^(.*tnr)", "", RegexOptions.IgnoreCase)
+            .Replace(".aspx", "").Split('?')[0].Trim();
+
+        if (!Regex.IsMatch(chessResultsId, @"^\d{1,10}$"))
+            return BadRequest(new { error = "Invalid ChessResultsId. Only numeric IDs (1-10 digits) are allowed." });
+
+        if (request.PlayerSnrs is null || request.PlayerSnrs.Count == 0)
+            return BadRequest(new { error = "PlayerSnrs must contain at least one SNR." });
+
+        if (request.PlayerSnrs.Count > 50)
+            return BadRequest(new { error = "Maximum 50 player SNRs per request." });
+
+        // Verify tournament exists
+        var tournament = await _db.Tournaments
+            .FirstOrDefaultAsync(t => t.ChessResultsId == chessResultsId);
+        if (tournament is null)
+            return NotFound(new { error = $"Tournament '{chessResultsId}' not found. Crawl the tournament first." });
+
+        // Run in background
+        var scopeFactory = _scopeFactory;
+        var snrs = request.PlayerSnrs.Distinct().ToList();
+        _ = Task.Run(async () =>
+        {
+            try
+            {
+                using var scope = scopeFactory.CreateScope();
+                var crawler = scope.ServiceProvider.GetRequiredService<CrawlerService>();
+                await crawler.CrawlPlayerDetailsAsync(chessResultsId, snrs);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Background player detail crawl failed for {ChessResultsId}", chessResultsId);
+            }
+        });
+
+        return Accepted(new { message = $"Player detail crawl started for {snrs.Count} player(s).", chessResultsId, playerSnrs = snrs });
+    }
+
+    /// <summary>
     /// Get the status of a crawl job.
     /// </summary>
     [HttpGet("{jobId:int}")]

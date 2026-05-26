@@ -129,3 +129,31 @@ public class RoundResponse
         ResultsPublished = r.ResultsPublished
     };
 }
+
+public class PlayerResultResponse
+{
+    public int Id { get; set; }
+    public int RoundNumber { get; set; }
+    public int BoardNumber { get; set; }
+    public int PlayerSnr { get; set; }
+    public string PlayerName { get; set; } = "";
+    public int? OpponentSnr { get; set; }
+    public string? OpponentName { get; set; }
+    public int? OpponentElo { get; set; }
+    public string? Points { get; set; }
+    public string? Result { get; set; }
+
+    public static PlayerResultResponse FromEntity(PlayerResult pr) => new()
+    {
+        Id = pr.Id,
+        RoundNumber = pr.Round?.RoundNumber ?? 0,
+        BoardNumber = pr.BoardNumber,
+        PlayerSnr = pr.Player?.Snr ?? 0,
+        PlayerName = pr.Player?.Name ?? "",
+        OpponentSnr = pr.OpponentSnr,
+        OpponentName = pr.OpponentName,
+        OpponentElo = pr.OpponentElo,
+        Points = pr.Points,
+        Result = pr.Result
+    };
+}

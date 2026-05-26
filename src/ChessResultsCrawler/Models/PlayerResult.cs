@@ -7,6 +7,10 @@ public class PlayerResult
     public int PlayerId { get; set; }
     public int BoardNumber { get; set; }
     public string? Result { get; set; }
+    public int? OpponentSnr { get; set; }
+    public string? OpponentName { get; set; }
+    public int? OpponentElo { get; set; }
+    public string? Points { get; set; }
 
     public Round Round { get; set; } = null!;
     public Player Player { get; set; } = null!;

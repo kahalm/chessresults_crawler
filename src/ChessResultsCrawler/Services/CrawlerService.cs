@@ -105,6 +105,9 @@ public class CrawlerService
                 case CrawlJobType.CheckNewRounds:
                     // Handled by RoundDetectionService
                     break;
+                case CrawlJobType.PlayerDetails:
+                    // Handled by CrawlPlayerDetailsAsync (called directly)
+                    break;
             }
 
             await _db.SaveChangesAsync();
@@ -121,6 +124,97 @@ public class CrawlerService
 
         await _db.SaveChangesAsync();
         return job;
+    }
+
+    public async Task CrawlPlayerDetailsAsync(string chessResultsId, List<int> playerSnrs)
+    {
+        var tournament = await _db.Tournaments
+            .FirstOrDefaultAsync(t => t.ChessResultsId == chessResultsId);
+
+        if (tournament?.BaseUrl is null)
+        {
+            _logger.LogWarning("Tournament {Id} not found or has no BaseUrl for player detail crawl", chessResultsId);
+            return;
+        }
+
+        var baseUrl = tournament.BaseUrl;
+
+        // Load players for this tournament (map Snr -> Player entity)
+        var playersBySnr = await _db.Players
+            .Where(p => p.TournamentId == tournament.Id)
+            .ToDictionaryAsync(p => p.Snr);
+
+        // Load rounds for this tournament (map RoundNumber -> Round entity)
+        var roundsByNumber = await _db.Rounds
+            .Where(r => r.TournamentId == tournament.Id)
+            .ToDictionaryAsync(r => r.RoundNumber);
+
+        foreach (var snr in playerSnrs)
+        {
+            try
+            {
+                if (!playersBySnr.TryGetValue(snr, out var player))
+                {
+                    _logger.LogWarning("Player SNR {Snr} not found in tournament {Id}", snr, chessResultsId);
+                    continue;
+                }
+
+                var html = await FetchPageAsync(baseUrl, $"art=9&snr={snr}");
+                var parsed = await _parser.ParsePlayerDetailPageAsync(html);
+
+                foreach (var pr in parsed)
+                {
+                    if (!roundsByNumber.TryGetValue(pr.RoundNumber, out var round))
+                    {
+                        round = new Round
+                        {
+                            TournamentId = tournament.Id,
+                            RoundNumber = pr.RoundNumber,
+                            PairingsPublished = true
+                        };
+                        _db.Rounds.Add(round);
+                        await _db.SaveChangesAsync();
+                        roundsByNumber[pr.RoundNumber] = round;
+                    }
+
+                    var existing = await _db.PlayerResults
+                        .FirstOrDefaultAsync(r => r.RoundId == round.Id && r.PlayerId == player.Id);
+
+                    if (existing is not null)
+                    {
+                        existing.BoardNumber = pr.BoardNumber;
+                        existing.Result = pr.Result;
+                        existing.OpponentSnr = pr.OpponentSnr;
+                        existing.OpponentName = pr.OpponentName;
+                        existing.OpponentElo = pr.OpponentElo;
+                        existing.Points = pr.Points;
+                    }
+                    else
+                    {
+                        _db.PlayerResults.Add(new PlayerResult
+                        {
+                            RoundId = round.Id,
+                            PlayerId = player.Id,
+                            BoardNumber = pr.BoardNumber,
+                            Result = pr.Result,
+                            OpponentSnr = pr.OpponentSnr,
+                            OpponentName = pr.OpponentName,
+                            OpponentElo = pr.OpponentElo,
+                            Points = pr.Points
+                        });
+                    }
+                }
+
+                await _db.SaveChangesAsync();
+                _logger.LogInformation("Crawled {Count} results for player SNR {Snr} in tournament {Id}",
+                    parsed.Count, snr, chessResultsId);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(ex, "Error crawling details for player SNR {Snr} in tournament {Id}",
+                    snr, chessResultsId);
+            }
+        }
     }
 
     private async Task CrawlPlayersAsync(Tournament tournament, string baseUrl)

@@ -12,6 +12,15 @@ public class CrawlRequest
     public string JobType { get; set; } = "Full";
 }
 
+public class PlayerDetailCrawlRequest
+{
+    [Required, MaxLength(20)]
+    public required string ChessResultsId { get; set; }
+
+    [Required]
+    public required List<int> PlayerSnrs { get; set; }
+}
+
 public class CrawlJobResponse
 {
     public int Id { get; set; }

@@ -334,6 +334,91 @@ public class HtmlParserServiceTests
 
     #endregion
 
+    #region ParsePlayerDetailPageAsync
+
+    [Fact]
+    public async Task ParsePlayerDetailPageAsync_StandardTable_ParsesAllResults()
+    {
+        var html = BuildPlayerDetailHtml([
+            ("1", "5", "3", "Carlsen, Magnus", "2830", "NOR", "Team A", "1", "1"),
+            ("2", "2", "7", "Caruana, Fabiano", "2786", "USA", "Team B", "1,5", "½"),
+            ("3", "1", "12", "Doe, John", "2450", "GER", "Team C", "2", "½"),
+        ]);
+
+        var results = await _parser.ParsePlayerDetailPageAsync(html);
+
+        Assert.Equal(3, results.Count);
+        Assert.Equal(1, results[0].RoundNumber);
+        Assert.Equal(5, results[0].BoardNumber);
+        Assert.Equal(3, results[0].OpponentSnr);
+        Assert.Equal("Carlsen, Magnus", results[0].OpponentName);
+        Assert.Equal(2830, results[0].OpponentElo);
+        Assert.Equal("1", results[0].Points);
+        Assert.Equal("1", results[0].Result);
+
+        Assert.Equal(2, results[1].RoundNumber);
+        Assert.Equal("½", results[1].Result);
+        Assert.Equal("1,5", results[1].Points);
+    }
+
+    [Fact]
+    public async Task ParsePlayerDetailPageAsync_ByeRound_SkipsNonNumericRd()
+    {
+        // A bye row might not have a valid Rd number
+        var html = @"<html><body><table class='CRs1'>
+            <tr><th>Rd.</th><th>Br.</th><th>SNr</th><th>Name</th><th>Rtg</th><th>FED</th><th>Verein/Ort</th><th>Pkt.</th><th>Erg.</th></tr>
+            <tr><td>1</td><td>3</td><td>5</td><td>Opponent One</td><td>2200</td><td>GER</td><td>Club</td><td>1</td><td>1</td></tr>
+            <tr><td></td><td></td><td></td><td>bye</td><td></td><td></td><td></td><td>2</td><td>+</td></tr>
+            <tr><td>3</td><td>1</td><td>8</td><td>Opponent Two</td><td>2100</td><td>AUT</td><td>Club2</td><td>2,5</td><td>½</td></tr>
+            </table></body></html>";
+
+        var results = await _parser.ParsePlayerDetailPageAsync(html);
+
+        Assert.Equal(2, results.Count);
+        Assert.Equal(1, results[0].RoundNumber);
+        Assert.Equal(3, results[1].RoundNumber);
+    }
+
+    [Fact]
+    public async Task ParsePlayerDetailPageAsync_EmptyHtml_ReturnsEmpty()
+    {
+        var html = "<html><body></body></html>";
+
+        var results = await _parser.ParsePlayerDetailPageAsync(html);
+
+        Assert.Empty(results);
+    }
+
+    [Fact]
+    public async Task ParsePlayerDetailPageAsync_FreilosDash_ParsesResult()
+    {
+        var html = @"<html><body><table class='CRs1'>
+            <tr><th>Rd.</th><th>Br.</th><th>SNr</th><th>Name</th><th>Rtg</th><th>FED</th><th>Verein/Ort</th><th>Pkt.</th><th>Erg.</th></tr>
+            <tr><td>1</td><td></td><td></td><td></td><td></td><td></td><td></td><td>1</td><td>-</td></tr>
+            </table></body></html>";
+
+        var results = await _parser.ParsePlayerDetailPageAsync(html);
+
+        Assert.Single(results);
+        Assert.Equal("-", results[0].Result);
+        Assert.Null(results[0].OpponentSnr);
+        Assert.Null(results[0].OpponentName);
+    }
+
+    #endregion
+
+    private static string BuildPlayerDetailHtml(
+        (string rd, string br, string snr, string name, string elo, string fed, string club, string pts, string result)[] rows)
+    {
+        var rowsHtml = string.Join("\n", rows.Select(r =>
+            $"<tr><td>{r.rd}</td><td>{r.br}</td><td>{r.snr}</td><td>{r.name}</td><td>{r.elo}</td><td>{r.fed}</td><td>{r.club}</td><td>{r.pts}</td><td>{r.result}</td></tr>"));
+
+        return $@"<html><body><table class='CRs1'>
+            <tr><th>Rd.</th><th>Br.</th><th>SNr</th><th>Name</th><th>Rtg</th><th>FED</th><th>Verein/Ort</th><th>Pkt.</th><th>Erg.</th></tr>
+            {rowsHtml}
+            </table></body></html>";
+    }
+
     private static string BuildPlayerListHtml(
         (string nr, string title, string name, string fideId, string elo, string country, string team, string board)[] rows)
     {

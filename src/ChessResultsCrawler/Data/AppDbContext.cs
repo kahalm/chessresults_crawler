@@ -105,7 +105,10 @@ public class AppDbContext : DbContext
 
         modelBuilder.Entity<PlayerResult>(e =>
         {
+            e.HasIndex(pr => new { pr.RoundId, pr.PlayerId }).IsUnique();
             e.Property(pr => pr.Result).HasMaxLength(10);
+            e.Property(pr => pr.OpponentName).HasMaxLength(500);
+            e.Property(pr => pr.Points).HasMaxLength(10);
             e.HasOne(pr => pr.Round)
                 .WithMany(r => r.PlayerResults)
                 .HasForeignKey(pr => pr.RoundId)

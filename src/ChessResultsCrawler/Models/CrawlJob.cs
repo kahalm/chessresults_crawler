@@ -5,7 +5,8 @@ public enum CrawlJobType
     Full,
     PlayersOnly,
     PairingsOnly,
-    CheckNewRounds
+    CheckNewRounds,
+    PlayerDetails
 }
 
 public enum CrawlJobStatus

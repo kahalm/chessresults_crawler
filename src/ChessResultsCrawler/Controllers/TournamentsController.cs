@@ -113,6 +113,16 @@ public class TournamentsController : ControllerBase
         return Ok(rounds.Select(RoundResponse.FromEntity));
     }
 
+    [HttpGet("{id}/players/{snr:int}/results")]
+    public async Task<IActionResult> GetPlayerResults(string id, int snr)
+    {
+        var tournament = await ResolveTournamentAsync(id);
+        if (tournament is null) return NotFound();
+
+        var results = await _service.GetPlayerResultsAsync(tournament.Id, snr);
+        return Ok(results.Select(PlayerResultResponse.FromEntity));
+    }
+
     [HttpGet("{id}/rounds/check")]
     public async Task<IActionResult> CheckNewRounds(string id)
     {

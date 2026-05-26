@@ -147,4 +147,14 @@ public class TournamentService
             .OrderBy(r => r.RoundNumber)
             .ToListAsync();
     }
+
+    public async Task<List<PlayerResult>> GetPlayerResultsAsync(int tournamentId, int playerSnr)
+    {
+        return await _db.PlayerResults
+            .Include(pr => pr.Round)
+            .Include(pr => pr.Player)
+            .Where(pr => pr.Player.TournamentId == tournamentId && pr.Player.Snr == playerSnr)
+            .OrderBy(pr => pr.Round.RoundNumber)
+            .ToListAsync();
+    }
 }
