@@ -102,6 +102,29 @@ tests/ChessResultsCrawler.Tests/
 - **Hintergrund-Jobs**: Async-Ausfuehrung mit eigenem Service-Scope, Status-Tracking in CrawlJobs-Tabelle
 - **Upsert-Logik**: Re-Crawl ueberschreibt bestehende Paarungen pro Runde
 
+## EF Core Migrations
+
+Die Datenbank nutzt EF Core Migrations (statt `EnsureCreated()`). Auto-Migration ist in `Program.cs` aktiv.
+
+```bash
+cd src/ChessResultsCrawler
+dotnet ef migrations add <MigrationName>    # Nutzt DesignTimeDbContextFactory
+dotnet ef database update                   # Braucht laufende MariaDB
+```
+
+### Upgrade von EnsureCreated auf Migrate (einmalig)
+
+Bestehende Datenbanken, die mit `EnsureCreated()` angelegt wurden, haben eine leere `__EFMigrationsHistory`-Tabelle. Beim ersten Start mit `Migrate()` versucht die InitialCreate-Migration alle Tabellen neu anzulegen und schlaegt fehl ("Table already exists").
+
+**Fix**: Vor dem ersten Start mit Migrations muss die InitialCreate-Migration manuell als "angewendet" markiert werden:
+
+```sql
+INSERT INTO __EFMigrationsHistory (MigrationId, ProductVersion)
+VALUES ('20260527165801_InitialCreate', '9.0.0');
+```
+
+Danach startet der Crawler normal und wendet nur zukuenftige Migrations an.
+
 ## Lokales Development
 
 Der komplette Stack (Crawler + RookHub) wird ueber RookHub's Compose-Dateien gestartet:
