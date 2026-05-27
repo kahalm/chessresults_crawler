@@ -37,55 +37,7 @@ var app = builder.Build();
 using (var scope = app.Services.CreateScope())
 {
     var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-    db.Database.EnsureCreated();
-
-    // Add ResponseBody column to RequestLogs if it doesn't exist (for existing DBs)
-    try
-    {
-        await db.Database.ExecuteSqlRawAsync("""
-            ALTER TABLE RequestLogs ADD COLUMN IF NOT EXISTS ResponseBody LONGTEXT NULL
-            """);
-    }
-    catch
-    {
-        // Column may already exist or table may not exist yet — safe to ignore
-    }
-
-    // Add Location and DateText columns to Tournaments (for existing DBs)
-    try
-    {
-        await db.Database.ExecuteSqlRawAsync("""
-            ALTER TABLE Tournaments ADD COLUMN IF NOT EXISTS Location VARCHAR(500) NULL
-            """);
-        await db.Database.ExecuteSqlRawAsync("""
-            ALTER TABLE Tournaments ADD COLUMN IF NOT EXISTS DateText VARCHAR(100) NULL
-            """);
-    }
-    catch
-    {
-        // Columns may already exist — safe to ignore
-    }
-
-    // Add player detail fields to PlayerResults (for existing DBs)
-    try
-    {
-        await db.Database.ExecuteSqlRawAsync("""
-            ALTER TABLE PlayerResults ADD COLUMN IF NOT EXISTS OpponentSnr INT NULL
-            """);
-        await db.Database.ExecuteSqlRawAsync("""
-            ALTER TABLE PlayerResults ADD COLUMN IF NOT EXISTS OpponentName VARCHAR(500) NULL
-            """);
-        await db.Database.ExecuteSqlRawAsync("""
-            ALTER TABLE PlayerResults ADD COLUMN IF NOT EXISTS OpponentElo INT NULL
-            """);
-        await db.Database.ExecuteSqlRawAsync("""
-            ALTER TABLE PlayerResults ADD COLUMN IF NOT EXISTS Points VARCHAR(10) NULL
-            """);
-    }
-    catch
-    {
-        // Columns may already exist — safe to ignore
-    }
+    db.Database.Migrate();
 }
 
 if (app.Environment.IsDevelopment())
