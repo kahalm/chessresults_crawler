@@ -10,6 +10,7 @@ namespace ChessResultsCrawler.Services;
 public class CrawlerService
 {
     private readonly HttpClient _httpClient;
+    private readonly HttpClient _gluetunClient;
     private readonly HtmlParserService _parser;
     private readonly AppDbContext _db;
     private readonly ILogger<CrawlerService> _logger;
@@ -22,10 +23,11 @@ public class CrawlerService
     private const int VpnRestartPauseMs = 3000;
     private const int RotateAfterRequests = 20;
 
-    public CrawlerService(HttpClient httpClient, HtmlParserService parser, AppDbContext db,
+    public CrawlerService(HttpClient httpClient, IHttpClientFactory httpClientFactory, HtmlParserService parser, AppDbContext db,
         ILogger<CrawlerService> logger, IConfiguration configuration)
     {
         _httpClient = httpClient;
+        _gluetunClient = httpClientFactory.CreateClient("Gluetun");
         _parser = parser;
         _db = db;
         _logger = logger;
@@ -498,9 +500,9 @@ public class CrawlerService
             var startContent = new StringContent("""{"status":"running"}""", Encoding.UTF8, "application/json");
 
             _logger.LogInformation("Rotating VPN IP...");
-            await _httpClient.PutAsync(statusUrl, stopContent);
+            await _gluetunClient.PutAsync(statusUrl, stopContent);
             await Task.Delay(VpnRestartPauseMs);
-            await _httpClient.PutAsync(statusUrl, startContent);
+            await _gluetunClient.PutAsync(statusUrl, startContent);
             _logger.LogInformation("VPN IP rotated");
         }
         catch (Exception ex)
@@ -609,15 +611,12 @@ public class CrawlerService
             throw new TimeoutException("Rate limiter acquisition timed out after 60 seconds.");
         try
         {
-            // Rotate VPN IP every N requests
+            // Rotate VPN IP every N requests (keep semaphore held during rotation)
             _requestCount++;
             if (_requestCount >= RotateAfterRequests)
             {
                 _requestCount = 0;
-                _rateLimiter.Release();
                 await RotateVpnAsync();
-                if (!await _rateLimiter.WaitAsync(TimeSpan.FromSeconds(60)))
-                    throw new TimeoutException("Rate limiter acquisition timed out after 60 seconds.");
             }
 
             var elapsed = (DateTime.UtcNow - _lastRequest).TotalMilliseconds;

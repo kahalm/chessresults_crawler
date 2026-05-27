@@ -2,6 +2,7 @@ using System.Diagnostics;
 using System.Security.Claims;
 using ChessResultsCrawler.Data;
 using ChessResultsCrawler.Models;
+using ChessResultsCrawler.Services;
 
 namespace ChessResultsCrawler.Middleware;
 
@@ -9,7 +10,6 @@ public class RequestLoggingMiddleware
 {
     private readonly RequestDelegate _next;
 
-    private const int MaxResponseBodyLength = 64 * 1024; // 64 KB
     private static readonly string[] ExcludedPrefixes = ["/health", "/swagger"];
 
     public RequestLoggingMiddleware(RequestDelegate next)
@@ -17,7 +17,7 @@ public class RequestLoggingMiddleware
         _next = next;
     }
 
-    public async Task InvokeAsync(HttpContext context, IServiceScopeFactory scopeFactory)
+    public async Task InvokeAsync(HttpContext context, IServiceScopeFactory scopeFactory, IBackgroundTaskQueue taskQueue)
     {
         var path = context.Request.Path.Value ?? string.Empty;
 
@@ -29,33 +29,9 @@ public class RequestLoggingMiddleware
 
         var stopwatch = Stopwatch.StartNew();
 
-        // Replace response stream to capture the body
-        var originalBodyStream = context.Response.Body;
-        using var memoryStream = new MemoryStream();
-        context.Response.Body = memoryStream;
-
         await _next(context);
 
         stopwatch.Stop();
-
-        // Read response body if JSON
-        string? responseBody = null;
-        var contentType = context.Response.ContentType;
-        if (contentType != null && contentType.Contains("application/json", StringComparison.OrdinalIgnoreCase))
-        {
-            memoryStream.Seek(0, SeekOrigin.Begin);
-            using var reader = new StreamReader(memoryStream, leaveOpen: true);
-            var body = await reader.ReadToEndAsync();
-            if (body.Length > MaxResponseBodyLength)
-                responseBody = body[..MaxResponseBodyLength];
-            else
-                responseBody = body;
-        }
-
-        // Copy response back to original stream
-        memoryStream.Seek(0, SeekOrigin.Begin);
-        await memoryStream.CopyToAsync(originalBodyStream);
-        context.Response.Body = originalBodyStream;
 
         var log = new RequestLog
         {
@@ -67,23 +43,14 @@ public class RequestLoggingMiddleware
             UserId = ParseUserId(context.User),
             IpAddress = context.Connection.RemoteIpAddress?.ToString(),
             StatusCode = context.Response.StatusCode,
-            DurationMs = stopwatch.ElapsedMilliseconds,
-            ResponseBody = responseBody
+            DurationMs = stopwatch.ElapsedMilliseconds
         };
 
-        _ = Task.Run(async () =>
+        taskQueue.TryEnqueue(async (sp, ct) =>
         {
-            try
-            {
-                using var scope = scopeFactory.CreateScope();
-                var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-                db.RequestLogs.Add(log);
-                await db.SaveChangesAsync();
-            }
-            catch
-            {
-                // Logging failures must not affect request processing
-            }
+            var db = sp.GetRequiredService<AppDbContext>();
+            db.RequestLogs.Add(log);
+            await db.SaveChangesAsync(ct);
         });
     }
 

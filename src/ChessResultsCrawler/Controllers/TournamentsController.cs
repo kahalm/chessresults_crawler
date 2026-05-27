@@ -140,6 +140,6 @@ public class TournamentsController : ControllerBase
             return await _service.GetTournamentAsync(intId)
                 ?? await _service.GetTournamentByChessResultsIdAsync(id);
         }
-        return null;
+        return await _service.GetTournamentByChessResultsIdAsync(id);
     }
 }

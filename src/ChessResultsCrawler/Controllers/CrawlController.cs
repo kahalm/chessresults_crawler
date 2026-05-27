@@ -13,13 +13,13 @@ namespace ChessResultsCrawler.Controllers;
 public class CrawlController : ControllerBase
 {
     private readonly AppDbContext _db;
-    private readonly IServiceScopeFactory _scopeFactory;
+    private readonly IBackgroundTaskQueue _taskQueue;
     private readonly ILogger<CrawlController> _logger;
 
-    public CrawlController(AppDbContext db, IServiceScopeFactory scopeFactory, ILogger<CrawlController> logger)
+    public CrawlController(AppDbContext db, IBackgroundTaskQueue taskQueue, ILogger<CrawlController> logger)
     {
         _db = db;
-        _scopeFactory = scopeFactory;
+        _taskQueue = taskQueue;
         _logger = logger;
     }
 
@@ -56,25 +56,18 @@ public class CrawlController : ControllerBase
         _db.CrawlJobs.Add(job);
         await _db.SaveChangesAsync();
 
-        // C-5/C-6: Capture scope factory before Task.Run to avoid accessing disposed HttpContext
-        var scopeFactory = _scopeFactory;
         var jobId = job.Id;
-        _ = Task.Run(async () =>
+        if (!_taskQueue.TryEnqueue(async (sp, ct) =>
         {
-            try
-            {
-                using var scope = scopeFactory.CreateScope();
-                var crawler = scope.ServiceProvider.GetRequiredService<CrawlerService>();
-                var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-                var jobToRun = await db.CrawlJobs.FindAsync(jobId);
-                if (jobToRun is not null)
-                    await crawler.ExecuteCrawlAsync(jobToRun);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Background crawl job {JobId} failed unexpectedly", jobId);
-            }
-        });
+            var crawler = sp.GetRequiredService<CrawlerService>();
+            var db = sp.GetRequiredService<AppDbContext>();
+            var jobToRun = await db.CrawlJobs.FindAsync(jobId);
+            if (jobToRun is not null)
+                await crawler.ExecuteCrawlAsync(jobToRun);
+        }))
+        {
+            return StatusCode(429, new { error = "Crawl queue is full. Try again later." });
+        }
 
         return Accepted(CrawlJobResponse.FromEntity(job));
     }
@@ -104,22 +97,15 @@ public class CrawlController : ControllerBase
         if (tournament is null)
             return NotFound(new { error = $"Tournament '{chessResultsId}' not found. Crawl the tournament first." });
 
-        // Run in background
-        var scopeFactory = _scopeFactory;
         var snrs = request.PlayerSnrs.Distinct().ToList();
-        _ = Task.Run(async () =>
+        if (!_taskQueue.TryEnqueue(async (sp, ct) =>
         {
-            try
-            {
-                using var scope = scopeFactory.CreateScope();
-                var crawler = scope.ServiceProvider.GetRequiredService<CrawlerService>();
-                await crawler.CrawlPlayerDetailsAsync(chessResultsId, snrs);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Background player detail crawl failed for {ChessResultsId}", chessResultsId);
-            }
-        });
+            var crawler = sp.GetRequiredService<CrawlerService>();
+            await crawler.CrawlPlayerDetailsAsync(chessResultsId, snrs);
+        }))
+        {
+            return StatusCode(429, new { error = "Crawl queue is full. Try again later." });
+        }
 
         return Accepted(new { message = $"Player detail crawl started for {snrs.Count} player(s).", chessResultsId, playerSnrs = snrs });
     }

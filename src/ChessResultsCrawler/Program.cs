@@ -18,9 +18,15 @@ builder.Services.AddHttpClient<CrawlerService>(client =>
     client.DefaultRequestHeaders.Add("User-Agent", "ChessResultsCrawler/1.0");
     client.Timeout = TimeSpan.FromSeconds(30);
 });
+builder.Services.AddHttpClient("Gluetun", client =>
+{
+    client.Timeout = TimeSpan.FromSeconds(5);
+});
 builder.Services.AddScoped<HtmlParserService>();
 builder.Services.AddScoped<TournamentService>();
 builder.Services.AddScoped<RoundDetectionService>();
+builder.Services.AddSingleton<IBackgroundTaskQueue, BackgroundTaskQueue>();
+builder.Services.AddHostedService<BackgroundTaskWorker>();
 builder.Services.AddHttpClient(); // For HealthController IP check
 
 // API
