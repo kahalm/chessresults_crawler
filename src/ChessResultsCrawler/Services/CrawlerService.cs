@@ -37,17 +37,17 @@ public class CrawlerService
         _gluetunApiUrl = configuration["Gluetun__ApiUrl"] ?? "http://localhost:8000";
     }
 
-    public async Task<CrawlJob> ExecuteCrawlAsync(CrawlJob job)
+    public async Task<CrawlJob> ExecuteCrawlAsync(CrawlJob job, CancellationToken ct = default)
     {
         job.Status = CrawlJobStatus.Running;
         job.StartedAt = DateTime.UtcNow;
-        await _db.SaveChangesAsync();
+        await _db.SaveChangesAsync(ct);
 
         try
         {
             // Resolve tournament base URL and SNode
             var baseUrl = $"https://chess-results.com/tnr{job.ChessResultsId}.aspx?lan=0";
-            var (resolvedUrl, html) = await FetchWithRedirectAsync(baseUrl);
+            var (resolvedUrl, html) = await FetchWithRedirectAsync(baseUrl, ct);
 
             // S-7: SSRF protection – only allow redirects to chess-results.com
             var resolvedUri = new Uri(resolvedUrl);
@@ -58,7 +58,7 @@ public class CrawlerService
 
             // Find or create tournament
             var tournament = await _db.Tournaments
-                .FirstOrDefaultAsync(t => t.ChessResultsId == job.ChessResultsId);
+                .FirstOrDefaultAsync(t => t.ChessResultsId == job.ChessResultsId, ct);
 
             if (tournament is null)
             {
@@ -71,7 +71,7 @@ public class CrawlerService
                     SNode = sNode
                 };
                 _db.Tournaments.Add(tournament);
-                await _db.SaveChangesAsync();
+                await _db.SaveChangesAsync(ct);
             }
             else
             {
@@ -83,7 +83,7 @@ public class CrawlerService
             job.TournamentId = tournament.Id;
 
             // Get total rounds + tournament details from art=0 with turdet=YES
-            var art0Html = await FetchPageAsync(resolvedUrl, "art=0&turdet=YES");
+            var art0Html = await FetchPageAsync(resolvedUrl, "art=0&turdet=YES", ct);
             var totalRounds = await _parser.ParseTotalRoundsAsync(art0Html);
             if (totalRounds.HasValue)
                 tournament.TotalRounds = totalRounds.Value;
@@ -98,14 +98,14 @@ public class CrawlerService
             switch (job.JobType)
             {
                 case CrawlJobType.Full:
-                    await CrawlPlayersAsync(tournament, resolvedUrl);
-                    await CrawlAllPairingsAsync(tournament, resolvedUrl);
+                    await CrawlPlayersAsync(tournament, resolvedUrl, ct);
+                    await CrawlAllPairingsAsync(tournament, resolvedUrl, ct);
                     break;
                 case CrawlJobType.PlayersOnly:
-                    await CrawlPlayersAsync(tournament, resolvedUrl);
+                    await CrawlPlayersAsync(tournament, resolvedUrl, ct);
                     break;
                 case CrawlJobType.PairingsOnly:
-                    await CrawlAllPairingsAsync(tournament, resolvedUrl);
+                    await CrawlAllPairingsAsync(tournament, resolvedUrl, ct);
                     break;
                 case CrawlJobType.CheckNewRounds:
                     // Handled by RoundDetectionService
@@ -115,8 +115,15 @@ public class CrawlerService
                     break;
             }
 
-            await _db.SaveChangesAsync();
+            await _db.SaveChangesAsync(ct);
             job.Status = CrawlJobStatus.Completed;
+            job.CompletedAt = DateTime.UtcNow;
+        }
+        catch (OperationCanceledException)
+        {
+            _logger.LogWarning("Crawl cancelled for {ChessResultsId}", job.ChessResultsId);
+            job.Status = CrawlJobStatus.Failed;
+            job.ErrorMessage = "Cancelled";
             job.CompletedAt = DateTime.UtcNow;
         }
         catch (Exception ex)
@@ -128,14 +135,14 @@ public class CrawlerService
             job.CompletedAt = DateTime.UtcNow;
         }
 
-        await _db.SaveChangesAsync();
+        await _db.SaveChangesAsync(ct);
         return job;
     }
 
-    public async Task CrawlPlayerDetailsAsync(string chessResultsId, List<int> playerSnrs)
+    public async Task CrawlPlayerDetailsAsync(string chessResultsId, List<int> playerSnrs, CancellationToken ct = default)
     {
         var tournament = await _db.Tournaments
-            .FirstOrDefaultAsync(t => t.ChessResultsId == chessResultsId);
+            .FirstOrDefaultAsync(t => t.ChessResultsId == chessResultsId, ct);
 
         if (tournament?.BaseUrl is null)
         {
@@ -148,15 +155,16 @@ public class CrawlerService
         // Load players for this tournament (map Snr -> Player entity)
         var playersBySnr = await _db.Players
             .Where(p => p.TournamentId == tournament.Id)
-            .ToDictionaryAsync(p => p.Snr);
+            .ToDictionaryAsync(p => p.Snr, ct);
 
         // Load rounds for this tournament (map RoundNumber -> Round entity)
         var roundsByNumber = await _db.Rounds
             .Where(r => r.TournamentId == tournament.Id)
-            .ToDictionaryAsync(r => r.RoundNumber);
+            .ToDictionaryAsync(r => r.RoundNumber, ct);
 
         foreach (var snr in playerSnrs)
         {
+            ct.ThrowIfCancellationRequested();
             try
             {
                 if (!playersBySnr.TryGetValue(snr, out var player))
@@ -165,7 +173,7 @@ public class CrawlerService
                     continue;
                 }
 
-                var html = await FetchPageAsync(baseUrl, $"art=9&snr={snr}");
+                var html = await FetchPageAsync(baseUrl, $"art=9&snr={snr}", ct);
                 var parsed = await _parser.ParsePlayerDetailPageAsync(html);
 
                 foreach (var pr in parsed)
@@ -179,12 +187,12 @@ public class CrawlerService
                             PairingsPublished = true
                         };
                         _db.Rounds.Add(round);
-                        await _db.SaveChangesAsync();
+                        await _db.SaveChangesAsync(ct);
                         roundsByNumber[pr.RoundNumber] = round;
                     }
 
                     var existing = await _db.PlayerResults
-                        .FirstOrDefaultAsync(r => r.RoundId == round.Id && r.PlayerId == player.Id);
+                        .FirstOrDefaultAsync(r => r.RoundId == round.Id && r.PlayerId == player.Id, ct);
 
                     if (existing is not null)
                     {
@@ -211,10 +219,11 @@ public class CrawlerService
                     }
                 }
 
-                await _db.SaveChangesAsync();
+                await _db.SaveChangesAsync(ct);
                 _logger.LogInformation("Crawled {Count} results for player SNR {Snr} in tournament {Id}",
                     parsed.Count, snr, chessResultsId);
             }
+            catch (OperationCanceledException) { throw; }
             catch (Exception ex)
             {
                 _logger.LogWarning(ex, "Error crawling details for player SNR {Snr} in tournament {Id}",
@@ -223,18 +232,18 @@ public class CrawlerService
         }
     }
 
-    private async Task CrawlPlayersAsync(Tournament tournament, string baseUrl)
+    private async Task CrawlPlayersAsync(Tournament tournament, string baseUrl, CancellationToken ct)
     {
         _logger.LogInformation("Crawling players for tournament {Id}", tournament.ChessResultsId);
 
         // Try art=16 (team tournaments full list), fall back to art=0 (individual tournaments)
-        var html = await FetchPageAsync(baseUrl, "art=16&zeilen=99999");
+        var html = await FetchPageAsync(baseUrl, "art=16&zeilen=99999", ct);
         var parsedPlayers = await _parser.ParsePlayerListAsync(html);
         _logger.LogInformation("art=16: parsed {Count} players", parsedPlayers.Count);
 
         if (parsedPlayers.Count == 0)
         {
-            html = await FetchPageAsync(baseUrl, "art=0&zeilen=99999");
+            html = await FetchPageAsync(baseUrl, "art=0&zeilen=99999", ct);
             parsedPlayers = await _parser.ParsePlayerListAsync(html);
             _logger.LogInformation("art=0: parsed {Count} players", parsedPlayers.Count);
         }
@@ -242,11 +251,11 @@ public class CrawlerService
         // Load existing teams for name-matching
         var existingTeams = await _db.Teams
             .Where(t => t.TournamentId == tournament.Id)
-            .ToDictionaryAsync(t => t.Name);
+            .ToDictionaryAsync(t => t.Name, ct);
 
         var existingPlayers = await _db.Players
             .Where(p => p.TournamentId == tournament.Id)
-            .ToDictionaryAsync(p => p.Snr);
+            .ToDictionaryAsync(p => p.Snr, ct);
 
         int teamSnr = existingTeams.Values.Any()
             ? existingTeams.Values.Max(t => t.Snr) + 1
@@ -299,15 +308,15 @@ public class CrawlerService
             }
         }
 
-        await _db.SaveChangesAsync();
+        await _db.SaveChangesAsync(ct);
     }
 
-    private async Task CrawlAllPairingsAsync(Tournament tournament, string baseUrl)
+    private async Task CrawlAllPairingsAsync(Tournament tournament, string baseUrl, CancellationToken ct)
     {
         _logger.LogInformation("Crawling pairings for tournament {Id}", tournament.ChessResultsId);
 
         // First discover available rounds from art=2
-        var art2Html = await FetchPageAsync(baseUrl, "art=2");
+        var art2Html = await FetchPageAsync(baseUrl, "art=2", ct);
         var availableRounds = await _parser.ParseAvailableRoundsAsync(art2Html);
 
         if (availableRounds.Count == 0 && tournament.TotalRounds > 0)
@@ -321,34 +330,35 @@ public class CrawlerService
 
         if (isTeam)
         {
-            await CrawlTeamPairingsAsync(tournament, baseUrl, availableRounds);
+            await CrawlTeamPairingsAsync(tournament, baseUrl, availableRounds, ct);
         }
         else
         {
-            await CrawlIndividualPairingsAsync(tournament, baseUrl, availableRounds);
+            await CrawlIndividualPairingsAsync(tournament, baseUrl, availableRounds, ct);
         }
     }
 
-    private async Task CrawlTeamPairingsAsync(Tournament tournament, string baseUrl, List<int> availableRounds)
+    private async Task CrawlTeamPairingsAsync(Tournament tournament, string baseUrl, List<int> availableRounds, CancellationToken ct)
     {
         var teams = await _db.Teams
             .Where(t => t.TournamentId == tournament.Id)
-            .ToDictionaryAsync(t => t.Name);
+            .ToDictionaryAsync(t => t.Name, ct);
 
         foreach (var roundNum in availableRounds)
         {
-            var round = await GetOrCreateRoundAsync(tournament.Id, roundNum);
+            ct.ThrowIfCancellationRequested();
+            var round = await GetOrCreateRoundAsync(tournament.Id, roundNum, ct);
 
-            var roundHtml = await FetchPageAsync(baseUrl, $"art=2&rd={roundNum}");
+            var roundHtml = await FetchPageAsync(baseUrl, $"art=2&rd={roundNum}", ct);
             var parsedPairings = await _parser.ParseTeamPairingsAsync(roundHtml);
             _logger.LogInformation("Round {Round}: parsed {Count} team pairings", roundNum, parsedPairings.Count);
 
             // H-9: Wrap delete+insert in transaction for re-crawl safety
-            await using var tx = await _db.Database.BeginTransactionAsync();
+            await using var tx = await _db.Database.BeginTransactionAsync(ct);
 
             var existingPairings = await _db.TeamPairings
                 .Where(tp => tp.RoundId == round.Id)
-                .ToListAsync();
+                .ToListAsync(ct);
             _db.TeamPairings.RemoveRange(existingPairings);
 
             foreach (var pp in parsedPairings)
@@ -374,31 +384,32 @@ public class CrawlerService
             }
 
             round.ResultsPublished = parsedPairings.Any(p => p.HomeScore.HasValue);
-            await _db.SaveChangesAsync();
-            await tx.CommitAsync();
+            await _db.SaveChangesAsync(ct);
+            await tx.CommitAsync(ct);
         }
     }
 
-    private async Task CrawlIndividualPairingsAsync(Tournament tournament, string baseUrl, List<int> availableRounds)
+    private async Task CrawlIndividualPairingsAsync(Tournament tournament, string baseUrl, List<int> availableRounds, CancellationToken ct)
     {
         var playersBySnr = await _db.Players
             .Where(p => p.TournamentId == tournament.Id)
-            .ToDictionaryAsync(p => p.Snr);
+            .ToDictionaryAsync(p => p.Snr, ct);
 
         foreach (var roundNum in availableRounds)
         {
-            var round = await GetOrCreateRoundAsync(tournament.Id, roundNum);
+            ct.ThrowIfCancellationRequested();
+            var round = await GetOrCreateRoundAsync(tournament.Id, roundNum, ct);
 
-            var roundHtml = await FetchPageAsync(baseUrl, $"art=2&rd={roundNum}");
+            var roundHtml = await FetchPageAsync(baseUrl, $"art=2&rd={roundNum}", ct);
             var parsedPairings = await _parser.ParseIndividualPairingsAsync(roundHtml);
             _logger.LogInformation("Round {Round}: parsed {Count} individual pairings", roundNum, parsedPairings.Count);
 
             // H-9: Wrap delete+insert in transaction for re-crawl safety
-            await using var tx = await _db.Database.BeginTransactionAsync();
+            await using var tx = await _db.Database.BeginTransactionAsync(ct);
 
             var existingPairings = await _db.Pairings
                 .Where(p => p.RoundId == round.Id)
-                .ToListAsync();
+                .ToListAsync(ct);
             _db.Pairings.RemoveRange(existingPairings);
 
             foreach (var pp in parsedPairings)
@@ -417,15 +428,15 @@ public class CrawlerService
             }
 
             round.ResultsPublished = parsedPairings.Any(p => !string.IsNullOrEmpty(p.Result));
-            await _db.SaveChangesAsync();
-            await tx.CommitAsync();
+            await _db.SaveChangesAsync(ct);
+            await tx.CommitAsync(ct);
         }
     }
 
-    private async Task<Round> GetOrCreateRoundAsync(int tournamentId, int roundNum)
+    private async Task<Round> GetOrCreateRoundAsync(int tournamentId, int roundNum, CancellationToken ct)
     {
         var round = await _db.Rounds
-            .FirstOrDefaultAsync(r => r.TournamentId == tournamentId && r.RoundNumber == roundNum);
+            .FirstOrDefaultAsync(r => r.TournamentId == tournamentId && r.RoundNumber == roundNum, ct);
 
         if (round is null)
         {
@@ -436,27 +447,27 @@ public class CrawlerService
                 PairingsPublished = true
             };
             _db.Rounds.Add(round);
-            await _db.SaveChangesAsync();
+            await _db.SaveChangesAsync(ct);
         }
 
         return round;
     }
 
-    public async Task<string> FetchPageAsync(string baseUrl, string queryParams)
+    public async Task<string> FetchPageAsync(string baseUrl, string queryParams, CancellationToken ct = default)
     {
         var separator = baseUrl.Contains('?') ? "&" : "?";
         var url = $"{baseUrl}{separator}{queryParams}";
-        return await FetchHtmlAsync(url);
+        return await FetchHtmlAsync(url, ct);
     }
 
-    public async Task<(string Url, string Html)> FetchWithRedirectAsync(string url)
+    public async Task<(string Url, string Html)> FetchWithRedirectAsync(string url, CancellationToken ct = default)
     {
-        await RateLimitAsync();
+        await RateLimitAsync(ct);
         var sw = Stopwatch.StartNew();
         try
         {
-            var response = await _httpClient.GetAsync(url);
-            var html = await response.Content.ReadAsStringAsync();
+            var response = await _httpClient.GetAsync(url, ct);
+            var html = await response.Content.ReadAsStringAsync(ct);
             sw.Stop();
             var finalUrl = response.RequestMessage?.RequestUri?.ToString() ?? url;
             LogCrawlRequest(url, (int)response.StatusCode, sw.ElapsedMilliseconds, html, response.IsSuccessStatusCode, null, false);
@@ -468,11 +479,11 @@ public class CrawlerService
             sw.Stop();
             LogCrawlRequest(url, null, sw.ElapsedMilliseconds, null, false, ex.Message, false);
             _logger.LogWarning(ex, "Fetch failed for {Url}, retrying in {Delay}ms", url, RetryDelayMs);
-            await Task.Delay(RetryDelayMs);
-            await RateLimitAsync();
+            await Task.Delay(RetryDelayMs, ct);
+            await RateLimitAsync(ct);
             sw = Stopwatch.StartNew();
-            var response = await _httpClient.GetAsync(url);
-            var html = await response.Content.ReadAsStringAsync();
+            var response = await _httpClient.GetAsync(url, ct);
+            var html = await response.Content.ReadAsStringAsync(ct);
             sw.Stop();
             var finalUrl = response.RequestMessage?.RequestUri?.ToString() ?? url;
             LogCrawlRequest(url, (int)response.StatusCode, sw.ElapsedMilliseconds, html, response.IsSuccessStatusCode, null, true);
@@ -481,15 +492,15 @@ public class CrawlerService
         }
     }
 
-    public async Task<string> FetchHtmlAsync(string url)
+    public async Task<string> FetchHtmlAsync(string url, CancellationToken ct = default)
     {
-        await RateLimitAsync();
+        await RateLimitAsync(ct);
         _logger.LogDebug("Fetching {Url}", url);
         var sw = Stopwatch.StartNew();
         try
         {
-            var response = await _httpClient.GetAsync(url);
-            var body = await response.Content.ReadAsStringAsync();
+            var response = await _httpClient.GetAsync(url, ct);
+            var body = await response.Content.ReadAsStringAsync(ct);
             sw.Stop();
             LogCrawlRequest(url, (int)response.StatusCode, sw.ElapsedMilliseconds, body, response.IsSuccessStatusCode, null, false);
             response.EnsureSuccessStatusCode();
@@ -500,12 +511,12 @@ public class CrawlerService
             sw.Stop();
             LogCrawlRequest(url, null, sw.ElapsedMilliseconds, null, false, ex.Message, false);
             _logger.LogWarning(ex, "Fetch failed for {Url}, retrying in {Delay}ms", url, RetryDelayMs);
-            await Task.Delay(RetryDelayMs);
-            await RateLimitAsync();
+            await Task.Delay(RetryDelayMs, ct);
+            await RateLimitAsync(ct);
             _logger.LogDebug("Retrying {Url}", url);
             sw = Stopwatch.StartNew();
-            var response = await _httpClient.GetAsync(url);
-            var body = await response.Content.ReadAsStringAsync();
+            var response = await _httpClient.GetAsync(url, ct);
+            var body = await response.Content.ReadAsStringAsync(ct);
             sw.Stop();
             LogCrawlRequest(url, (int)response.StatusCode, sw.ElapsedMilliseconds, body, response.IsSuccessStatusCode, null, true);
             response.EnsureSuccessStatusCode();
@@ -648,9 +659,9 @@ public class CrawlerService
         });
     }
 
-    private async Task RateLimitAsync()
+    private async Task RateLimitAsync(CancellationToken ct = default)
     {
-        if (!await _rateLimiter.WaitAsync(TimeSpan.FromSeconds(60)))
+        if (!await _rateLimiter.WaitAsync(TimeSpan.FromSeconds(60), ct))
             throw new TimeoutException("Rate limiter acquisition timed out after 60 seconds.");
         try
         {
@@ -665,7 +676,7 @@ public class CrawlerService
             var elapsed = (DateTime.UtcNow - _lastRequest).TotalMilliseconds;
             if (elapsed < DelayMs)
             {
-                await Task.Delay(DelayMs - (int)elapsed);
+                await Task.Delay(DelayMs - (int)elapsed, ct);
             }
             _lastRequest = DateTime.UtcNow;
         }

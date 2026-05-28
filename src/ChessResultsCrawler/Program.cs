@@ -13,6 +13,7 @@ builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseMySql(connectionString, new MariaDbServerVersion(new Version(11, 0, 0))));
 
 // Services
+builder.Services.AddMemoryCache();
 builder.Services.AddHttpClient<CrawlerService>(client =>
 {
     client.DefaultRequestHeaders.Add("User-Agent", "ChessResultsCrawler/1.0");

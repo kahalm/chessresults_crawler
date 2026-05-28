@@ -63,7 +63,7 @@ public class CrawlController : ControllerBase
             var db = sp.GetRequiredService<AppDbContext>();
             var jobToRun = await db.CrawlJobs.FindAsync(jobId);
             if (jobToRun is not null)
-                await crawler.ExecuteCrawlAsync(jobToRun);
+                await crawler.ExecuteCrawlAsync(jobToRun, ct);
         }))
         {
             return StatusCode(429, new { error = "Crawl queue is full. Try again later." });
@@ -101,7 +101,7 @@ public class CrawlController : ControllerBase
         if (!_taskQueue.TryEnqueue(async (sp, ct) =>
         {
             var crawler = sp.GetRequiredService<CrawlerService>();
-            await crawler.CrawlPlayerDetailsAsync(chessResultsId, snrs);
+            await crawler.CrawlPlayerDetailsAsync(chessResultsId, snrs, ct);
         }))
         {
             return StatusCode(429, new { error = "Crawl queue is full. Try again later." });
