@@ -27,6 +27,7 @@ builder.Services.AddScoped<TournamentService>();
 builder.Services.AddScoped<RoundDetectionService>();
 builder.Services.AddSingleton<IBackgroundTaskQueue, BackgroundTaskQueue>();
 builder.Services.AddHostedService<BackgroundTaskWorker>();
+builder.Services.AddHostedService<LogRetentionService>();
 builder.Services.AddHttpClient(); // For HealthController IP check
 
 // API

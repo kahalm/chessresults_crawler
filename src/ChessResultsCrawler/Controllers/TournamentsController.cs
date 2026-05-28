@@ -19,10 +19,20 @@ public class TournamentsController : ControllerBase
     }
 
     [HttpGet]
-    public async Task<IActionResult> GetAll()
+    public async Task<IActionResult> GetAll([FromQuery] int page = 1, [FromQuery] int pageSize = 50)
     {
-        var tournaments = await _service.GetAllTournamentsAsync();
-        return Ok(tournaments.Select(TournamentResponse.FromEntity));
+        if (page < 1) page = 1;
+        if (pageSize < 1) pageSize = 1;
+        if (pageSize > 200) pageSize = 200;
+
+        var (items, totalCount) = await _service.GetAllTournamentsPagedAsync(page, pageSize);
+        return Ok(new
+        {
+            items = items.Select(TournamentResponse.FromEntity),
+            totalCount,
+            page,
+            pageSize
+        });
     }
 
     [HttpGet("{id}")]

@@ -18,6 +18,14 @@ public class TournamentService
         return await _db.Tournaments.OrderByDescending(t => t.CreatedAt).ToListAsync();
     }
 
+    public async Task<(List<Tournament> Items, int TotalCount)> GetAllTournamentsPagedAsync(int page, int pageSize)
+    {
+        var query = _db.Tournaments.OrderByDescending(t => t.CreatedAt);
+        var totalCount = await query.CountAsync();
+        var items = await query.Skip((page - 1) * pageSize).Take(pageSize).ToListAsync();
+        return (items, totalCount);
+    }
+
     public async Task<Tournament?> GetTournamentAsync(int id)
     {
         return await _db.Tournaments
