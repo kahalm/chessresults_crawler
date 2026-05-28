@@ -46,7 +46,10 @@ public class CrawlerServiceTests : IDisposable
     {
         var parser = new HtmlParserService();
         var logger = Mock.Of<ILogger<CrawlerService>>();
-        return new CrawlerService(httpClient, parser, _db, logger, BuildConfig());
+        var httpClientFactory = Mock.Of<IHttpClientFactory>(f =>
+            f.CreateClient("Gluetun") == new HttpClient());
+        var taskQueue = Mock.Of<IBackgroundTaskQueue>();
+        return new CrawlerService(httpClient, httpClientFactory, parser, _db, logger, BuildConfig(), taskQueue);
     }
 
     [Fact]

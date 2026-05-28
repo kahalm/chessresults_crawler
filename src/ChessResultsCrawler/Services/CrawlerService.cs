@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using System.Text;
 using System.Text.Json;
 using ChessResultsCrawler.Data;
@@ -14,6 +15,7 @@ public class CrawlerService
     private readonly HtmlParserService _parser;
     private readonly AppDbContext _db;
     private readonly ILogger<CrawlerService> _logger;
+    private readonly IBackgroundTaskQueue _taskQueue;
     private readonly string _gluetunApiUrl;
     private static readonly SemaphoreSlim _rateLimiter = new(1, 1);
     private static DateTime _lastRequest = DateTime.MinValue;
@@ -24,13 +26,14 @@ public class CrawlerService
     private const int RotateAfterRequests = 20;
 
     public CrawlerService(HttpClient httpClient, IHttpClientFactory httpClientFactory, HtmlParserService parser, AppDbContext db,
-        ILogger<CrawlerService> logger, IConfiguration configuration)
+        ILogger<CrawlerService> logger, IConfiguration configuration, IBackgroundTaskQueue taskQueue)
     {
         _httpClient = httpClient;
         _gluetunClient = httpClientFactory.CreateClient("Gluetun");
         _parser = parser;
         _db = db;
         _logger = logger;
+        _taskQueue = taskQueue;
         _gluetunApiUrl = configuration["Gluetun__ApiUrl"] ?? "http://localhost:8000";
     }
 
@@ -449,23 +452,31 @@ public class CrawlerService
     public async Task<(string Url, string Html)> FetchWithRedirectAsync(string url)
     {
         await RateLimitAsync();
+        var sw = Stopwatch.StartNew();
         try
         {
             var response = await _httpClient.GetAsync(url);
-            response.EnsureSuccessStatusCode();
-            var finalUrl = response.RequestMessage?.RequestUri?.ToString() ?? url;
             var html = await response.Content.ReadAsStringAsync();
+            sw.Stop();
+            var finalUrl = response.RequestMessage?.RequestUri?.ToString() ?? url;
+            LogCrawlRequest(url, (int)response.StatusCode, sw.ElapsedMilliseconds, html, response.IsSuccessStatusCode, null, false);
+            response.EnsureSuccessStatusCode();
             return (finalUrl, html);
         }
         catch (HttpRequestException ex)
         {
+            sw.Stop();
+            LogCrawlRequest(url, null, sw.ElapsedMilliseconds, null, false, ex.Message, false);
             _logger.LogWarning(ex, "Fetch failed for {Url}, retrying in {Delay}ms", url, RetryDelayMs);
             await Task.Delay(RetryDelayMs);
             await RateLimitAsync();
+            sw = Stopwatch.StartNew();
             var response = await _httpClient.GetAsync(url);
-            response.EnsureSuccessStatusCode();
-            var finalUrl = response.RequestMessage?.RequestUri?.ToString() ?? url;
             var html = await response.Content.ReadAsStringAsync();
+            sw.Stop();
+            var finalUrl = response.RequestMessage?.RequestUri?.ToString() ?? url;
+            LogCrawlRequest(url, (int)response.StatusCode, sw.ElapsedMilliseconds, html, response.IsSuccessStatusCode, null, true);
+            response.EnsureSuccessStatusCode();
             return (finalUrl, html);
         }
     }
@@ -474,21 +485,31 @@ public class CrawlerService
     {
         await RateLimitAsync();
         _logger.LogDebug("Fetching {Url}", url);
+        var sw = Stopwatch.StartNew();
         try
         {
             var response = await _httpClient.GetAsync(url);
+            var body = await response.Content.ReadAsStringAsync();
+            sw.Stop();
+            LogCrawlRequest(url, (int)response.StatusCode, sw.ElapsedMilliseconds, body, response.IsSuccessStatusCode, null, false);
             response.EnsureSuccessStatusCode();
-            return await response.Content.ReadAsStringAsync();
+            return body;
         }
         catch (HttpRequestException ex)
         {
+            sw.Stop();
+            LogCrawlRequest(url, null, sw.ElapsedMilliseconds, null, false, ex.Message, false);
             _logger.LogWarning(ex, "Fetch failed for {Url}, retrying in {Delay}ms", url, RetryDelayMs);
             await Task.Delay(RetryDelayMs);
             await RateLimitAsync();
             _logger.LogDebug("Retrying {Url}", url);
+            sw = Stopwatch.StartNew();
             var response = await _httpClient.GetAsync(url);
+            var body = await response.Content.ReadAsStringAsync();
+            sw.Stop();
+            LogCrawlRequest(url, (int)response.StatusCode, sw.ElapsedMilliseconds, body, response.IsSuccessStatusCode, null, true);
             response.EnsureSuccessStatusCode();
-            return await response.Content.ReadAsStringAsync();
+            return body;
         }
     }
 
@@ -604,6 +625,27 @@ public class CrawlerService
         var pattern = $"name=\"{fieldName}\"[^>]*value=\"([^\"]*)\"";
         var match = System.Text.RegularExpressions.Regex.Match(html, pattern);
         return match.Success ? System.Net.WebUtility.HtmlDecode(match.Groups[1].Value) : null;
+    }
+
+    private void LogCrawlRequest(string url, int? statusCode, long durationMs, string? responseBody, bool success, string? error, bool isRetry)
+    {
+        var log = new CrawlRequestLog
+        {
+            Url = url.Length > 2000 ? url[..2000] : url,
+            StatusCode = statusCode,
+            DurationMs = durationMs,
+            ResponseSizeBytes = responseBody?.Length,
+            ResponseBody = responseBody,
+            Success = success,
+            ErrorMessage = error?.Length > 2000 ? error[..2000] : error,
+            IsRetry = isRetry
+        };
+        _taskQueue.TryEnqueue(async (sp, ct) =>
+        {
+            var db = sp.GetRequiredService<AppDbContext>();
+            db.CrawlRequestLogs.Add(log);
+            await db.SaveChangesAsync(ct);
+        });
     }
 
     private async Task RateLimitAsync()
