@@ -1,3 +1,6 @@
+using System.Security.Cryptography;
+using System.Text;
+
 namespace ChessResultsCrawler.Middleware;
 
 public class ApiKeyMiddleware
@@ -36,7 +39,9 @@ public class ApiKeyMiddleware
         }
 
         if (!context.Request.Headers.TryGetValue(ApiKeyHeader, out var providedKey) ||
-            providedKey.ToString() != _apiKey)
+            !CryptographicOperations.FixedTimeEquals(
+                Encoding.UTF8.GetBytes(providedKey.ToString()),
+                Encoding.UTF8.GetBytes(_apiKey)))
         {
             context.Response.StatusCode = StatusCodes.Status401Unauthorized;
             await context.Response.WriteAsJsonAsync(new { message = "Invalid or missing API key." });

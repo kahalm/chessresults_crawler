@@ -120,7 +120,8 @@ public class CrawlerService
         {
             _logger.LogError(ex, "Crawl failed for {ChessResultsId}", job.ChessResultsId);
             job.Status = CrawlJobStatus.Failed;
-            job.ErrorMessage = ex.Message[..Math.Min(ex.Message.Length, 2000)];
+            var msg = ex.Message ?? "Unknown error";
+            job.ErrorMessage = msg[..Math.Min(msg.Length, 2000)];
             job.CompletedAt = DateTime.UtcNow;
         }
 
