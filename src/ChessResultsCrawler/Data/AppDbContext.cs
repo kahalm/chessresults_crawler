@@ -15,8 +15,6 @@ public class AppDbContext : DbContext
     public DbSet<Pairing> Pairings => Set<Pairing>();
     public DbSet<PlayerResult> PlayerResults => Set<PlayerResult>();
     public DbSet<CrawlJob> CrawlJobs => Set<CrawlJob>();
-    public DbSet<RequestLog> RequestLogs => Set<RequestLog>();
-    public DbSet<CrawlRequestLog> CrawlRequestLogs => Set<CrawlRequestLog>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -118,18 +116,6 @@ public class AppDbContext : DbContext
                 .WithMany(p => p.Results)
                 .HasForeignKey(pr => pr.PlayerId)
                 .OnDelete(DeleteBehavior.Cascade);
-        });
-
-        modelBuilder.Entity<RequestLog>(e =>
-        {
-            e.HasIndex(r => r.Timestamp).IsDescending();
-            e.HasIndex(r => r.Path);
-        });
-
-        modelBuilder.Entity<CrawlRequestLog>(e =>
-        {
-            e.HasIndex(r => r.Timestamp).IsDescending();
-            e.HasIndex(r => r.Url);
         });
 
         modelBuilder.Entity<CrawlJob>(e =>

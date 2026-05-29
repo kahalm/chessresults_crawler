@@ -15,7 +15,6 @@ public class CrawlerService
     private readonly HtmlParserService _parser;
     private readonly AppDbContext _db;
     private readonly ILogger<CrawlerService> _logger;
-    private readonly IBackgroundTaskQueue _taskQueue;
     private readonly string _gluetunApiUrl;
     private static readonly SemaphoreSlim _rateLimiter = new(1, 1);
     private static DateTime _lastRequest = DateTime.MinValue;
@@ -26,14 +25,13 @@ public class CrawlerService
     private const int RotateAfterRequests = 20;
 
     public CrawlerService(HttpClient httpClient, IHttpClientFactory httpClientFactory, HtmlParserService parser, AppDbContext db,
-        ILogger<CrawlerService> logger, IConfiguration configuration, IBackgroundTaskQueue taskQueue)
+        ILogger<CrawlerService> logger, IConfiguration configuration)
     {
         _httpClient = httpClient;
         _gluetunClient = httpClientFactory.CreateClient("Gluetun");
         _parser = parser;
         _db = db;
         _logger = logger;
-        _taskQueue = taskQueue;
         _gluetunApiUrl = configuration["Gluetun__ApiUrl"] ?? "http://localhost:8000";
     }
 
@@ -640,23 +638,12 @@ public class CrawlerService
 
     private void LogCrawlRequest(string url, int? statusCode, long durationMs, string? responseBody, bool success, string? error, bool isRetry)
     {
-        var log = new CrawlRequestLog
-        {
-            Url = url.Length > 2000 ? url[..2000] : url,
-            StatusCode = statusCode,
-            DurationMs = durationMs,
-            ResponseSizeBytes = responseBody?.Length,
-            ResponseBody = responseBody,
-            Success = success,
-            ErrorMessage = error?.Length > 2000 ? error[..2000] : error,
-            IsRetry = isRetry
-        };
-        _taskQueue.TryEnqueue(async (sp, ct) =>
-        {
-            var db = sp.GetRequiredService<AppDbContext>();
-            db.CrawlRequestLogs.Add(log);
-            await db.SaveChangesAsync(ct);
-        });
+        _logger.LogInformation(
+            "CrawlRequest {CrawlUrl} Status={CrawlStatusCode} Duration={CrawlDurationMs}ms " +
+            "Size={CrawlResponseSize} Success={CrawlSuccess} IsRetry={CrawlIsRetry} Error={CrawlError}",
+            url.Length > 2000 ? url[..2000] : url,
+            statusCode, durationMs, responseBody?.Length,
+            success, isRetry, error);
     }
 
     private async Task RateLimitAsync(CancellationToken ct = default)
