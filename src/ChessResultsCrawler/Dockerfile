@@ -14,7 +14,8 @@ RUN adduser --disabled-password --no-create-home appuser
 WORKDIR /app
 COPY --from=build /app/publish .
 
-ENV ASPNETCORE_URLS=http://+:8080
+# Bindung auf :8080 kommt aus dem Base-Image (ASPNETCORE_HTTP_PORTS=8080) —
+# kein ASPNETCORE_URLS noetig (vermeidet "Overriding HTTP_PORTS"-Warning beim Start).
 EXPOSE 8080
 
 USER appuser
