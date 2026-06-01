@@ -536,7 +536,7 @@ public class CrawlerService
         }
     }
 
-    private async Task RotateVpnAsync()
+    private async Task RotateVpnAsync(CancellationToken ct)
     {
         try
         {
@@ -545,9 +545,12 @@ public class CrawlerService
             var startContent = new StringContent("""{"status":"running"}""", Encoding.UTF8, "application/json");
 
             _logger.LogInformation("Rotating VPN IP...");
-            await _gluetunClient.PutAsync(statusUrl, stopContent);
-            await Task.Delay(VpnRestartPauseMs);
-            await _gluetunClient.PutAsync(statusUrl, startContent);
+            await _gluetunClient.PutAsync(statusUrl, stopContent, ct);
+            await Task.Delay(VpnRestartPauseMs, ct);
+            await _gluetunClient.PutAsync(statusUrl, startContent, ct);
+            // Nach der Rotation den Rate-Limiter-Zeitstempel zuruecksetzen, damit die
+            // erste Anfrage ueber die neue Verbindung den vollen DelayMs-Abstand abwartet.
+            _lastRequest = DateTime.UtcNow;
             _logger.LogInformation("VPN IP rotated");
         }
         catch (Exception ex)
@@ -667,7 +670,7 @@ public class CrawlerService
             if (_requestCount >= RotateAfterRequests)
             {
                 _requestCount = 0;
-                await RotateVpnAsync();
+                await RotateVpnAsync(ct);
             }
 
             var elapsed = (DateTime.UtcNow - _lastRequest).TotalMilliseconds;
