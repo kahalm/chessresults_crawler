@@ -126,6 +126,15 @@ public class AppDbContext : DbContext
                 .WithMany(t => t.CrawlJobs)
                 .HasForeignKey(cj => cj.TournamentId)
                 .OnDelete(DeleteBehavior.SetNull);
+
+            // M-13: hoechstens EIN aktiver (Queued/Running) Crawl-Job pro Tournament.
+            // MariaDB kennt keine gefilterten Indizes -> STORED computed column, die nur
+            // fuer aktive Jobs die ChessResultsId enthaelt (sonst NULL), mit Unique-Index
+            // (mehrere NULLs sind erlaubt, abgeschlossene Jobs kollidieren also nicht).
+            e.Property<string?>("ActiveKey")
+                .HasMaxLength(20)
+                .HasComputedColumnSql("CASE WHEN `Status` IN (0,1) THEN `ChessResultsId` ELSE NULL END", stored: true);
+            e.HasIndex("ActiveKey").IsUnique();
         });
     }
 }

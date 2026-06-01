@@ -54,7 +54,16 @@ public class CrawlController : ControllerBase
         };
 
         _db.CrawlJobs.Add(job);
-        await _db.SaveChangesAsync();
+        try
+        {
+            await _db.SaveChangesAsync();
+        }
+        catch (DbUpdateException)
+        {
+            // Race: zwischen AnyAsync-Check und Insert hat ein paralleler Request bereits
+            // einen aktiven Job angelegt (Unique-Index auf der ActiveKey-Computed-Column).
+            return Conflict(new { error = $"A crawl job for '{chessResultsId}' is already running." });
+        }
 
         var jobId = job.Id;
         if (!_taskQueue.TryEnqueue(async (sp, ct) =>
