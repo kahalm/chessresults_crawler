@@ -458,6 +458,18 @@ public class CrawlerService
         return await FetchHtmlAsync(url, ct);
     }
 
+    // SSRF-Schutz: nach (automatisch gefolgten) Redirects muss der finale Host
+    // weiterhin chess-results.com sein. Exakter Vergleich, damit z.B.
+    // "evilchess-results.com" oder "chess-results.com.attacker.tld" abgewiesen wird.
+    private static void EnsureChessResultsHost(string resolvedUrl)
+    {
+        Uri.TryCreate(resolvedUrl, UriKind.Absolute, out var uri);
+        var host = uri?.Host ?? string.Empty;
+        if (!(host.Equals("chess-results.com", StringComparison.OrdinalIgnoreCase)
+              || host.EndsWith(".chess-results.com", StringComparison.OrdinalIgnoreCase)))
+            throw new InvalidOperationException($"Redirect to unexpected domain: {resolvedUrl}");
+    }
+
     public async Task<(string Url, string Html)> FetchWithRedirectAsync(string url, CancellationToken ct = default)
     {
         await RateLimitAsync(ct);
@@ -469,6 +481,7 @@ public class CrawlerService
             sw.Stop();
             var finalUrl = response.RequestMessage?.RequestUri?.ToString() ?? url;
             LogCrawlRequest(url, (int)response.StatusCode, sw.ElapsedMilliseconds, html, response.IsSuccessStatusCode, null, false);
+            EnsureChessResultsHost(response.RequestMessage?.RequestUri?.ToString() ?? url);
             response.EnsureSuccessStatusCode();
             return (finalUrl, html);
         }
@@ -485,6 +498,7 @@ public class CrawlerService
             sw.Stop();
             var finalUrl = response.RequestMessage?.RequestUri?.ToString() ?? url;
             LogCrawlRequest(url, (int)response.StatusCode, sw.ElapsedMilliseconds, html, response.IsSuccessStatusCode, null, true);
+            EnsureChessResultsHost(response.RequestMessage?.RequestUri?.ToString() ?? url);
             response.EnsureSuccessStatusCode();
             return (finalUrl, html);
         }
@@ -501,6 +515,7 @@ public class CrawlerService
             var body = await response.Content.ReadAsStringAsync(ct);
             sw.Stop();
             LogCrawlRequest(url, (int)response.StatusCode, sw.ElapsedMilliseconds, body, response.IsSuccessStatusCode, null, false);
+            EnsureChessResultsHost(response.RequestMessage?.RequestUri?.ToString() ?? url);
             response.EnsureSuccessStatusCode();
             return body;
         }
@@ -517,6 +532,7 @@ public class CrawlerService
             var body = await response.Content.ReadAsStringAsync(ct);
             sw.Stop();
             LogCrawlRequest(url, (int)response.StatusCode, sw.ElapsedMilliseconds, body, response.IsSuccessStatusCode, null, true);
+            EnsureChessResultsHost(response.RequestMessage?.RequestUri?.ToString() ?? url);
             response.EnsureSuccessStatusCode();
             return body;
         }
