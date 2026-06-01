@@ -111,4 +111,27 @@ public class ApiKeyMiddlewareTests
 
         Assert.True(called[0]);
     }
+
+    [Fact]
+    public async Task HealthLookalikePath_RequiresAuth()
+    {
+        // "/api/healthcheck" darf NICHT als offener Pfad gelten (vorher StartsWith-Bypass).
+        var (middleware, context, called) = Create("secret-key", "/api/healthcheck");
+
+        await middleware.InvokeAsync(context);
+
+        Assert.False(called[0]);
+        Assert.Equal(401, context.Response.StatusCode);
+    }
+
+    [Fact]
+    public async Task SwaggerLookalikePath_RequiresAuth()
+    {
+        var (middleware, context, called) = Create("secret-key", "/swaggerXYZ");
+
+        await middleware.InvokeAsync(context);
+
+        Assert.False(called[0]);
+        Assert.Equal(401, context.Response.StatusCode);
+    }
 }

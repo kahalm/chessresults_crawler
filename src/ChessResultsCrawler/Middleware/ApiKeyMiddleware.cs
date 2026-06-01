@@ -6,11 +6,6 @@ namespace ChessResultsCrawler.Middleware;
 public class ApiKeyMiddleware
 {
     private const string ApiKeyHeader = "X-Api-Key";
-    private static readonly HashSet<string> OpenPaths = new(StringComparer.OrdinalIgnoreCase)
-    {
-        "/api/health",
-        "/swagger"
-    };
 
     private readonly RequestDelegate _next;
     private readonly string? _apiKey;
@@ -30,18 +25,17 @@ public class ApiKeyMiddleware
             return;
         }
 
-        // Allow health and swagger endpoints without key
+        // Allow health and swagger endpoints without key (exakter/segment-genauer
+        // Match, damit z.B. "/api/healthXYZ" NICHT als offen durchrutscht).
         var path = context.Request.Path.Value ?? "";
-        if (OpenPaths.Any(p => path.StartsWith(p, StringComparison.OrdinalIgnoreCase)))
+        if (IsOpenPath(path))
         {
             await _next(context);
             return;
         }
 
         if (!context.Request.Headers.TryGetValue(ApiKeyHeader, out var providedKey) ||
-            !CryptographicOperations.FixedTimeEquals(
-                Encoding.UTF8.GetBytes(providedKey.ToString()),
-                Encoding.UTF8.GetBytes(_apiKey)))
+            !KeysEqual(providedKey.ToString(), _apiKey))
         {
             context.Response.StatusCode = StatusCodes.Status401Unauthorized;
             await context.Response.WriteAsJsonAsync(new { message = "Invalid or missing API key." });
@@ -49,5 +43,20 @@ public class ApiKeyMiddleware
         }
 
         await _next(context);
+    }
+
+    private static bool IsOpenPath(string path) =>
+        path.Equals("/api/health", StringComparison.OrdinalIgnoreCase)
+        || path.Equals("/api/health/ip", StringComparison.OrdinalIgnoreCase)
+        || path.Equals("/swagger", StringComparison.OrdinalIgnoreCase)
+        || path.StartsWith("/swagger/", StringComparison.OrdinalIgnoreCase);
+
+    // SHA-256 bringt beide Werte auf gleiche Laenge, damit FixedTimeEquals nicht
+    // ueber unterschiedliche Laengen die Key-Laenge ueber die Vergleichszeit leakt.
+    private static bool KeysEqual(string provided, string expected)
+    {
+        var hp = SHA256.HashData(Encoding.UTF8.GetBytes(provided));
+        var he = SHA256.HashData(Encoding.UTF8.GetBytes(expected));
+        return CryptographicOperations.FixedTimeEquals(hp, he);
     }
 }
