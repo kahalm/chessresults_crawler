@@ -82,7 +82,6 @@ public class HtmlParserService
         if (table is null) return pairings;
 
         var allRows = table.QuerySelectorAll(":scope > tr, :scope > tbody > tr");
-        int matchNum = 0;
 
         foreach (var row in allRows)
         {
@@ -97,10 +96,10 @@ public class HtmlParserService
 
             // First cell should be match number
             var nrText = cells[0].TextContent.Trim();
-            if (!int.TryParse(nrText, out _)) continue;
-
-            matchNum++;
-            var pairing = new ParsedTeamPairing { MatchNumber = matchNum };
+            // Echte Nr. aus der Tabelle verwenden statt eines eigenen Zaehlers
+            // (sonst weichen MatchNumbers bei uebersprungenen/sortierten Zeilen ab).
+            if (!int.TryParse(nrText, out var matchNo)) continue;
+            var pairing = new ParsedTeamPairing { MatchNumber = matchNo };
 
             if (cells.Count >= 6)
             {

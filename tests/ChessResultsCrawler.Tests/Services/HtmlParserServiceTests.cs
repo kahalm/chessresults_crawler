@@ -106,6 +106,21 @@ public class HtmlParserServiceTests
     }
 
     [Fact]
+    public async Task ParseTeamPairingsAsync_UsesRealMatchNumber_NotSequentialCounter()
+    {
+        // Nr.-Spalte = 7 -> MatchNumber muss 7 sein, nicht 1 (eigener Zaehler).
+        var html = @"<html><body><table class='CRs1'>
+            <tr><th>Nr.</th><th>Home</th><th>Away</th><th>Result</th></tr>
+            <tr><td>7</td><td>Team A</td><td>Team B</td><td>3:1</td></tr>
+            </table></body></html>";
+
+        var pairings = await _parser.ParseTeamPairingsAsync(html);
+
+        Assert.Single(pairings);
+        Assert.Equal(7, pairings[0].MatchNumber);
+    }
+
+    [Fact]
     public async Task ParseTeamPairingsAsync_HalfSymbol_ParsesCorrectly()
     {
         var html = @"<html><body><table class='CRs1'>
