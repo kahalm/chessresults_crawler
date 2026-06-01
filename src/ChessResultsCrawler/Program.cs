@@ -6,6 +6,10 @@ using Serilog;
 using Serilog.Events;
 using Serilog.Sinks.Elasticsearch;
 
+// ReDoS-Schutz: globales Default-Timeout fuer Regex-Auswertungen, da der gecrawlte
+// HTML-Body untrusted ist (verhindert haengende Regex bei pathologischer Eingabe).
+AppContext.SetData("REGEX_DEFAULT_MATCH_TIMEOUT", TimeSpan.FromSeconds(5));
+
 Log.Logger = new LoggerConfiguration()
     .MinimumLevel.Information()
     .WriteTo.Console()

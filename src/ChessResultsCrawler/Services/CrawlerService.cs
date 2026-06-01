@@ -48,9 +48,7 @@ public class CrawlerService
             var (resolvedUrl, html) = await FetchWithRedirectAsync(baseUrl, ct);
 
             // S-7: SSRF protection – only allow redirects to chess-results.com
-            var resolvedUri = new Uri(resolvedUrl);
-            if (!resolvedUri.Host.EndsWith("chess-results.com", StringComparison.OrdinalIgnoreCase))
-                throw new InvalidOperationException($"Redirect to unexpected domain: {resolvedUri.Host}");
+            EnsureChessResultsHost(resolvedUrl);
 
             var sNode = HtmlParserService.ExtractSNode(resolvedUrl);
 
@@ -565,9 +563,7 @@ public class CrawlerService
         var (resolvedUrl, formHtml) = await FetchWithRedirectAsync(url);
 
         // SSRF protection: only allow chess-results.com domains
-        var resolvedUri = new Uri(resolvedUrl);
-        if (!resolvedUri.Host.EndsWith("chess-results.com", StringComparison.OrdinalIgnoreCase))
-            throw new InvalidOperationException($"Redirect to unexpected domain: {resolvedUri.Host}");
+        EnsureChessResultsHost(resolvedUrl);
 
         // Step 2: Extract hidden form fields (__VIEWSTATE, __EVENTVALIDATION, __VIEWSTATEGENERATOR)
         var viewState = ExtractHiddenField(formHtml, "__VIEWSTATE");
@@ -610,9 +606,7 @@ public class CrawlerService
         var url = "https://chess-results.com/SpielerSuche.aspx?lan=0";
         var (resolvedUrl, formHtml) = await FetchWithRedirectAsync(url);
 
-        var resolvedUri = new Uri(resolvedUrl);
-        if (!resolvedUri.Host.EndsWith("chess-results.com", StringComparison.OrdinalIgnoreCase))
-            throw new InvalidOperationException($"Redirect to unexpected domain: {resolvedUri.Host}");
+        EnsureChessResultsHost(resolvedUrl);
 
         var viewState = ExtractHiddenField(formHtml, "__VIEWSTATE");
         var eventValidation = ExtractHiddenField(formHtml, "__EVENTVALIDATION");
