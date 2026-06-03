@@ -68,6 +68,8 @@ try
     builder.Services.AddScoped<RoundDetectionService>();
     builder.Services.AddSingleton<IBackgroundTaskQueue, BackgroundTaskQueue>();
     builder.Services.AddHostedService<BackgroundTaskWorker>();
+    // Periodisches Lebenszeichen nach ES (Standard 60 s) → log-watcher erkennt toten Crawler.
+    builder.Services.AddHostedService<HeartbeatService>();
     builder.Services.AddHttpClient(); // For HealthController IP check
 
     // API
