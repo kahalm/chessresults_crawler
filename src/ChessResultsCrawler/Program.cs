@@ -33,9 +33,10 @@ try
         var esUrl = context.Configuration["Elasticsearch:Url"];
         if (!string.IsNullOrEmpty(esUrl))
         {
+            var indexFormat = context.Configuration["Elasticsearch:IndexFormat"] ?? "crawler-logs-{0:yyyy.MM}";
             configuration.WriteTo.Elasticsearch(new ElasticsearchSinkOptions(new Uri(esUrl))
             {
-                IndexFormat = "crawler-logs-{0:yyyy.MM}",
+                IndexFormat = indexFormat,
                 AutoRegisterTemplate = true,
                 AutoRegisterTemplateVersion = AutoRegisterTemplateVersion.ESv7,
                 BatchAction = ElasticOpType.Create,
