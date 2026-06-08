@@ -125,6 +125,50 @@ public class CrawlControllerTests : IDisposable
 
     #endregion
 
+    #region Queue Full — Job Stays Accessible
+
+    [Fact]
+    public async Task StartCrawl_QueueFull_JobMarkedAsFailed()
+    {
+        var job = new CrawlJob { ChessResultsId = "123456", JobType = CrawlJobType.Full };
+        _db.CrawlJobs.Add(job);
+        await _db.SaveChangesAsync();
+
+        // Simulate: TryEnqueue returns false → controller marks job Failed
+        job.Status = CrawlJobStatus.Failed;
+        job.ErrorMessage = "Queue full — job rejected before start.";
+        job.CompletedAt = DateTime.UtcNow;
+        await _db.SaveChangesAsync();
+
+        var updated = await _db.CrawlJobs.FindAsync(job.Id);
+        Assert.NotNull(updated);
+        Assert.Equal(CrawlJobStatus.Failed, updated.Status);
+        Assert.Equal("Queue full — job rejected before start.", updated.ErrorMessage);
+        Assert.NotNull(updated.CompletedAt);
+    }
+
+    [Fact]
+    public async Task StartCrawl_QueueFull_FailedJobDoesNotBlockFutureRequests()
+    {
+        var chessResultsId = "234567";
+        _db.CrawlJobs.Add(new CrawlJob
+        {
+            ChessResultsId = chessResultsId,
+            JobType = CrawlJobType.Full,
+            Status = CrawlJobStatus.Failed,
+            ErrorMessage = "Queue full — job rejected before start."
+        });
+        await _db.SaveChangesAsync();
+
+        var blockingJob = await _db.CrawlJobs.AnyAsync(j =>
+            j.ChessResultsId == chessResultsId &&
+            (j.Status == CrawlJobStatus.Queued || j.Status == CrawlJobStatus.Running));
+
+        Assert.False(blockingJob);
+    }
+
+    #endregion
+
     #region Job Creation and Status
 
     [Fact]

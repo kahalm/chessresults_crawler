@@ -75,6 +75,10 @@ public class CrawlController : ControllerBase
                 await crawler.ExecuteCrawlAsync(jobToRun, ct);
         }))
         {
+            job.Status = CrawlJobStatus.Failed;
+            job.ErrorMessage = "Queue full — job rejected before start.";
+            job.CompletedAt = DateTime.UtcNow;
+            await _db.SaveChangesAsync();
             return StatusCode(429, new { error = "Crawl queue is full. Try again later." });
         }
 
