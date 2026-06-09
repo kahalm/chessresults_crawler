@@ -653,10 +653,11 @@ public class CrawlerService
     {
         _logger.LogInformation(
             "CrawlRequest {CrawlUrl} Status={CrawlStatusCode} Duration={CrawlDurationMs}ms " +
-            "Size={CrawlResponseSize} Success={CrawlSuccess} IsRetry={CrawlIsRetry} Error={CrawlError}",
+            "Size={CrawlResponseSize} Success={CrawlSuccess} IsRetry={CrawlIsRetry} Error={CrawlError} Body={CrawlResponseBody}",
             url.Length > 2000 ? url[..2000] : url,
             statusCode, durationMs, responseBody?.Length,
-            success, isRetry, error);
+            success, isRetry, error,
+            responseBody is null ? null : responseBody.Length > 500_000 ? responseBody[..500_000] : responseBody);
     }
 
     private async Task RateLimitAsync(CancellationToken ct = default)
