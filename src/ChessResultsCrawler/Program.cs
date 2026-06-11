@@ -4,7 +4,7 @@ using ChessResultsCrawler.Services;
 using Microsoft.EntityFrameworkCore;
 using Serilog;
 using Serilog.Events;
-using Serilog.Sinks.Elasticsearch;
+using Elastic.Serilog.Sinks;
 
 // ReDoS-Schutz: globales Default-Timeout fuer Regex-Auswertungen, da der gecrawlte
 // HTML-Body untrusted ist (verhindert haengende Regex bei pathologischer Eingabe).
@@ -33,15 +33,16 @@ try
         var esUrl = context.Configuration["Elasticsearch:Url"];
         if (!string.IsNullOrEmpty(esUrl))
         {
+            // ECS-Schema (Elastic.Serilog.Sinks) in einen Data-Stream. Felder werden zentral per
+            // Ingest-Pipeline normalisiert (siehe log-watcher/schema/logging-schema.md).
+            // Data-Stream-Basisname aus dem bisherigen Monats-IndexFormat ableiten (Teil vor "{"),
+            // damit dev/prod unter ihren bestehenden "*-logs-*"-Patterns bleiben (Kibana, log-watcher).
             var indexFormat = context.Configuration["Elasticsearch:IndexFormat"] ?? "crawler-logs-{0:yyyy.MM}";
-            configuration.WriteTo.Elasticsearch(new ElasticsearchSinkOptions(new Uri(esUrl))
+            var streamName = indexFormat.Split('{')[0].TrimEnd('-', '.', ' ');
+            configuration.WriteTo.Elasticsearch([new Uri(esUrl)], opts =>
             {
-                IndexFormat = indexFormat,
-                AutoRegisterTemplate = true,
-                AutoRegisterTemplateVersion = AutoRegisterTemplateVersion.ESv7,
-                BatchAction = ElasticOpType.Create,
-                NumberOfReplicas = 0,
-                NumberOfShards = 1
+                opts.DataStream = new Elastic.Ingest.Elasticsearch.DataStreams.DataStreamName(streamName);
+                opts.BootstrapMethod = Elastic.Ingest.Elasticsearch.BootstrapMethod.Silent;
             });
         }
     });
