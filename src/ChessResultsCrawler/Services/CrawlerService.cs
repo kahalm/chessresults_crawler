@@ -551,12 +551,60 @@ public class CrawlerService
             // Nach der Rotation den Rate-Limiter-Zeitstempel zuruecksetzen, damit die
             // erste Anfrage ueber die neue Verbindung den vollen DelayMs-Abstand abwartet.
             _lastRequest = DateTime.UtcNow;
-            _logger.LogInformation("VPN IP rotated");
+
+            // Neue Public-IP ermitteln und mitloggen (zur Korrelation in ES/Kibana).
+            var newIp = await TryGetPublicIpAsync(ct);
+            if (newIp is not null)
+                _logger.LogInformation("VPN IP rotated → {NewIp}", newIp);
+            else
+                _logger.LogInformation("VPN IP rotated (neue IP nicht ermittelbar)");
         }
         catch (Exception ex)
         {
             _logger.LogWarning(ex, "VPN rotation failed (non-critical)");
         }
+    }
+
+    /// <summary>
+    /// Fragt die aktuelle Public-IP beim gluetun-Control-Server ab (best-effort, non-critical).
+    /// gluetun braucht nach dem Reconnect kurz, bis die neue IP ermittelt ist → kurzes Polling.
+    /// </summary>
+    private async Task<string?> TryGetPublicIpAsync(CancellationToken ct)
+    {
+        for (int attempt = 0; attempt < 5; attempt++)
+        {
+            try
+            {
+                await Task.Delay(1000, ct);
+                var json = await _gluetunClient.GetStringAsync($"{_gluetunApiUrl}/v1/publicip/ip", ct);
+                var ip = ParsePublicIp(json);
+                if (!string.IsNullOrWhiteSpace(ip)) return ip;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogDebug(ex, "publicip query attempt {Attempt} failed", attempt + 1);
+            }
+        }
+        return null;
+    }
+
+    /// <summary>Extrahiert die <c>public_ip</c> aus der gluetun-Antwort von <c>/v1/publicip/ip</c>.</summary>
+    public static string? ParsePublicIp(string json)
+    {
+        if (string.IsNullOrWhiteSpace(json)) return null;
+        try
+        {
+            using var doc = JsonDocument.Parse(json);
+            if (doc.RootElement.ValueKind == JsonValueKind.Object
+                && doc.RootElement.TryGetProperty("public_ip", out var ipEl)
+                && ipEl.ValueKind == JsonValueKind.String)
+            {
+                var ip = ipEl.GetString();
+                return string.IsNullOrWhiteSpace(ip) ? null : ip;
+            }
+        }
+        catch (JsonException) { /* keine gültige JSON → null */ }
+        return null;
     }
 
     public async Task<List<ParsedPlayerSearchResult>> SearchPlayersAsync(string lastName, string? firstName)
