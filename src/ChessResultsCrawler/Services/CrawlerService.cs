@@ -699,13 +699,15 @@ public class CrawlerService
 
     private void LogCrawlRequest(string url, int? statusCode, long durationMs, string? responseBody, bool success, string? error, bool isRetry)
     {
+        // Bewusst KEIN Response-Body mehr ins Log: das gecrawlte HTML (bis 500 KB/Request) blähte
+        // den Elasticsearch-Data-Stream massiv auf und enthielt ungefilterte Spieler-PII. Nur noch
+        // die Größe (CrawlResponseSize) festhalten — der Inhalt ist ohnehin in der DB.
         _logger.LogInformation(
             "CrawlRequest {CrawlUrl} Status={CrawlStatusCode} Duration={CrawlDurationMs}ms " +
-            "Size={CrawlResponseSize} Success={CrawlSuccess} IsRetry={CrawlIsRetry} Error={CrawlError} Body={CrawlResponseBody}",
+            "Size={CrawlResponseSize} Success={CrawlSuccess} IsRetry={CrawlIsRetry} Error={CrawlError}",
             url.Length > 2000 ? url[..2000] : url,
             statusCode, durationMs, responseBody?.Length,
-            success, isRetry, error,
-            responseBody is null ? null : responseBody.Length > 500_000 ? responseBody[..500_000] : responseBody);
+            success, isRetry, error);
     }
 
     private async Task RateLimitAsync(CancellationToken ct = default)
