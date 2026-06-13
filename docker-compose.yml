@@ -3,10 +3,10 @@ services:
     image: mariadb:11
     restart: unless-stopped
     environment:
-      MARIADB_ROOT_PASSWORD: ${MARIADB_ROOT_PASSWORD:-rootpassword}
+      MARIADB_ROOT_PASSWORD: ${MARIADB_ROOT_PASSWORD:?set a strong password in .env}
       MYSQL_DATABASE: ${MYSQL_DATABASE:-chessresults}
       MYSQL_USER: ${MYSQL_USER:-chessresults}
-      MYSQL_PASSWORD: ${MYSQL_PASSWORD:-chessresults}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD:?set a strong password in .env}
     ports:
       - "3306:3306"
     volumes:
@@ -82,7 +82,7 @@ services:
       gluetun:
         condition: service_started
     environment:
-      ConnectionStrings__DefaultConnection: "Server=mariadb;Port=3306;Database=${MYSQL_DATABASE:-chessresults};User=${MYSQL_USER:-chessresults};Password=${MYSQL_PASSWORD:-chessresults};"
+      ConnectionStrings__DefaultConnection: "Server=mariadb;Port=3306;Database=${MYSQL_DATABASE:-chessresults};User=${MYSQL_USER:-chessresults};Password=${MYSQL_PASSWORD:?set a strong password in .env};"
       ASPNETCORE_ENVIRONMENT: Production
       Elasticsearch__Url: http://elasticsearch:9200
 
