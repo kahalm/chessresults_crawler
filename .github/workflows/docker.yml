@@ -9,7 +9,18 @@ env:
   REGISTRY: ghcr.io
 
 jobs:
+  # Test-Gate: blockiert den Image-Push, bis die Crawler-Tests grün sind
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '9.0.x'
+      - run: dotnet test tests/ChessResultsCrawler.Tests --verbosity normal
+
   build-crawler:
+    needs: test
     runs-on: ubuntu-latest
     permissions:
       contents: read
