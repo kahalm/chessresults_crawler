@@ -253,6 +253,38 @@ public class CrawlerServiceTests : IDisposable
         Assert.True(job.TournamentId > 0);
     }
 
+    [Fact]
+    public async Task SearchPlayersAsync_CancelledToken_Throws()
+    {
+        var httpClient = CreateMockHttpClient(_ =>
+            Task.FromResult(new HttpResponseMessage(HttpStatusCode.OK)
+            {
+                Content = new StringContent("<html></html>")
+            }));
+        var service = CreateService(httpClient);
+        using var cts = new CancellationTokenSource();
+        cts.Cancel();
+
+        await Assert.ThrowsAnyAsync<OperationCanceledException>(
+            () => service.SearchPlayersAsync("Muster", null, cts.Token));
+    }
+
+    [Fact]
+    public async Task SearchPlayerTournamentsAsync_CancelledToken_Throws()
+    {
+        var httpClient = CreateMockHttpClient(_ =>
+            Task.FromResult(new HttpResponseMessage(HttpStatusCode.OK)
+            {
+                Content = new StringContent("<html></html>")
+            }));
+        var service = CreateService(httpClient);
+        using var cts = new CancellationTokenSource();
+        cts.Cancel();
+
+        await Assert.ThrowsAnyAsync<OperationCanceledException>(
+            () => service.SearchPlayerTournamentsAsync("Muster", null, cts.Token));
+    }
+
     /// <summary>
     /// Custom HttpMessageHandler for mocking HttpClient
     /// </summary>

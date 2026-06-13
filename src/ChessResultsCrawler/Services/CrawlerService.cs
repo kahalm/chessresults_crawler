@@ -607,11 +607,11 @@ public class CrawlerService
         return null;
     }
 
-    public async Task<List<ParsedPlayerSearchResult>> SearchPlayersAsync(string lastName, string? firstName)
+    public async Task<List<ParsedPlayerSearchResult>> SearchPlayersAsync(string lastName, string? firstName, CancellationToken ct = default)
     {
         // Step 1: GET the search page to obtain ASP.NET ViewState
         var url = "https://chess-results.com/SpielerSuche.aspx?lan=0";
-        var (resolvedUrl, formHtml) = await FetchWithRedirectAsync(url);
+        var (resolvedUrl, formHtml) = await FetchWithRedirectAsync(url, ct);
 
         // SSRF protection: only allow chess-results.com domains
         EnsureChessResultsHost(resolvedUrl);
@@ -632,12 +632,12 @@ public class CrawlerService
             ["ctl00$P1$cb_suchen"] = "Suchen"
         };
 
-        await RateLimitAsync();
+        await RateLimitAsync(ct);
         var content = new FormUrlEncodedContent(formData);
-        var response = await _httpClient.PostAsync(resolvedUrl, content);
+        var response = await _httpClient.PostAsync(resolvedUrl, content, ct);
         response.EnsureSuccessStatusCode();
 
-        var resultHtml = await response.Content.ReadAsStringAsync();
+        var resultHtml = await response.Content.ReadAsStringAsync(ct);
         var results = await _parser.ParsePlayerSearchAsync(resultHtml);
 
         // Deduplicate: SpielerSuche returns one row per tournament per player
@@ -651,11 +651,11 @@ public class CrawlerService
         return deduplicated;
     }
 
-    public async Task<List<ParsedPlayerTournament>> SearchPlayerTournamentsAsync(string lastName, string? firstName)
+    public async Task<List<ParsedPlayerTournament>> SearchPlayerTournamentsAsync(string lastName, string? firstName, CancellationToken ct = default)
     {
         // Same POST flow as SearchPlayersAsync
         var url = "https://chess-results.com/SpielerSuche.aspx?lan=0";
-        var (resolvedUrl, formHtml) = await FetchWithRedirectAsync(url);
+        var (resolvedUrl, formHtml) = await FetchWithRedirectAsync(url, ct);
 
         EnsureChessResultsHost(resolvedUrl);
 
@@ -673,12 +673,12 @@ public class CrawlerService
             ["ctl00$P1$cb_suchen"] = "Suchen"
         };
 
-        await RateLimitAsync();
+        await RateLimitAsync(ct);
         var content = new FormUrlEncodedContent(formData);
-        var response = await _httpClient.PostAsync(resolvedUrl, content);
+        var response = await _httpClient.PostAsync(resolvedUrl, content, ct);
         response.EnsureSuccessStatusCode();
 
-        var resultHtml = await response.Content.ReadAsStringAsync();
+        var resultHtml = await response.Content.ReadAsStringAsync(ct);
         var results = await _parser.ParsePlayerTournamentsAsync(resultHtml);
 
         // Deduplicate and limit
