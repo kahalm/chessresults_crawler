@@ -58,4 +58,38 @@ public class UpstreamErrorMiddlewareTests
 
         Assert.Equal(499, ctx.Response.StatusCode);
     }
+
+    [Fact]
+    public async Task Invoke_RateLimiterSaturated_MapsTo503()
+    {
+        // CrawlerService.RateLimitAsync wirft TimeoutException, wenn das Ticket nicht binnen 60s kommt.
+        var (mw, ctx) = Create(_ => throw new TimeoutException("Rate limiter acquisition timed out after 60 seconds."));
+
+        await mw.InvokeAsync(ctx);
+
+        Assert.Equal(StatusCodes.Status503ServiceUnavailable, ctx.Response.StatusCode);
+    }
+
+    [Fact]
+    public async Task Invoke_GenericException_PropagatesAsRealError()
+    {
+        // Vertrag: ECHTE interne Fehler (kein Upstream/Gateway) duerfen NICHT verschluckt/umgemappt
+        // werden, sondern muessen als 500 hochblubbern (Kestrel). Sonst maskiert die Middleware Bugs.
+        var (mw, ctx) = Create(_ => throw new InvalidOperationException("real bug"));
+
+        await Assert.ThrowsAsync<InvalidOperationException>(() => mw.InvokeAsync(ctx));
+    }
+
+    [Fact]
+    public async Task Invoke_Timeout_WritesJsonMessageBody()
+    {
+        var (mw, ctx) = Create(_ => throw new TaskCanceledException("timeout"));
+
+        await mw.InvokeAsync(ctx);
+
+        ctx.Response.Body.Seek(0, SeekOrigin.Begin);
+        var body = await new StreamReader(ctx.Response.Body).ReadToEndAsync();
+        Assert.Contains("Upstream request timed out", body);
+        Assert.Equal("application/json", ctx.Response.ContentType?.Split(';')[0]);
+    }
 }

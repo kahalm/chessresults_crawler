@@ -1,14 +1,17 @@
 namespace ChessResultsCrawler.Middleware;
 
 /// <summary>
-/// Uebersetzt Fehler, die beim Crawlen von chess-results.com (dem Upstream) entstehen, in
-/// semantisch korrekte Gateway-Statuscodes statt nackter 500er:
+/// Uebersetzt Fehler, die beim Crawlen des Upstreams (chess-results.com, ueber den Gluetun-VPN)
+/// entstehen, in semantisch korrekte Gateway-Statuscodes statt nackter 500er:
 ///   - Upstream-Timeout (HttpClient 30s laeuft ab → TaskCanceledException, NICHT vom Client) → 504 Gateway Timeout
 ///   - Upstream nicht erreichbar / liefert non-2xx (EnsureSuccessStatusCode) → 502 Bad Gateway
+///   - Eigener Rate-Limiter gesaettigt (TimeoutException nach 60s Wartezeit) → 503 Service Unavailable
 ///   - Client bricht die Verbindung ab (RequestAborted) → 499 Client Closed Request (kein Serverfehler)
-/// So wertet der log-watcher externe chess-results.com-Haenger nicht mehr als echten Service-500.
+/// So wertet der log-watcher externe Upstream-Haenger / Selbst-Drosselung nicht mehr als echten Service-500.
 /// Muss NACH UseSerilogRequestLogging registriert werden, damit das Request-Log den gemappten
-/// Statuscode (504/502/499) sieht und nicht die rohe Exception als Error meldet.
+/// Statuscode (504/503/502/499) sieht und nicht die rohe Exception als Error meldet.
+/// Hinweis: faengt bewusst nur diese Upstream-/Gateway-Klassen ab — echte interne Fehler (z.B.
+/// NullReference, ungueltiger Parser-Zustand) propagieren weiter zu Kestrel als 500.
 /// </summary>
 public class UpstreamErrorMiddleware
 {
@@ -37,18 +40,26 @@ public class UpstreamErrorMiddleware
         }
         catch (OperationCanceledException ex)
         {
-            // Nicht vom Client ausgeloest → der ausgehende HttpClient-Timeout (30s) gegen
-            // chess-results.com ist abgelaufen.
-            _logger.LogWarning(ex, "Upstream request to chess-results.com timed out for {Path}", context.Request.Path);
+            // Nicht vom Client ausgeloest → der ausgehende HttpClient-Timeout (30s) gegen den
+            // Upstream ist abgelaufen.
+            _logger.LogWarning(ex, "Upstream request timed out for {Path}", context.Request.Path);
             await WriteProblemAsync(context, StatusCodes.Status504GatewayTimeout,
-                "Upstream request to chess-results.com timed out.");
+                "Upstream request timed out.");
         }
         catch (HttpRequestException ex)
         {
-            // chess-results.com nicht erreichbar oder liefert non-2xx (EnsureSuccessStatusCode).
-            _logger.LogWarning(ex, "Upstream request to chess-results.com failed for {Path}", context.Request.Path);
+            // Upstream nicht erreichbar oder liefert non-2xx (EnsureSuccessStatusCode).
+            _logger.LogWarning(ex, "Upstream request failed for {Path}", context.Request.Path);
             await WriteProblemAsync(context, StatusCodes.Status502BadGateway,
-                "Upstream request to chess-results.com failed.");
+                "Upstream request failed.");
+        }
+        catch (TimeoutException ex)
+        {
+            // Eigener Rate-Limiter (CrawlerService) konnte das Ticket nicht binnen 60s holen →
+            // Selbst-Drosselung/Ueberlast, kein Crash. 503 + Retry-After-Hinweis ist semantisch korrekt.
+            _logger.LogWarning(ex, "Crawler rate limiter saturated for {Path}", context.Request.Path);
+            await WriteProblemAsync(context, StatusCodes.Status503ServiceUnavailable,
+                "Service temporarily unavailable (crawler busy), please retry.");
         }
     }
 
