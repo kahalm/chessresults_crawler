@@ -105,11 +105,23 @@ try
             var path = httpContext.Request.Path.Value ?? "";
             if (path.StartsWith("/health") || path.StartsWith("/swagger"))
                 return LogEventLevel.Debug;
-            if (ex != null || httpContext.Response.StatusCode >= 500)
+            var status = httpContext.Response.StatusCode;
+            // Gateway-Probleme mit dem Upstream chess-results.com (vom UpstreamErrorMiddleware
+            // gemappt) sind KEIN Crash unseres Service → Warning statt Error, damit der
+            // log-watcher sie nicht als HIGH-Service-Fehler alarmiert.
+            if (status is StatusCodes.Status502BadGateway or StatusCodes.Status504GatewayTimeout)
+                return LogEventLevel.Warning;
+            // 499 = Client hat die Verbindung abgebrochen → kein Fehler.
+            if (status == 499)
+                return LogEventLevel.Information;
+            if (ex != null || status >= 500)
                 return LogEventLevel.Error;
             return LogEventLevel.Information;
         };
     });
+    // NACH dem Request-Logging, damit dieses den gemappten Gateway-Statuscode sieht
+    // (sonst wuerde die rohe Exception als Error geloggt).
+    app.UseMiddleware<UpstreamErrorMiddleware>();
     app.MapControllers();
 
     app.Run();
