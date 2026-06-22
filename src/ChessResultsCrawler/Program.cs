@@ -89,6 +89,13 @@ try
     {
         var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
         db.Database.Migrate();
+
+        // Verwaiste Jobs aus dem vorigen Prozess (Queued/Running ohne Worker) freigeben,
+        // sonst blockiert ihr unique ActiveKey künftige Crawls desselben Turniers dauerhaft.
+        var recovered = CrawlJobRecovery.RecoverStaleJobsAsync(db).GetAwaiter().GetResult();
+        if (recovered > 0)
+            scope.ServiceProvider.GetRequiredService<ILogger<Program>>()
+                .LogWarning("Startup: {Count} verwaiste Crawl-Jobs auf Failed gesetzt.", recovered);
     }
 
     if (app.Environment.IsDevelopment())
