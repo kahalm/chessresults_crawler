@@ -131,8 +131,24 @@ public class CrawlerService
             job.CompletedAt = DateTime.UtcNow;
         }
 
-        await _db.SaveChangesAsync(ct);
+        // Finalen Status IMMER persistieren — auch bei Cancellation. Mit dem (bereits gecancelten)
+        // ct würde dieser Save erneut werfen → der Job bliebe für immer auf Running stehen.
+        await _db.SaveChangesAsync(CancellationToken.None);
         return job;
+    }
+
+    /// <summary>
+    /// Baut die Name→Team-Map für das Upsert tolerant gegen doppelte Teamnamen: bei einer
+    /// Dublette gewinnt das Team mit der kleinsten <see cref="Team.Snr"/> (stabil, deterministisch).
+    /// Verhindert die <c>ToDictionary</c>-Exception bei doppelten Namen, die sonst den
+    /// gesamten Spieler-Crawl scheitern lässt.
+    /// </summary>
+    public static Dictionary<string, Team> BuildTeamNameMap(IEnumerable<Team> teams)
+    {
+        var map = new Dictionary<string, Team>();
+        foreach (var team in teams.OrderBy(t => t.Snr))
+            map.TryAdd(team.Name, team);
+        return map;
     }
 
     public async Task CrawlPlayerDetailsAsync(string chessResultsId, List<int> playerSnrs, CancellationToken ct = default)
@@ -244,10 +260,11 @@ public class CrawlerService
             _logger.LogInformation("art=0: parsed {Count} players", parsedPlayers.Count);
         }
 
-        // Load existing teams for name-matching
-        var existingTeams = await _db.Teams
-            .Where(t => t.TournamentId == tournament.Id)
-            .ToDictionaryAsync(t => t.Name, ct);
+        // Load existing teams for name-matching. Tolerant gegen doppelte/leere Teamnamen
+        // (Tippfehler oder echte Dubletten in den Quelldaten) — ToDictionary würde sonst
+        // mit einer Exception den GANZEN Spieler-Crawl killen.
+        var existingTeams = BuildTeamNameMap(
+            await _db.Teams.Where(t => t.TournamentId == tournament.Id).ToListAsync(ct));
 
         var existingPlayers = await _db.Players
             .Where(p => p.TournamentId == tournament.Id)
