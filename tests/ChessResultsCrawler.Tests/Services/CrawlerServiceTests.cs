@@ -351,6 +351,53 @@ public class CrawlerServiceTests : IDisposable
     }
 
     [Fact]
+    public async Task ExecuteCrawlAsync_PlayersOnly_PersistsPlayersAndTeams()
+    {
+        // Deckt den (auf IsRelational gegateten) Team-/Spieler-Upsert ab: auf der InMemory-DB
+        // läuft er ohne echte Transaktion, muss aber weiterhin Spieler + Teams korrekt anlegen.
+        var job = new CrawlJob
+        {
+            ChessResultsId = "777777",
+            JobType = CrawlJobType.PlayersOnly,
+            Status = CrawlJobStatus.Queued
+        };
+        _db.CrawlJobs.Add(job);
+        await _db.SaveChangesAsync();
+
+        const string playerTable =
+            "<html><body><table>" +
+            "<tr><th>Nr.</th><th>Title</th><th>Name</th><th>FideID</th><th>Rtg</th><th>FED</th><th>Team</th><th>Br.</th></tr>" +
+            "<tr><td>1</td><td>GM</td><td>Carlsen, Magnus</td><td>1503014</td><td>2830</td><td>NOR</td><td>Team A</td><td>1</td></tr>" +
+            "<tr><td>2</td><td>IM</td><td>Doe, John</td><td>1234567</td><td>2450</td><td>GER</td><td>Team A</td><td>2</td></tr>" +
+            "</table></body></html>";
+
+        var httpClient = CreateMockHttpClient(req =>
+        {
+            var url = req.RequestUri!.ToString();
+            // art=16 = Spielerliste; sonst die Turnierseite (Name/Details).
+            var html = url.Contains("art=16")
+                ? playerTable
+                : "<html><body><h2>Player Tournament</h2></body></html>";
+            return Task.FromResult(new HttpResponseMessage(HttpStatusCode.OK)
+            {
+                Content = new StringContent(html),
+                RequestMessage = new HttpRequestMessage(HttpMethod.Get,
+                    "https://chess-results.com/tnr777777.aspx?lan=0")
+            });
+        });
+
+        var service = CreateService(httpClient);
+        var result = await service.ExecuteCrawlAsync(job);
+
+        Assert.Equal(CrawlJobStatus.Completed, result.Status);
+        var players = _db.Players.Where(p => p.TournamentId == job.TournamentId).ToList();
+        Assert.Equal(2, players.Count);
+        var teams = _db.Teams.Where(t => t.TournamentId == job.TournamentId).ToList();
+        Assert.Single(teams);
+        Assert.Equal("Team A", teams[0].Name);
+    }
+
+    [Fact]
     public async Task FetchPageAsync_OversizedResponse_ThrowsInsteadOfBuffering()
     {
         // Antwort weit über dem (klein gesetzten) Limit → sauberer Abbruch statt OOM.

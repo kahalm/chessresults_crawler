@@ -4,6 +4,7 @@ using System.Text.Json;
 using ChessResultsCrawler.Data;
 using ChessResultsCrawler.Models;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Storage;
 using Microsoft.Extensions.Logging;
 using Serilog.Context;
 
@@ -375,6 +376,14 @@ public class CrawlerService
             ? existingTeams.Values.Max(t => t.Snr) + 1
             : 1;
 
+        // Team- und Spieler-Upsert atomar: bei einem Fehler mitten im Lauf bleiben sonst
+        // teilweise neu angelegte Teams (mit verbrauchten Snr) ohne die zugehörigen Spieler zurück.
+        // InMemory kennt keine echten Transaktionen → nur bei relationalem Provider klammern.
+        IDbContextTransaction? tx = _db.Database.IsRelational()
+            ? await _db.Database.BeginTransactionAsync(ct)
+            : null;
+        await using var _ = tx;
+
         foreach (var pp in parsedPlayers)
         {
             Team? team = null;
@@ -423,6 +432,8 @@ public class CrawlerService
         }
 
         await _db.SaveChangesAsync(ct);
+        if (tx is not null)
+            await tx.CommitAsync(ct);
     }
 
     private async Task CrawlAllPairingsAsync(Tournament tournament, string baseUrl, CancellationToken ct)
