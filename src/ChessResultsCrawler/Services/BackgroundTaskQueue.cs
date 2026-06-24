@@ -39,12 +39,15 @@ public class BackgroundTaskWorker : BackgroundService
 {
     private readonly IBackgroundTaskQueue _queue;
     private readonly IServiceScopeFactory _scopeFactory;
+    private readonly VpnReadinessGate _vpnGate;
     private readonly ILogger<BackgroundTaskWorker> _logger;
 
-    public BackgroundTaskWorker(IBackgroundTaskQueue queue, IServiceScopeFactory scopeFactory, ILogger<BackgroundTaskWorker> logger)
+    public BackgroundTaskWorker(IBackgroundTaskQueue queue, IServiceScopeFactory scopeFactory,
+        VpnReadinessGate vpnGate, ILogger<BackgroundTaskWorker> logger)
     {
         _queue = queue;
         _scopeFactory = scopeFactory;
+        _vpnGate = vpnGate;
         _logger = logger;
     }
 
@@ -53,6 +56,19 @@ public class BackgroundTaskWorker : BackgroundService
         while (!stoppingToken.IsCancellationRequested)
         {
             var workItem = await _queue.DequeueAsync(stoppingToken);
+
+            // Vor dem ersten Crawl auf den VPN-Tunnel warten (No-Op ohne VPN bzw. nach erstem
+            // Erreichen der Bereitschaft). Verhindert Connection-Level-Fehler direkt nach einem
+            // (Re-)Deploy, wenn der Tunnel noch nicht wieder verbunden ist.
+            try
+            {
+                await _vpnGate.WaitUntilReadyAsync(stoppingToken);
+            }
+            catch (OperationCanceledException) when (stoppingToken.IsCancellationRequested)
+            {
+                break;
+            }
+
             try
             {
                 using var scope = _scopeFactory.CreateScope();

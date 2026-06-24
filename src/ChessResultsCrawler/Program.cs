@@ -69,6 +69,8 @@ try
     builder.Services.AddScoped<TournamentService>();
     builder.Services.AddScoped<RoundDetectionService>();
     builder.Services.AddSingleton<IBackgroundTaskQueue, BackgroundTaskQueue>();
+    // Gate, das den ersten Crawl nach dem Start bis zur VPN-Tunnel-Bereitschaft zurückhält.
+    builder.Services.AddSingleton<VpnReadinessGate>();
     builder.Services.AddHostedService<BackgroundTaskWorker>();
     // Periodisches Lebenszeichen nach ES (Standard 60 s) → log-watcher erkennt toten Crawler.
     builder.Services.AddHostedService<HeartbeatService>();

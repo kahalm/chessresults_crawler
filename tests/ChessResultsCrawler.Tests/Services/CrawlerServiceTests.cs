@@ -23,11 +23,16 @@ public class CrawlerServiceTests : IDisposable
 
     public void Dispose() => _db.Dispose();
 
-    private static IConfiguration BuildConfig() =>
+    private static IConfiguration BuildConfig(int crawlMaxAttempts = 1) =>
         new ConfigurationBuilder()
             .AddInMemoryCollection(new Dictionary<string, string?>
             {
-                ["Gluetun__ApiUrl"] = "http://localhost:8000"
+                ["Gluetun__ApiUrl"] = "http://localhost:8000",
+                // Tests: kein interner Fetch-Retry-Delay und (per Default) kein Crawl-Re-Queue,
+                // damit die Verhaltens-Tests schnell bleiben. Backoff zwischen Re-Queues = 0 s.
+                ["Crawler:RetryDelayMs"] = "0",
+                ["Crawler:CrawlMaxAttempts"] = crawlMaxAttempts.ToString(),
+                ["Crawler:CrawlRetryBackoffSeconds"] = "0"
             })
             .Build();
 
@@ -42,13 +47,13 @@ public class CrawlerServiceTests : IDisposable
     /// Creates a CrawlerService with a mock HttpClient that returns the given HTML for any request.
     /// The returned HTML includes a tournament name and round data.
     /// </summary>
-    private CrawlerService CreateService(HttpClient httpClient)
+    private CrawlerService CreateService(HttpClient httpClient, int crawlMaxAttempts = 1)
     {
         var parser = new HtmlParserService();
         var logger = Mock.Of<ILogger<CrawlerService>>();
         var httpClientFactory = Mock.Of<IHttpClientFactory>(f =>
             f.CreateClient("Gluetun") == new HttpClient());
-        return new CrawlerService(httpClient, httpClientFactory, parser, _db, logger, BuildConfig());
+        return new CrawlerService(httpClient, httpClientFactory, parser, _db, logger, BuildConfig(crawlMaxAttempts));
     }
 
     [Fact]
@@ -107,6 +112,63 @@ public class CrawlerServiceTests : IDisposable
         Assert.Equal(CrawlJobStatus.Failed, result.Status);
         Assert.NotNull(result.ErrorMessage);
         Assert.Contains("Connection refused", result.ErrorMessage);
+    }
+
+    [Fact]
+    public async Task ExecuteCrawlAsync_RetriesTransientConnectionError_ThenSucceeds()
+    {
+        var job = new CrawlJob
+        {
+            ChessResultsId = "424242",
+            JobType = CrawlJobType.CheckNewRounds,
+            Status = CrawlJobStatus.Queued
+        };
+        _db.CrawlJobs.Add(job);
+        await _db.SaveChangesAsync();
+
+        // Erste zwei HTTP-Aufrufe (erster Anlauf + interner Fetch-Retry) scheitern auf
+        // Verbindungsebene, danach klappt es → Re-Queue muss den Crawl noch zum Erfolg bringen.
+        var calls = 0;
+        var httpClient = CreateMockHttpClient(_ =>
+        {
+            calls++;
+            if (calls <= 2)
+                throw new HttpRequestException("Resource temporarily unavailable (chess-results.com:443)");
+            return Task.FromResult(new HttpResponseMessage(HttpStatusCode.OK)
+            {
+                Content = new StringContent("<html><body><h2>Recovered Tournament</h2></body></html>"),
+                RequestMessage = new HttpRequestMessage(HttpMethod.Get,
+                    "https://chess-results.com/tnr424242.aspx?lan=0")
+            });
+        });
+
+        var service = CreateService(httpClient, crawlMaxAttempts: 3);
+        var result = await service.ExecuteCrawlAsync(job);
+
+        Assert.Equal(CrawlJobStatus.Completed, result.Status);
+        Assert.True(calls >= 3, $"expected a re-queued attempt, only {calls} HTTP calls");
+    }
+
+    [Fact]
+    public async Task ExecuteCrawlAsync_TransientError_FailsAfterMaxAttempts()
+    {
+        var job = new CrawlJob
+        {
+            ChessResultsId = "434343",
+            JobType = CrawlJobType.CheckNewRounds,
+            Status = CrawlJobStatus.Queued
+        };
+        _db.CrawlJobs.Add(job);
+        await _db.SaveChangesAsync();
+
+        var httpClient = CreateMockHttpClient(_ =>
+            throw new HttpRequestException("Resource temporarily unavailable (chess-results.com:443)"));
+
+        var service = CreateService(httpClient, crawlMaxAttempts: 2);
+        var result = await service.ExecuteCrawlAsync(job);
+
+        Assert.Equal(CrawlJobStatus.Failed, result.Status);
+        Assert.Contains("temporarily unavailable", result.ErrorMessage);
     }
 
     [Fact]

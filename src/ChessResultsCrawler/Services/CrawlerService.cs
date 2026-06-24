@@ -17,13 +17,20 @@ public class CrawlerService
     private readonly AppDbContext _db;
     private readonly ILogger<CrawlerService> _logger;
     private readonly string _gluetunApiUrl;
+    private readonly int _retryDelayMs;
+    private readonly int _crawlMaxAttempts;
+    private readonly int _crawlRetryBackoffSeconds;
     private static readonly SemaphoreSlim _rateLimiter = new(1, 1);
     private static DateTime _lastRequest = DateTime.MinValue;
     private static int _requestCount;
     private const int DelayMs = 1500;
-    private const int RetryDelayMs = 5000;
     private const int VpnRestartPauseMs = 3000;
     private const int RotateAfterRequests = 20;
+    private const int DefaultRetryDelayMs = 5000;
+    // Re-Queue eines kompletten Crawls bei Verbindungsfehlern (z.B. VPN-Tunnel kurz weg nach
+    // Rotation/Deploy): bis zu CrawlMaxAttempts Anläufe mit gestuftem Backoff, statt sofort Failed.
+    private const int DefaultCrawlMaxAttempts = 4;
+    private static readonly int[] DefaultCrawlRetryBackoffSeconds = { 15, 30, 45 };
 
     public CrawlerService(HttpClient httpClient, IHttpClientFactory httpClientFactory, HtmlParserService parser, AppDbContext db,
         ILogger<CrawlerService> logger, IConfiguration configuration)
@@ -33,7 +40,20 @@ public class CrawlerService
         _parser = parser;
         _db = db;
         _logger = logger;
-        _gluetunApiUrl = configuration["Gluetun__ApiUrl"] ?? "http://localhost:8000";
+        _gluetunApiUrl = configuration["Gluetun:ApiUrl"] ?? configuration["Gluetun__ApiUrl"] ?? "http://localhost:8000";
+        _retryDelayMs = configuration.GetValue("Crawler:RetryDelayMs", DefaultRetryDelayMs);
+        _crawlMaxAttempts = Math.Max(1, configuration.GetValue("Crawler:CrawlMaxAttempts", DefaultCrawlMaxAttempts));
+        // -1 ⇒ gestufte Default-Backoffs; >=0 ⇒ flacher Wert (v.a. für Tests, um schnell zu sein).
+        _crawlRetryBackoffSeconds = configuration.GetValue("Crawler:CrawlRetryBackoffSeconds", -1);
+    }
+
+    /// <summary>Backoff vor dem nächsten Crawl-Anlauf (1-basierter <paramref name="attempt"/>).</summary>
+    private TimeSpan BackoffFor(int attempt)
+    {
+        if (_crawlRetryBackoffSeconds >= 0)
+            return TimeSpan.FromSeconds(_crawlRetryBackoffSeconds);
+        var idx = Math.Min(attempt - 1, DefaultCrawlRetryBackoffSeconds.Length - 1);
+        return TimeSpan.FromSeconds(DefaultCrawlRetryBackoffSeconds[idx]);
     }
 
     public async Task<CrawlJob> ExecuteCrawlAsync(CrawlJob job, CancellationToken ct = default)
@@ -48,95 +68,124 @@ public class CrawlerService
         _logger.LogInformation("Starting crawl {JobType} for {ChessResultsId}", job.JobType, job.ChessResultsId);
         await _db.SaveChangesAsync(ct);
 
-        try
+        // Re-Queue-Schleife: ein Crawl, der NUR auf Verbindungsebene scheitert (Tunnel kurz weg
+        // nach VPN-Rotation/Deploy), wird gestuft erneut versucht statt sofort als Failed markiert.
+        // Das Upsert ist idempotent (find-or-create + RemoveRange/Insert pro Runde in Transaktion),
+        // ein erneuter Anlauf ist daher gefahrlos.
+        for (int attempt = 1; ; attempt++)
         {
-            // Resolve tournament base URL and SNode
-            var baseUrl = $"https://chess-results.com/tnr{job.ChessResultsId}.aspx?lan=0";
-            var (resolvedUrl, html) = await FetchWithRedirectAsync(baseUrl, ct);
-
-            // S-7: SSRF protection – only allow redirects to chess-results.com
-            EnsureChessResultsHost(resolvedUrl);
-
-            var sNode = HtmlParserService.ExtractSNode(resolvedUrl);
-
-            // Find or create tournament
-            var tournament = await _db.Tournaments
-                .FirstOrDefaultAsync(t => t.ChessResultsId == job.ChessResultsId, ct);
-
-            if (tournament is null)
+            try
             {
-                var name = await _parser.ParseTournamentNameAsync(html) ?? $"Tournament {job.ChessResultsId}";
-                tournament = new Tournament
+                // Resolve tournament base URL and SNode
+                var baseUrl = $"https://chess-results.com/tnr{job.ChessResultsId}.aspx?lan=0";
+                var (resolvedUrl, html) = await FetchWithRedirectAsync(baseUrl, ct);
+
+                // S-7: SSRF protection – only allow redirects to chess-results.com
+                EnsureChessResultsHost(resolvedUrl);
+
+                var sNode = HtmlParserService.ExtractSNode(resolvedUrl);
+
+                // Find or create tournament
+                var tournament = await _db.Tournaments
+                    .FirstOrDefaultAsync(t => t.ChessResultsId == job.ChessResultsId, ct);
+
+                if (tournament is null)
                 {
-                    ChessResultsId = job.ChessResultsId,
-                    Name = name,
-                    BaseUrl = resolvedUrl,
-                    SNode = sNode
-                };
-                _db.Tournaments.Add(tournament);
+                    var name = await _parser.ParseTournamentNameAsync(html) ?? $"Tournament {job.ChessResultsId}";
+                    tournament = new Tournament
+                    {
+                        ChessResultsId = job.ChessResultsId,
+                        Name = name,
+                        BaseUrl = resolvedUrl,
+                        SNode = sNode
+                    };
+                    _db.Tournaments.Add(tournament);
+                    await _db.SaveChangesAsync(ct);
+                }
+                else
+                {
+                    tournament.BaseUrl = resolvedUrl;
+                    tournament.SNode = sNode;
+                    tournament.UpdatedAt = DateTime.UtcNow;
+                }
+
+                job.TournamentId = tournament.Id;
+
+                // Get total rounds + tournament details from art=0 with turdet=YES
+                var art0Html = await FetchPageAsync(resolvedUrl, "art=0&turdet=YES", ct);
+                var totalRounds = await _parser.ParseTotalRoundsAsync(art0Html);
+                if (totalRounds.HasValue)
+                    tournament.TotalRounds = totalRounds.Value;
+
+                // Parse tournament date and location from turdet details
+                var details = await _parser.ParseTournamentDetailsAsync(art0Html);
+                if (details.Location is not null)
+                    tournament.Location = details.Location;
+                if (details.DateText is not null)
+                    tournament.DateText = details.DateText;
+
+                switch (job.JobType)
+                {
+                    case CrawlJobType.Full:
+                        await CrawlPlayersAsync(tournament, resolvedUrl, ct);
+                        await CrawlAllPairingsAsync(tournament, resolvedUrl, ct);
+                        break;
+                    case CrawlJobType.PlayersOnly:
+                        await CrawlPlayersAsync(tournament, resolvedUrl, ct);
+                        break;
+                    case CrawlJobType.PairingsOnly:
+                        await CrawlAllPairingsAsync(tournament, resolvedUrl, ct);
+                        break;
+                    case CrawlJobType.CheckNewRounds:
+                        // Handled by RoundDetectionService
+                        break;
+                    case CrawlJobType.PlayerDetails:
+                        // Handled by CrawlPlayerDetailsAsync (called directly)
+                        break;
+                }
+
                 await _db.SaveChangesAsync(ct);
+                job.Status = CrawlJobStatus.Completed;
+                job.CompletedAt = DateTime.UtcNow;
+                _logger.LogInformation("Crawl {JobType} completed for {ChessResultsId}", job.JobType, job.ChessResultsId);
+                break;
             }
-            else
+            catch (OperationCanceledException) when (ct.IsCancellationRequested)
             {
-                tournament.BaseUrl = resolvedUrl;
-                tournament.SNode = sNode;
-                tournament.UpdatedAt = DateTime.UtcNow;
+                _logger.LogWarning("Crawl cancelled for {ChessResultsId}", job.ChessResultsId);
+                job.Status = CrawlJobStatus.Failed;
+                job.ErrorMessage = "Cancelled";
+                job.CompletedAt = DateTime.UtcNow;
+                break;
             }
-
-            job.TournamentId = tournament.Id;
-
-            // Get total rounds + tournament details from art=0 with turdet=YES
-            var art0Html = await FetchPageAsync(resolvedUrl, "art=0&turdet=YES", ct);
-            var totalRounds = await _parser.ParseTotalRoundsAsync(art0Html);
-            if (totalRounds.HasValue)
-                tournament.TotalRounds = totalRounds.Value;
-
-            // Parse tournament date and location from turdet details
-            var details = await _parser.ParseTournamentDetailsAsync(art0Html);
-            if (details.Location is not null)
-                tournament.Location = details.Location;
-            if (details.DateText is not null)
-                tournament.DateText = details.DateText;
-
-            switch (job.JobType)
+            catch (Exception ex) when (IsTransientConnectionError(ex) && attempt < _crawlMaxAttempts)
             {
-                case CrawlJobType.Full:
-                    await CrawlPlayersAsync(tournament, resolvedUrl, ct);
-                    await CrawlAllPairingsAsync(tournament, resolvedUrl, ct);
+                var backoff = BackoffFor(attempt);
+                _logger.LogWarning(ex,
+                    "Crawl {ChessResultsId}: Verbindungsfehler (Versuch {Attempt}/{Max}), Re-Queue in {Delay}s",
+                    job.ChessResultsId, attempt, _crawlMaxAttempts, backoff.TotalSeconds);
+                try
+                {
+                    await Task.Delay(backoff, ct);
+                }
+                catch (OperationCanceledException) when (ct.IsCancellationRequested)
+                {
+                    job.Status = CrawlJobStatus.Failed;
+                    job.ErrorMessage = "Cancelled";
+                    job.CompletedAt = DateTime.UtcNow;
                     break;
-                case CrawlJobType.PlayersOnly:
-                    await CrawlPlayersAsync(tournament, resolvedUrl, ct);
-                    break;
-                case CrawlJobType.PairingsOnly:
-                    await CrawlAllPairingsAsync(tournament, resolvedUrl, ct);
-                    break;
-                case CrawlJobType.CheckNewRounds:
-                    // Handled by RoundDetectionService
-                    break;
-                case CrawlJobType.PlayerDetails:
-                    // Handled by CrawlPlayerDetailsAsync (called directly)
-                    break;
+                }
+                // nächster Schleifendurchlauf = erneuter Anlauf
             }
-
-            await _db.SaveChangesAsync(ct);
-            job.Status = CrawlJobStatus.Completed;
-            job.CompletedAt = DateTime.UtcNow;
-            _logger.LogInformation("Crawl {JobType} completed for {ChessResultsId}", job.JobType, job.ChessResultsId);
-        }
-        catch (OperationCanceledException)
-        {
-            _logger.LogWarning("Crawl cancelled for {ChessResultsId}", job.ChessResultsId);
-            job.Status = CrawlJobStatus.Failed;
-            job.ErrorMessage = "Cancelled";
-            job.CompletedAt = DateTime.UtcNow;
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Crawl failed for {ChessResultsId}", job.ChessResultsId);
-            job.Status = CrawlJobStatus.Failed;
-            var msg = ex.Message ?? "Unknown error";
-            job.ErrorMessage = msg[..Math.Min(msg.Length, 2000)];
-            job.CompletedAt = DateTime.UtcNow;
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Crawl failed for {ChessResultsId}", job.ChessResultsId);
+                job.Status = CrawlJobStatus.Failed;
+                var msg = ex.Message ?? "Unknown error";
+                job.ErrorMessage = msg[..Math.Min(msg.Length, 2000)];
+                job.CompletedAt = DateTime.UtcNow;
+                break;
+            }
         }
 
         // Finalen Status IMMER persistieren — auch bei Cancellation. Mit dem (bereits gecancelten)
@@ -512,8 +561,8 @@ public class CrawlerService
         {
             sw.Stop();
             LogCrawlRequest(url, null, sw.ElapsedMilliseconds, null, false, ex.Message, false);
-            _logger.LogWarning(ex, "Fetch failed for {Url}, retrying in {Delay}ms", url, RetryDelayMs);
-            await Task.Delay(RetryDelayMs, ct);
+            _logger.LogWarning(ex, "Fetch failed for {Url}, retrying in {Delay}ms", url, _retryDelayMs);
+            await Task.Delay(_retryDelayMs, ct);
             await RateLimitAsync(ct);
             sw = Stopwatch.StartNew();
             var response = await _httpClient.GetAsync(url, ct);
@@ -546,8 +595,8 @@ public class CrawlerService
         {
             sw.Stop();
             LogCrawlRequest(url, null, sw.ElapsedMilliseconds, null, false, ex.Message, false);
-            _logger.LogWarning(ex, "Fetch failed for {Url}, retrying in {Delay}ms", url, RetryDelayMs);
-            await Task.Delay(RetryDelayMs, ct);
+            _logger.LogWarning(ex, "Fetch failed for {Url}, retrying in {Delay}ms", url, _retryDelayMs);
+            await Task.Delay(_retryDelayMs, ct);
             await RateLimitAsync(ct);
             _logger.LogDebug("Retrying {Url}", url);
             sw = Stopwatch.StartNew();
@@ -630,6 +679,38 @@ public class CrawlerService
         }
         catch (JsonException) { /* keine gültige JSON → null */ }
         return null;
+    }
+
+    /// <summary>
+    /// Erkennt reine Verbindungs-/Transportfehler (kein HTTP-Status erhalten) — typisch wenn der
+    /// VPN-Tunnel kurz weg ist: "Resource temporarily unavailable", Socket-Reset/Refused, Timeout.
+    /// Solche Fehler sind transient und rechtfertigen einen erneuten Crawl-Anlauf. HTTP-Fehler MIT
+    /// Status (404/500…) gelten NICHT als transient, damit echte Serverfehler nicht endlos laufen.
+    /// </summary>
+    public static bool IsTransientConnectionError(Exception ex)
+    {
+        for (Exception? e = ex; e is not null; e = e.InnerException)
+        {
+            switch (e)
+            {
+                case HttpRequestException hre:
+                    if (hre.StatusCode is null) return true;
+                    break;
+                case System.Net.Sockets.SocketException:
+                case TimeoutException:
+                case TaskCanceledException:
+                case OperationCanceledException:
+                    return true;
+            }
+
+            var m = e.Message;
+            if (!string.IsNullOrEmpty(m) &&
+                (m.Contains("temporarily unavailable", StringComparison.OrdinalIgnoreCase)
+                 || m.Contains("connection refused", StringComparison.OrdinalIgnoreCase)
+                 || m.Contains("connection reset", StringComparison.OrdinalIgnoreCase)))
+                return true;
+        }
+        return false;
     }
 
     public async Task<List<ParsedPlayerSearchResult>> SearchPlayersAsync(string lastName, string? firstName, CancellationToken ct = default)
