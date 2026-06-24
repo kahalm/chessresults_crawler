@@ -338,7 +338,7 @@ public class CrawlerService
 
         // First discover available rounds from art=2
         var art2Html = await FetchPageAsync(baseUrl, "art=2", ct);
-        var availableRounds = await _parser.ParseAvailableRoundsAsync(art2Html);
+        var availableRounds = await _parser.ParseAvailableRoundsAsync(art2Html, tournament.TotalRounds);
 
         if (availableRounds.Count == 0 && tournament.TotalRounds > 0)
         {

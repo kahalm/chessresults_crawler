@@ -236,6 +236,31 @@ public class HtmlParserServiceTests
         Assert.Empty(rounds);
     }
 
+    [Fact]
+    public async Task ParseAvailableRoundsAsync_ClampsPhantomRoundsBeyondMax()
+    {
+        var html = @"<html><body>
+            <a href='?rd=1'>Rd.1</a>
+            <a href='?rd=2'>Rd.2</a>
+            <a href='?rd=999'>Werbung rd=999</a>
+            </body></html>";
+
+        // Turnier hat 2 Runden → rd=999 ist eine Phantom-Runde und muss verworfen werden.
+        var rounds = await _parser.ParseAvailableRoundsAsync(html, maxRound: 2);
+
+        Assert.Equal([1, 2], rounds);
+    }
+
+    [Fact]
+    public async Task ParseAvailableRoundsAsync_NoMax_KeepsAllPositiveRounds()
+    {
+        var html = "<html><body><a href='?rd=1'>Rd.1</a><a href='?rd=7'>Rd.7</a></body></html>";
+
+        var rounds = await _parser.ParseAvailableRoundsAsync(html, maxRound: 0);  // 0 ⇒ keine Obergrenze
+
+        Assert.Equal([1, 7], rounds);
+    }
+
     #endregion
 
     #region ParseTournamentNameAsync

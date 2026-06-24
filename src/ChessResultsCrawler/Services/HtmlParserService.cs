@@ -225,8 +225,11 @@ public class HtmlParserService
     /// <summary>
     /// Parses art=2 page to extract available round numbers from navigation links.
     /// Looks for "Rd.1", "Rd.2", etc. links.
+    /// <para><paramref name="maxRound"/> (optional, i. d. R. <c>Tournament.TotalRounds</c>) klemmt das
+    /// Ergebnis: Runden &lt; 1 oder &gt; maxRound werden verworfen — sonst erzeugen beliebige
+    /// <c>rd=</c>-Links (z. B. aus fremden Navigations-/Werbe-Hrefs) Phantom-Runden.</para>
     /// </summary>
-    public async Task<List<int>> ParseAvailableRoundsAsync(string html)
+    public async Task<List<int>> ParseAvailableRoundsAsync(string html, int? maxRound = null)
     {
         var roundNumbers = new List<int>();
         var context = BrowsingContext.New(Configuration.Default);
@@ -258,8 +261,11 @@ public class HtmlParserService
             }
         }
 
-        roundNumbers.Sort();
-        return roundNumbers;
+        // Phantom-Runden aus beliebigen rd=-Links abwehren: gültig sind nur 1..maxRound
+        // (maxRound==null/≤0 ⇒ keine Obergrenze, aber weiterhin rd≥1).
+        var clamped = roundNumbers.Where(r => r >= 1 && (maxRound is not > 0 || r <= maxRound)).ToList();
+        clamped.Sort();
+        return clamped;
     }
 
     /// <summary>

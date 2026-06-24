@@ -30,7 +30,7 @@ public class RoundDetectionService
             ?? $"https://chess-results.com/tnr{tournament.ChessResultsId}.aspx?lan=0";
 
         var html = await _crawler.FetchPageAsync(baseUrl, "art=2");
-        var availableRounds = await _parser.ParseAvailableRoundsAsync(html);
+        var availableRounds = await _parser.ParseAvailableRoundsAsync(html, tournament.TotalRounds);
 
         var knownRounds = await _db.Rounds
             .Where(r => r.TournamentId == tournament.Id)
