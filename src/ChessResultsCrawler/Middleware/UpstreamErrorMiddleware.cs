@@ -1,3 +1,5 @@
+using Serilog.Context;
+
 namespace ChessResultsCrawler.Middleware;
 
 /// <summary>
@@ -42,14 +44,16 @@ public class UpstreamErrorMiddleware
         {
             // Nicht vom Client ausgeloest → der ausgehende HttpClient-Timeout (30s) gegen den
             // Upstream ist abgelaufen.
-            _logger.LogWarning(ex, "Upstream request timed out for {Path}", context.Request.Path);
+            using (LogContext.PushProperty("LogTags", "upstream,crawl"))
+                _logger.LogWarning(ex, "Upstream request timed out for {Path}", context.Request.Path);
             await WriteProblemAsync(context, StatusCodes.Status504GatewayTimeout,
                 "Upstream request timed out.");
         }
         catch (HttpRequestException ex)
         {
             // Upstream nicht erreichbar oder liefert non-2xx (EnsureSuccessStatusCode).
-            _logger.LogWarning(ex, "Upstream request failed for {Path}", context.Request.Path);
+            using (LogContext.PushProperty("LogTags", "upstream,crawl"))
+                _logger.LogWarning(ex, "Upstream request failed for {Path}", context.Request.Path);
             await WriteProblemAsync(context, StatusCodes.Status502BadGateway,
                 "Upstream request failed.");
         }
@@ -57,7 +61,9 @@ public class UpstreamErrorMiddleware
         {
             // Eigener Rate-Limiter (CrawlerService) konnte das Ticket nicht binnen 60s holen →
             // Selbst-Drosselung/Ueberlast, kein Crash. 503 + Retry-After-Hinweis ist semantisch korrekt.
-            _logger.LogWarning(ex, "Crawler rate limiter saturated for {Path}", context.Request.Path);
+            // Keine Upstream-Störung, aber Teil des Crawl-Pfads → nur "crawl".
+            using (LogContext.PushProperty("LogTags", "crawl"))
+                _logger.LogWarning(ex, "Crawler rate limiter saturated for {Path}", context.Request.Path);
             await WriteProblemAsync(context, StatusCodes.Status503ServiceUnavailable,
                 "Service temporarily unavailable (crawler busy), please retry.");
         }

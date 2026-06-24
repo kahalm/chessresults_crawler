@@ -5,6 +5,7 @@ using ChessResultsCrawler.Data;
 using ChessResultsCrawler.Models;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
+using Serilog.Context;
 
 namespace ChessResultsCrawler.Services;
 
@@ -37,8 +38,14 @@ public class CrawlerService
 
     public async Task<CrawlJob> ExecuteCrawlAsync(CrawlJob job, CancellationToken ct = default)
     {
+        // Gesamten Crawl-Lebenszyklus mit dem Domain-Tag "crawl" markieren, damit Start-/Erfolgs-/
+        // Fehler-Logs (inkl. der CrawlRequest-Zeilen aus FetchHtml/FetchWithRedirect) zentral in
+        // Kibana über das ECS-`tags`-Feld filterbar sind.
+        using var _ = LogContext.PushProperty("LogTags", "crawl");
+
         job.Status = CrawlJobStatus.Running;
         job.StartedAt = DateTime.UtcNow;
+        _logger.LogInformation("Starting crawl {JobType} for {ChessResultsId}", job.JobType, job.ChessResultsId);
         await _db.SaveChangesAsync(ct);
 
         try
@@ -114,6 +121,7 @@ public class CrawlerService
             await _db.SaveChangesAsync(ct);
             job.Status = CrawlJobStatus.Completed;
             job.CompletedAt = DateTime.UtcNow;
+            _logger.LogInformation("Crawl {JobType} completed for {ChessResultsId}", job.JobType, job.ChessResultsId);
         }
         catch (OperationCanceledException)
         {
@@ -719,6 +727,9 @@ public class CrawlerService
         // Bewusst KEIN Response-Body mehr ins Log: das gecrawlte HTML (bis 500 KB/Request) blähte
         // den Elasticsearch-Data-Stream massiv auf und enthielt ungefilterte Spieler-PII. Nur noch
         // die Größe (CrawlResponseSize) festhalten — der Inhalt ist ohnehin in der DB.
+        // "crawl"-Tag auch hier, damit jeder einzelne Fetch-gegen-chess-results.com (unabhängig vom
+        // Aufrufer, z.B. Spielersuche) zentral filterbar ist.
+        using var _ = LogContext.PushProperty("LogTags", "crawl");
         _logger.LogInformation(
             "CrawlRequest {CrawlUrl} Status={CrawlStatusCode} Duration={CrawlDurationMs}ms " +
             "Size={CrawlResponseSize} Success={CrawlSuccess} IsRetry={CrawlIsRetry} Error={CrawlError}",
