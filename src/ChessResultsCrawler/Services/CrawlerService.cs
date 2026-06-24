@@ -845,12 +845,22 @@ public class CrawlerService
             .ToList();
     }
 
-    private static string? ExtractHiddenField(string html, string fieldName)
+    /// <summary>
+    /// Liest den Wert eines versteckten ASP.NET-Form-Feldes (z.B. __VIEWSTATE) per AngleSharp.
+    /// Sucht zuerst über das name-Attribut, fällt auf das id-Attribut zurück. Der zurückgegebene
+    /// Wert ist bereits HTML-entschlüsselt (AngleSharp dekodiert Attributwerte).
+    /// Robuster gegen Markup-Drift (Attribut-Reihenfolge, Quoting, Self-Closing) als das frühere
+    /// Regex. Der Parser wird je Aufruf neu erzeugt (ParseDocument ist nicht thread-safe, Crawls
+    /// laufen parallel) — die Form ist klein, der Overhead vernachlässigbar.
+    /// </summary>
+    internal static string? ExtractHiddenField(string html, string fieldName)
     {
-        // Match: name="fieldName" ... value="..."
-        var pattern = $"name=\"{fieldName}\"[^>]*value=\"([^\"]*)\"";
-        var match = System.Text.RegularExpressions.Regex.Match(html, pattern);
-        return match.Success ? System.Net.WebUtility.HtmlDecode(match.Groups[1].Value) : null;
+        var document = new AngleSharp.Html.Parser.HtmlParser().ParseDocument(html);
+        var input = document.QuerySelector($"input[name=\"{fieldName}\"]")
+                    ?? document.QuerySelector($"input[id=\"{fieldName}\"]");
+        // Wie zuvor: ohne passendes Feld ODER ohne value-Attribut → null (das alte Regex
+        // verlangte ein value-Attribut, sonst kein Treffer).
+        return input?.GetAttribute("value");
     }
 
     private void LogCrawlRequest(string url, int? statusCode, long durationMs, string? responseBody, bool success, string? error, bool isRetry)
