@@ -23,18 +23,21 @@ public class CrawlerServiceTests : IDisposable
 
     public void Dispose() => _db.Dispose();
 
-    private static IConfiguration BuildConfig(int crawlMaxAttempts = 1) =>
-        new ConfigurationBuilder()
-            .AddInMemoryCollection(new Dictionary<string, string?>
-            {
-                ["Gluetun__ApiUrl"] = "http://localhost:8000",
-                // Tests: kein interner Fetch-Retry-Delay und (per Default) kein Crawl-Re-Queue,
-                // damit die Verhaltens-Tests schnell bleiben. Backoff zwischen Re-Queues = 0 s.
-                ["Crawler:RetryDelayMs"] = "0",
-                ["Crawler:CrawlMaxAttempts"] = crawlMaxAttempts.ToString(),
-                ["Crawler:CrawlRetryBackoffSeconds"] = "0"
-            })
-            .Build();
+    private static IConfiguration BuildConfig(int crawlMaxAttempts = 1, long? maxResponseBytes = null)
+    {
+        var dict = new Dictionary<string, string?>
+        {
+            ["Gluetun__ApiUrl"] = "http://localhost:8000",
+            // Tests: kein interner Fetch-Retry-Delay und (per Default) kein Crawl-Re-Queue,
+            // damit die Verhaltens-Tests schnell bleiben. Backoff zwischen Re-Queues = 0 s.
+            ["Crawler:RetryDelayMs"] = "0",
+            ["Crawler:CrawlMaxAttempts"] = crawlMaxAttempts.ToString(),
+            ["Crawler:CrawlRetryBackoffSeconds"] = "0"
+        };
+        if (maxResponseBytes.HasValue)
+            dict["Crawler:MaxResponseBytes"] = maxResponseBytes.Value.ToString();
+        return new ConfigurationBuilder().AddInMemoryCollection(dict).Build();
+    }
 
     private static HttpClient CreateMockHttpClient(
         Func<HttpRequestMessage, Task<HttpResponseMessage>> handler)
@@ -47,13 +50,13 @@ public class CrawlerServiceTests : IDisposable
     /// Creates a CrawlerService with a mock HttpClient that returns the given HTML for any request.
     /// The returned HTML includes a tournament name and round data.
     /// </summary>
-    private CrawlerService CreateService(HttpClient httpClient, int crawlMaxAttempts = 1)
+    private CrawlerService CreateService(HttpClient httpClient, int crawlMaxAttempts = 1, long? maxResponseBytes = null)
     {
         var parser = new HtmlParserService();
         var logger = Mock.Of<ILogger<CrawlerService>>();
         var httpClientFactory = Mock.Of<IHttpClientFactory>(f =>
             f.CreateClient("Gluetun") == new HttpClient());
-        return new CrawlerService(httpClient, httpClientFactory, parser, _db, logger, BuildConfig(crawlMaxAttempts));
+        return new CrawlerService(httpClient, httpClientFactory, parser, _db, logger, BuildConfig(crawlMaxAttempts, maxResponseBytes));
     }
 
     [Fact]
@@ -345,6 +348,42 @@ public class CrawlerServiceTests : IDisposable
 
         await Assert.ThrowsAnyAsync<OperationCanceledException>(
             () => service.SearchPlayerTournamentsAsync("Muster", null, cts.Token));
+    }
+
+    [Fact]
+    public async Task FetchPageAsync_OversizedResponse_ThrowsInsteadOfBuffering()
+    {
+        // Antwort weit über dem (klein gesetzten) Limit → sauberer Abbruch statt OOM.
+        var oversized = new string('A', 4096);
+        var httpClient = CreateMockHttpClient(_ =>
+            Task.FromResult(new HttpResponseMessage(HttpStatusCode.OK)
+            {
+                Content = new StringContent(oversized),
+                RequestMessage = new HttpRequestMessage(HttpMethod.Get,
+                    "https://chess-results.com/tnr1.aspx?lan=0")
+            }));
+        var service = CreateService(httpClient, maxResponseBytes: 1024);
+
+        var ex = await Assert.ThrowsAsync<InvalidOperationException>(
+            () => service.FetchPageAsync("https://chess-results.com/tnr1.aspx?lan=0", "art=0"));
+        Assert.Contains("maximum allowed size", ex.Message);
+    }
+
+    [Fact]
+    public async Task FetchPageAsync_ResponseWithinLimit_ReturnsBody()
+    {
+        var body = new string('B', 512);
+        var httpClient = CreateMockHttpClient(_ =>
+            Task.FromResult(new HttpResponseMessage(HttpStatusCode.OK)
+            {
+                Content = new StringContent(body),
+                RequestMessage = new HttpRequestMessage(HttpMethod.Get,
+                    "https://chess-results.com/tnr1.aspx?lan=0")
+            }));
+        var service = CreateService(httpClient, maxResponseBytes: 1024);
+
+        var result = await service.FetchPageAsync("https://chess-results.com/tnr1.aspx?lan=0", "art=0");
+        Assert.Equal(body, result);
     }
 
     /// <summary>

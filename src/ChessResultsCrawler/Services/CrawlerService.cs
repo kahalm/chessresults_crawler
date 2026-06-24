@@ -20,6 +20,7 @@ public class CrawlerService
     private readonly int _retryDelayMs;
     private readonly int _crawlMaxAttempts;
     private readonly int _crawlRetryBackoffSeconds;
+    private readonly long _maxResponseBytes;
     private static readonly SemaphoreSlim _rateLimiter = new(1, 1);
     private static DateTime _lastRequest = DateTime.MinValue;
     private static int _requestCount;
@@ -31,6 +32,10 @@ public class CrawlerService
     // Rotation/Deploy): bis zu CrawlMaxAttempts Anläufe mit gestuftem Backoff, statt sofort Failed.
     private const int DefaultCrawlMaxAttempts = 4;
     private static readonly int[] DefaultCrawlRetryBackoffSeconds = { 15, 30, 45 };
+    // Defensives Obergrenze für die Größe einer chess-results.com-Antwort. Listen werden mit
+    // zeilen=99999 geholt; ein bösartiger/fehlerhafter Server könnte beliebig große Bodies liefern
+    // und den Heap sprengen. Großzügig (32 MB), aber endlich — sauberer Abbruch statt OOM.
+    private const long DefaultMaxResponseBytes = 32L * 1024 * 1024;
 
     public CrawlerService(HttpClient httpClient, IHttpClientFactory httpClientFactory, HtmlParserService parser, AppDbContext db,
         ILogger<CrawlerService> logger, IConfiguration configuration)
@@ -45,6 +50,28 @@ public class CrawlerService
         _crawlMaxAttempts = Math.Max(1, configuration.GetValue("Crawler:CrawlMaxAttempts", DefaultCrawlMaxAttempts));
         // -1 ⇒ gestufte Default-Backoffs; >=0 ⇒ flacher Wert (v.a. für Tests, um schnell zu sein).
         _crawlRetryBackoffSeconds = configuration.GetValue("Crawler:CrawlRetryBackoffSeconds", -1);
+        _maxResponseBytes = Math.Max(1024, configuration.GetValue("Crawler:MaxResponseBytes", DefaultMaxResponseBytes));
+    }
+
+    /// <summary>
+    /// Liest den Antwort-Body als UTF-8-String, bricht aber bei Überschreiten von
+    /// <see cref="_maxResponseBytes"/> sauber mit <see cref="InvalidOperationException"/> ab —
+    /// schützt vor unbegrenzten Bodies (Heap-/OOM-Risiko) statt blind zu puffern.
+    /// </summary>
+    private async Task<string> ReadBodyBoundedAsync(HttpResponseMessage response, CancellationToken ct)
+    {
+        await using var stream = await response.Content.ReadAsStreamAsync(ct);
+        using var buffer = new MemoryStream();
+        var chunk = new byte[81920];
+        int read;
+        while ((read = await stream.ReadAsync(chunk.AsMemory(0, chunk.Length), ct)) > 0)
+        {
+            if (buffer.Length + read > _maxResponseBytes)
+                throw new InvalidOperationException(
+                    $"Response body exceeds maximum allowed size of {_maxResponseBytes} bytes.");
+            buffer.Write(chunk, 0, read);
+        }
+        return Encoding.UTF8.GetString(buffer.GetBuffer(), 0, (int)buffer.Length);
     }
 
     /// <summary>Backoff vor dem nächsten Crawl-Anlauf (1-basierter <paramref name="attempt"/>).</summary>
@@ -572,7 +599,7 @@ public class CrawlerService
         try
         {
             var response = await _httpClient.GetAsync(url, ct);
-            var html = await response.Content.ReadAsStringAsync(ct);
+            var html = await ReadBodyBoundedAsync(response, ct);
             sw.Stop();
             var finalUrl = response.RequestMessage?.RequestUri?.ToString() ?? url;
             LogCrawlRequest(url, (int)response.StatusCode, sw.ElapsedMilliseconds, html, response.IsSuccessStatusCode, null, false);
@@ -589,7 +616,7 @@ public class CrawlerService
             await RateLimitAsync(ct);
             sw = Stopwatch.StartNew();
             var response = await _httpClient.GetAsync(url, ct);
-            var html = await response.Content.ReadAsStringAsync(ct);
+            var html = await ReadBodyBoundedAsync(response, ct);
             sw.Stop();
             var finalUrl = response.RequestMessage?.RequestUri?.ToString() ?? url;
             LogCrawlRequest(url, (int)response.StatusCode, sw.ElapsedMilliseconds, html, response.IsSuccessStatusCode, null, true);
@@ -607,7 +634,7 @@ public class CrawlerService
         try
         {
             var response = await _httpClient.GetAsync(url, ct);
-            var body = await response.Content.ReadAsStringAsync(ct);
+            var body = await ReadBodyBoundedAsync(response, ct);
             sw.Stop();
             LogCrawlRequest(url, (int)response.StatusCode, sw.ElapsedMilliseconds, body, response.IsSuccessStatusCode, null, false);
             EnsureChessResultsHost(response.RequestMessage?.RequestUri?.ToString() ?? url);
@@ -624,7 +651,7 @@ public class CrawlerService
             _logger.LogDebug("Retrying {Url}", url);
             sw = Stopwatch.StartNew();
             var response = await _httpClient.GetAsync(url, ct);
-            var body = await response.Content.ReadAsStringAsync(ct);
+            var body = await ReadBodyBoundedAsync(response, ct);
             sw.Stop();
             LogCrawlRequest(url, (int)response.StatusCode, sw.ElapsedMilliseconds, body, response.IsSuccessStatusCode, null, true);
             EnsureChessResultsHost(response.RequestMessage?.RequestUri?.ToString() ?? url);
@@ -766,7 +793,7 @@ public class CrawlerService
         var response = await _httpClient.PostAsync(resolvedUrl, content, ct);
         response.EnsureSuccessStatusCode();
 
-        var resultHtml = await response.Content.ReadAsStringAsync(ct);
+        var resultHtml = await ReadBodyBoundedAsync(response, ct);
         var results = await _parser.ParsePlayerSearchAsync(resultHtml);
 
         // Deduplicate: SpielerSuche returns one row per tournament per player
@@ -807,7 +834,7 @@ public class CrawlerService
         var response = await _httpClient.PostAsync(resolvedUrl, content, ct);
         response.EnsureSuccessStatusCode();
 
-        var resultHtml = await response.Content.ReadAsStringAsync(ct);
+        var resultHtml = await ReadBodyBoundedAsync(response, ct);
         var results = await _parser.ParsePlayerTournamentsAsync(resultHtml);
 
         // Deduplicate and limit
