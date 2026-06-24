@@ -103,9 +103,22 @@ public class ApiKeyMiddlewareTests
     }
 
     [Fact]
-    public async Task HealthIpEndpoint_SkipsAuth()
+    public async Task HealthIpEndpoint_RequiresAuth()
+    {
+        // /api/health/ip gibt die VPN-Exit-IP preis + triggert einen Outbound-Call → API-Key-pflichtig.
+        var (middleware, context, called) = Create("secret-key", "/api/health/ip");
+
+        await middleware.InvokeAsync(context);
+
+        Assert.False(called[0]);
+        Assert.Equal(401, context.Response.StatusCode);
+    }
+
+    [Fact]
+    public async Task HealthIpEndpoint_WithValidKey_PassesThrough()
     {
         var (middleware, context, called) = Create("secret-key", "/api/health/ip");
+        context.Request.Headers["X-Api-Key"] = "secret-key";
 
         await middleware.InvokeAsync(context);
 

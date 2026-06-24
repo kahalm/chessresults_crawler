@@ -46,8 +46,9 @@ public class ApiKeyMiddleware
     }
 
     private static bool IsOpenPath(string path) =>
+        // Nur die reine Liveness-Probe ist offen. /api/health/ip NICHT — der Endpoint gibt die
+        // VPN-Exit-IP preis und triggert einen Outbound-Call (ipify); jetzt API-Key-pflichtig.
         path.Equals("/api/health", StringComparison.OrdinalIgnoreCase)
-        || path.Equals("/api/health/ip", StringComparison.OrdinalIgnoreCase)
         || path.Equals("/swagger", StringComparison.OrdinalIgnoreCase)
         || path.StartsWith("/swagger/", StringComparison.OrdinalIgnoreCase);
 
