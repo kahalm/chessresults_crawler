@@ -208,6 +208,23 @@ public class CrawlerService
         return map;
     }
 
+    private static readonly string[] ByeMarkers = { "spielfrei", "bye", "freilos" };
+
+    /// <summary>
+    /// Erkennt einen "Spielfrei"/Bye/Freilos-Gegner (case-insensitive, getrimmt). Solche Einträge
+    /// sind kein echtes Team und kein Fehler — sie dürfen keinen Warn-Alert auslösen.
+    /// </summary>
+    public static bool IsByeOpponent(string? teamName)
+    {
+        if (string.IsNullOrWhiteSpace(teamName))
+            return false;
+        var normalized = teamName.Trim();
+        foreach (var marker in ByeMarkers)
+            if (normalized.Equals(marker, StringComparison.OrdinalIgnoreCase))
+                return true;
+        return false;
+    }
+
     public async Task CrawlPlayerDetailsAsync(string chessResultsId, List<int> playerSnrs, CancellationToken ct = default)
     {
         var tournament = await _db.Tournaments
@@ -438,7 +455,13 @@ public class CrawlerService
 
                 if (homeTeam is null || awayTeam is null)
                 {
-                    _logger.LogWarning("Team not found: {Home} vs {Away}", pp.HomeTeamName, pp.AwayTeamName);
+                    // "Spielfrei"/Freilos/Bye ist KEIN Fehler: bei ungerader Teamzahl bekommt ein
+                    // Team eine freie Runde, der Gegner existiert dann nicht als echtes Team.
+                    // Solche Paarungen nur informativ loggen, damit sie keinen warn_spike-Alert treiben.
+                    if (IsByeOpponent(pp.HomeTeamName) || IsByeOpponent(pp.AwayTeamName))
+                        _logger.LogInformation("Bye/spielfrei pairing skipped: {Home} vs {Away}", pp.HomeTeamName, pp.AwayTeamName);
+                    else
+                        _logger.LogWarning("Team not found: {Home} vs {Away}", pp.HomeTeamName, pp.AwayTeamName);
                     continue;
                 }
 
