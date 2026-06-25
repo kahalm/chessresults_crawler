@@ -9,27 +9,36 @@ public class ApiKeyMiddleware
 
     private readonly RequestDelegate _next;
     private readonly string? _apiKey;
+    private readonly bool _isProduction;
 
-    public ApiKeyMiddleware(RequestDelegate next, IConfiguration config)
+    public ApiKeyMiddleware(RequestDelegate next, IConfiguration config, IHostEnvironment env)
     {
         _next = next;
         _apiKey = config["API_KEY"];
+        _isProduction = env.IsProduction();
     }
 
     public async Task InvokeAsync(HttpContext context)
     {
-        // Skip if no API key configured (backwards compatible)
-        if (string.IsNullOrEmpty(_apiKey))
-        {
-            await _next(context);
-            return;
-        }
-
         // Allow health and swagger endpoints without key (exakter/segment-genauer
         // Match, damit z.B. "/api/healthXYZ" NICHT als offen durchrutscht).
         var path = context.Request.Path.Value ?? "";
         if (IsOpenPath(path))
         {
+            await _next(context);
+            return;
+        }
+
+        // Kein Key konfiguriert: in Development absichtlich offen (lokaler Fallback), in
+        // Production aber fail-CLOSED — eine Fehlkonfiguration darf das Gate nicht öffnen.
+        if (string.IsNullOrEmpty(_apiKey))
+        {
+            if (_isProduction)
+            {
+                context.Response.StatusCode = StatusCodes.Status503ServiceUnavailable;
+                await context.Response.WriteAsJsonAsync(new { message = "API key not configured." });
+                return;
+            }
             await _next(context);
             return;
         }

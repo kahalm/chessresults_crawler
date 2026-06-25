@@ -1,11 +1,21 @@
 using ChessResultsCrawler.Middleware;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.FileProviders;
+using Microsoft.Extensions.Hosting;
 
 namespace ChessResultsCrawler.Tests.Middleware;
 
 public class ApiKeyMiddlewareTests
 {
+    private sealed class FakeEnv : IHostEnvironment
+    {
+        public string EnvironmentName { get; set; } = Environments.Development;
+        public string ApplicationName { get; set; } = "test";
+        public string ContentRootPath { get; set; } = "";
+        public IFileProvider ContentRootFileProvider { get; set; } = new NullFileProvider();
+    }
+
     private static IConfiguration BuildConfig(string? apiKey)
     {
         var dict = new Dictionary<string, string?>();
@@ -15,12 +25,12 @@ public class ApiKeyMiddlewareTests
     }
 
     private static (ApiKeyMiddleware middleware, DefaultHttpContext context, bool[] called) Create(
-        string? configApiKey, string path = "/api/tournaments")
+        string? configApiKey, string path = "/api/tournaments", string environment = "Development")
     {
         var called = new[] { false };
         RequestDelegate next = _ => { called[0] = true; return Task.CompletedTask; };
         var config = BuildConfig(configApiKey);
-        var middleware = new ApiKeyMiddleware(next, config);
+        var middleware = new ApiKeyMiddleware(next, config, new FakeEnv { EnvironmentName = environment });
         var context = new DefaultHttpContext();
         context.Request.Path = path;
         context.Response.Body = new MemoryStream();
@@ -41,6 +51,29 @@ public class ApiKeyMiddlewareTests
     public async Task EmptyApiKeyConfigured_PassesThrough()
     {
         var (middleware, context, called) = Create("");
+
+        await middleware.InvokeAsync(context);
+
+        Assert.True(called[0]);
+    }
+
+    [Fact]
+    public async Task EmptyApiKeyInProduction_FailsClosed_Returns503()
+    {
+        // Fail-closed: in Production darf ein fehlender Key das Gate NICHT öffnen.
+        var (middleware, context, called) = Create("", environment: Environments.Production);
+
+        await middleware.InvokeAsync(context);
+
+        Assert.False(called[0]);
+        Assert.Equal(503, context.Response.StatusCode);
+    }
+
+    [Fact]
+    public async Task EmptyApiKeyInProduction_HealthStillOpen()
+    {
+        // Liveness-Probe bleibt auch in Production ohne Key erreichbar.
+        var (middleware, context, called) = Create("", "/api/health", Environments.Production);
 
         await middleware.InvokeAsync(context);
 
