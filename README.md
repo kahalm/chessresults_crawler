@@ -2,7 +2,7 @@
 
 Spezialisierter Web-Crawler der Turnierdaten von [chess-results.com](https://chess-results.com) extrahiert und als REST-API bereitstellt. Backend-only, kein Frontend — wird von [RookHub](../rookhub) als Datenquelle genutzt.
 
-💬 **Community / Fragen?** Komm in unseren Discord: https://discord.gg/nKQCdC7Xff
+💬 **Community / Fragen?** Komm in unseren Discord: https://discord.gg/wczc4BJtMf
 
 ## Architektur
 
