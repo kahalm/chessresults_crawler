@@ -46,3 +46,6 @@ jobs:
           context: src/ChessResultsCrawler
           push: true
           tags: ${{ steps.meta.outputs.tags }}
+          build-args: |
+            GIT_SHA=${{ github.sha }}
+            GIT_REF=${{ github.ref_name }}
