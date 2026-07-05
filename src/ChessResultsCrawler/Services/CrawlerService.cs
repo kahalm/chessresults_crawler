@@ -22,12 +22,15 @@ public class CrawlerService
     private readonly int _crawlMaxAttempts;
     private readonly int _crawlRetryBackoffSeconds;
     private readonly long _maxResponseBytes;
+    private readonly int _rotateAfterRequests;
+    private readonly int _vpnRestartPauseMs;
+    private readonly int _minDelayMs;
     private static readonly SemaphoreSlim _rateLimiter = new(1, 1);
     private static DateTime _lastRequest = DateTime.MinValue;
     private static int _requestCount;
-    private const int DelayMs = 1500;
-    private const int VpnRestartPauseMs = 3000;
-    private const int RotateAfterRequests = 20;
+    private const int DefaultMinDelayMs = 1500;
+    private const int DefaultVpnRestartPauseMs = 3000;
+    private const int DefaultRotateAfterRequests = 20;
     private const int DefaultRetryDelayMs = 5000;
     // Re-Queue eines kompletten Crawls bei Verbindungsfehlern (z.B. VPN-Tunnel kurz weg nach
     // Rotation/Deploy): bis zu CrawlMaxAttempts Anläufe mit gestuftem Backoff, statt sofort Failed.
@@ -52,6 +55,9 @@ public class CrawlerService
         // -1 ⇒ gestufte Default-Backoffs; >=0 ⇒ flacher Wert (v.a. für Tests, um schnell zu sein).
         _crawlRetryBackoffSeconds = configuration.GetValue("Crawler:CrawlRetryBackoffSeconds", -1);
         _maxResponseBytes = Math.Max(1024, configuration.GetValue("Crawler:MaxResponseBytes", DefaultMaxResponseBytes));
+        _rotateAfterRequests = Math.Max(1, configuration.GetValue("Crawler:RotateAfterRequests", DefaultRotateAfterRequests));
+        _vpnRestartPauseMs = Math.Max(0, configuration.GetValue("Crawler:VpnRestartPauseMs", DefaultVpnRestartPauseMs));
+        _minDelayMs = Math.Max(0, configuration.GetValue("Crawler:MinDelayMs", DefaultMinDelayMs));
     }
 
     /// <summary>
@@ -671,7 +677,13 @@ public class CrawlerService
         }
     }
 
-    private async Task RotateVpnAsync(CancellationToken ct)
+    /// <summary>
+    /// Startet den VPN-Tunnel neu (stop→pause→start). Läuft UNTER dem Rate-Limiter-Lock, weil der
+    /// Tunnel dabei kurz unten ist und in dieser Phase kein Crawl-Request rausgehen darf. Bewusst
+    /// KURZ gehalten: die rein informative Public-IP-Ermittlung (bis zu 5 s Polling) wird detached
+    /// außerhalb des Locks geloggt, damit wartende Crawls nicht zusätzlich blockiert werden.
+    /// </summary>
+    private async Task RestartVpnTunnelAsync(CancellationToken ct)
     {
         try
         {
@@ -681,23 +693,45 @@ public class CrawlerService
 
             _logger.LogInformation("Rotating VPN IP...");
             await _gluetunClient.PutAsync(statusUrl, stopContent, ct);
-            await Task.Delay(VpnRestartPauseMs, ct);
+            await Task.Delay(_vpnRestartPauseMs, ct);
             await _gluetunClient.PutAsync(statusUrl, startContent, ct);
             // Nach der Rotation den Rate-Limiter-Zeitstempel zuruecksetzen, damit die
             // erste Anfrage ueber die neue Verbindung den vollen DelayMs-Abstand abwartet.
             _lastRequest = DateTime.UtcNow;
-
-            // Neue Public-IP ermitteln und mitloggen (zur Korrelation in ES/Kibana).
-            var newIp = await TryGetPublicIpAsync(ct);
-            if (newIp is not null)
-                _logger.LogInformation("VPN IP rotated → {NewIp}", newIp);
-            else
-                _logger.LogInformation("VPN IP rotated (neue IP nicht ermittelbar)");
         }
         catch (Exception ex)
         {
             _logger.LogWarning(ex, "VPN rotation failed (non-critical)");
+            return;
         }
+
+        // Neue Public-IP NICHT mehr im Lock ermitteln (kostete bis zu 5 s Blockade aller Crawls).
+        // Detached best-effort loggen, sobald gluetun die neue IP kennt.
+        LogNewPublicIpDetached();
+    }
+
+    /// <summary>
+    /// Ermittelt + loggt die neue Public-IP nach einer Rotation OHNE den Rate-Limiter zu halten
+    /// (fire-and-forget, best-effort — rein zur Korrelation in ES/Kibana).
+    /// </summary>
+    private void LogNewPublicIpDetached()
+    {
+        _ = Task.Run(async () =>
+        {
+            try
+            {
+                var newIp = await TryGetPublicIpAsync(CancellationToken.None);
+                using var _ = LogContext.PushProperty("LogTags", "crawl");
+                if (newIp is not null)
+                    _logger.LogInformation("VPN IP rotated → {NewIp}", newIp);
+                else
+                    _logger.LogInformation("VPN IP rotated (neue IP nicht ermittelbar)");
+            }
+            catch (Exception ex)
+            {
+                _logger.LogDebug(ex, "detached publicip logging failed");
+            }
+        });
     }
 
     /// <summary>
@@ -896,18 +930,23 @@ public class CrawlerService
             throw new TimeoutException("Rate limiter acquisition timed out after 60 seconds.");
         try
         {
-            // Rotate VPN IP every N requests (keep semaphore held during rotation)
+            // Rotate VPN IP every N requests. Der Semaphor wird NUR während des eigentlichen
+            // Tunnel-Neustarts (stop→pause→start) gehalten — in dieser kurzen Phase ist der Tunnel
+            // unten, also DARF ohnehin kein Crawl-Request raus. Die anschließende, rein informative
+            // Public-IP-Ermittlung (bis zu 5×1 s Polling, nur fürs Logging) lief früher ebenfalls
+            // im Lock und blockierte alle wartenden Crawls ~5 s zusätzlich (Timeout-Risiko) →
+            // läuft jetzt detached außerhalb des Locks (siehe RestartVpnTunnelAsync).
             _requestCount++;
-            if (_requestCount >= RotateAfterRequests)
+            if (_requestCount >= _rotateAfterRequests)
             {
                 _requestCount = 0;
-                await RotateVpnAsync(ct);
+                await RestartVpnTunnelAsync(ct);
             }
 
             var elapsed = (DateTime.UtcNow - _lastRequest).TotalMilliseconds;
-            if (elapsed < DelayMs)
+            if (elapsed < _minDelayMs)
             {
-                await Task.Delay(DelayMs - (int)elapsed, ct);
+                await Task.Delay(_minDelayMs - (int)elapsed, ct);
             }
             _lastRequest = DateTime.UtcNow;
         }
