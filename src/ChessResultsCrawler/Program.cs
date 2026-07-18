@@ -60,7 +60,11 @@ try
     {
         client.DefaultRequestHeaders.Add("User-Agent", "ChessResultsCrawler/1.0");
         client.Timeout = TimeSpan.FromSeconds(30);
-    });
+    })
+    // SSRF-Schutz: Redirects NICHT automatisch folgen. CrawlerService folgt ihnen manuell und prüft
+    // jeden Hop (chess-results.com + https) VOR dem Absenden — sonst würde HttpClient eine
+    // Redirect-Kette (bis 50 Hops) blind bis zu einem internen Host folgen und erst danach prüfen.
+    .ConfigurePrimaryHttpMessageHandler(() => new SocketsHttpHandler { AllowAutoRedirect = false });
     builder.Services.AddHttpClient("Gluetun", client =>
     {
         client.Timeout = TimeSpan.FromSeconds(5);

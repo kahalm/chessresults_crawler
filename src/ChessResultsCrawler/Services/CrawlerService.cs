@@ -1,4 +1,5 @@
 using System.Diagnostics;
+using System.Net;
 using System.Text;
 using System.Text.Json;
 using ChessResultsCrawler.Data;
@@ -609,18 +610,75 @@ public class CrawlerService
             throw new InvalidOperationException($"Redirect to unexpected domain: {resolvedUrl}");
     }
 
+    /// <summary>Ein zulässiges Request-Ziel muss https UND ein chess-results.com-Host sein.</summary>
+    private static void EnsureAllowedTarget(Uri url)
+    {
+        if (url.Scheme != Uri.UriSchemeHttps)
+            throw new InvalidOperationException($"Refusing non-https target: {url}");
+        EnsureChessResultsHost(url.ToString());
+    }
+
+    private static bool IsRedirectStatus(HttpStatusCode code) => code is HttpStatusCode.MovedPermanently
+        or HttpStatusCode.Found or HttpStatusCode.SeeOther
+        or HttpStatusCode.TemporaryRedirect or HttpStatusCode.PermanentRedirect;
+
+    /// <summary>Obergrenze der manuell gefolgten Redirect-Hops (Schleifen-/Kettenschutz).</summary>
+    private const int MaxRedirectHops = 10;
+
+    /// <summary>
+    /// Führt einen Request aus und folgt Redirects MANUELL — jeder Hop wird VOR dem Absenden gegen
+    /// https + chess-results.com geprüft (<see cref="EnsureAllowedTarget"/>). Ersetzt das
+    /// automatische Redirect-Folgen des HttpClient (in Program.cs via <c>AllowAutoRedirect=false</c>
+    /// abgeschaltet), das eine Kette blind bis zu 50 Hops folgte und erst die finale URL prüfte —
+    /// der Outbound-Request an einen internen Host feuert damit gar nicht erst. Deckt GET wie POST
+    /// (inkl. der POST-Antwort der Spielersuche) ab. Der Body wird bewusst erst beim FINALEN
+    /// (nicht-Redirect-)Response gelesen. <paramref name="contentFactory"/> baut den POST-Body je
+    /// Hop neu (eine HttpRequestMessage/Content ist nur einmal sendbar).
+    /// </summary>
+    private async Task<HttpResponseMessage> SendFollowingRedirectsAsync(
+        HttpMethod method, Uri url, Func<HttpContent>? contentFactory, CancellationToken ct)
+    {
+        EnsureAllowedTarget(url);
+        var currentMethod = method;
+        var currentUrl = url;
+        for (var hop = 0; ; hop++)
+        {
+            using var request = new HttpRequestMessage(currentMethod, currentUrl);
+            if (currentMethod == HttpMethod.Post) request.Content = contentFactory?.Invoke();
+            var response = await _httpClient.SendAsync(request, HttpCompletionOption.ResponseHeadersRead, ct);
+
+            var status = response.StatusCode;
+            var location = response.Headers.Location;
+            if (!IsRedirectStatus(status) || location == null)
+                return response;   // finale (nicht-Redirect-)Antwort → Aufrufer liest den Body
+
+            response.Dispose();     // Redirect-Antwort: Body verwerfen, nicht herunterladen
+            if (hop >= MaxRedirectHops)
+                throw new InvalidOperationException($"Too many redirects (>{MaxRedirectHops}) for {url}");
+
+            // Nächsten Hop bestimmen (relative Location gegen die aktuelle URL auflösen) + PRÜFEN,
+            // BEVOR der nächste Request rausgeht.
+            var next = new Uri(currentUrl, location);
+            EnsureAllowedTarget(next);
+            // 301/302/303 → als GET fortsetzen (Browser-/ASP.NET-Verhalten); 307/308 erhalten Methode+Body.
+            if (status is HttpStatusCode.MovedPermanently or HttpStatusCode.Found or HttpStatusCode.SeeOther)
+                currentMethod = HttpMethod.Get;
+            currentUrl = next;
+        }
+    }
+
     public async Task<(string Url, string Html)> FetchWithRedirectAsync(string url, CancellationToken ct = default)
     {
         await RateLimitAsync(ct);
         var sw = Stopwatch.StartNew();
         try
         {
-            var response = await _httpClient.GetAsync(url, ct);
+            // Redirects werden manuell + je Hop geprüft gefolgt (SSRF-Schutz vor dem Request).
+            var response = await SendFollowingRedirectsAsync(HttpMethod.Get, new Uri(url), null, ct);
             var html = await ReadBodyBoundedAsync(response, ct);
             sw.Stop();
             var finalUrl = response.RequestMessage?.RequestUri?.ToString() ?? url;
             LogCrawlRequest(url, (int)response.StatusCode, sw.ElapsedMilliseconds, html, response.IsSuccessStatusCode, null, false);
-            EnsureChessResultsHost(response.RequestMessage?.RequestUri?.ToString() ?? url);
             response.EnsureSuccessStatusCode();
             return (finalUrl, html);
         }
@@ -632,12 +690,11 @@ public class CrawlerService
             await Task.Delay(_retryDelayMs, ct);
             await RateLimitAsync(ct);
             sw = Stopwatch.StartNew();
-            var response = await _httpClient.GetAsync(url, ct);
+            var response = await SendFollowingRedirectsAsync(HttpMethod.Get, new Uri(url), null, ct);
             var html = await ReadBodyBoundedAsync(response, ct);
             sw.Stop();
             var finalUrl = response.RequestMessage?.RequestUri?.ToString() ?? url;
             LogCrawlRequest(url, (int)response.StatusCode, sw.ElapsedMilliseconds, html, response.IsSuccessStatusCode, null, true);
-            EnsureChessResultsHost(response.RequestMessage?.RequestUri?.ToString() ?? url);
             response.EnsureSuccessStatusCode();
             return (finalUrl, html);
         }
@@ -650,11 +707,10 @@ public class CrawlerService
         var sw = Stopwatch.StartNew();
         try
         {
-            var response = await _httpClient.GetAsync(url, ct);
+            var response = await SendFollowingRedirectsAsync(HttpMethod.Get, new Uri(url), null, ct);
             var body = await ReadBodyBoundedAsync(response, ct);
             sw.Stop();
             LogCrawlRequest(url, (int)response.StatusCode, sw.ElapsedMilliseconds, body, response.IsSuccessStatusCode, null, false);
-            EnsureChessResultsHost(response.RequestMessage?.RequestUri?.ToString() ?? url);
             response.EnsureSuccessStatusCode();
             return body;
         }
@@ -667,11 +723,10 @@ public class CrawlerService
             await RateLimitAsync(ct);
             _logger.LogDebug("Retrying {Url}", url);
             sw = Stopwatch.StartNew();
-            var response = await _httpClient.GetAsync(url, ct);
+            var response = await SendFollowingRedirectsAsync(HttpMethod.Get, new Uri(url), null, ct);
             var body = await ReadBodyBoundedAsync(response, ct);
             sw.Stop();
             LogCrawlRequest(url, (int)response.StatusCode, sw.ElapsedMilliseconds, body, response.IsSuccessStatusCode, null, true);
-            EnsureChessResultsHost(response.RequestMessage?.RequestUri?.ToString() ?? url);
             response.EnsureSuccessStatusCode();
             return body;
         }
@@ -834,8 +889,10 @@ public class CrawlerService
         };
 
         await RateLimitAsync(ct);
-        var content = new FormUrlEncodedContent(formData);
-        var response = await _httpClient.PostAsync(resolvedUrl, content, ct);
+        // POST-Antwort-Redirects werden ebenfalls manuell + je Hop geprüft gefolgt (schließt die
+        // non-blind-SSRF-Lücke, bei der eine 3xx-POST-Antwort blind auf einen fremden Host führte).
+        var response = await SendFollowingRedirectsAsync(
+            HttpMethod.Post, new Uri(resolvedUrl), () => new FormUrlEncodedContent(formData), ct);
         response.EnsureSuccessStatusCode();
 
         var resultHtml = await ReadBodyBoundedAsync(response, ct);
@@ -875,8 +932,8 @@ public class CrawlerService
         };
 
         await RateLimitAsync(ct);
-        var content = new FormUrlEncodedContent(formData);
-        var response = await _httpClient.PostAsync(resolvedUrl, content, ct);
+        var response = await SendFollowingRedirectsAsync(
+            HttpMethod.Post, new Uri(resolvedUrl), () => new FormUrlEncodedContent(formData), ct);
         response.EnsureSuccessStatusCode();
 
         var resultHtml = await ReadBodyBoundedAsync(response, ct);
