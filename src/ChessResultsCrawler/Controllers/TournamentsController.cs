@@ -134,12 +134,15 @@ public class TournamentsController : ControllerBase
     }
 
     [HttpGet("{id}/rounds/check")]
-    public async Task<IActionResult> CheckNewRounds(string id)
+    public async Task<IActionResult> CheckNewRounds(string id, CancellationToken ct)
     {
         var tournament = await ResolveTournamentAsync(id);
         if (tournament is null) return NotFound();
 
-        var result = await _roundDetection.CheckForNewRoundsAsync(tournament);
+        // ct = HttpContext.RequestAborted: RookHub pollt jeden aktiven Monitor alle 30 s und
+        // timeoutet nach 30 s. Ohne durchgereichten Token liefe der Fetch (inkl. bis zu 60 s
+        // Warten am globalen Rate-Limiter) nach dem Abbruch weiter und blockierte echte Crawls.
+        var result = await _roundDetection.CheckForNewRoundsAsync(tournament, ct);
         return Ok(result);
     }
 

@@ -20,7 +20,7 @@ public class RoundDetectionService
         _cache = cache;
     }
 
-    public async Task<RoundCheckResult> CheckForNewRoundsAsync(Tournament tournament)
+    public async Task<RoundCheckResult> CheckForNewRoundsAsync(Tournament tournament, CancellationToken ct = default)
     {
         var cacheKey = $"RoundCheck_{tournament.Id}";
         if (_cache.TryGetValue<RoundCheckResult>(cacheKey, out var cached))
@@ -29,13 +29,15 @@ public class RoundDetectionService
         var baseUrl = tournament.BaseUrl
             ?? $"https://chess-results.com/tnr{tournament.ChessResultsId}.aspx?lan=0";
 
-        var html = await _crawler.FetchPageAsync(baseUrl, "art=2");
+        // ct konsequent durchreichen: bricht der aufrufende Proxy ab, darf weder der Fetch noch das
+        // Warten am globalen Rate-Limiter (bis 60 s) verwaist weiterlaufen und echte Crawls blockieren.
+        var html = await _crawler.FetchPageAsync(baseUrl, "art=2", ct);
         var availableRounds = await _parser.ParseAvailableRoundsAsync(html, tournament.TotalRounds);
 
         var knownRounds = await _db.Rounds
             .Where(r => r.TournamentId == tournament.Id)
             .Select(r => r.RoundNumber)
-            .ToListAsync();
+            .ToListAsync(ct);
 
         var newRounds = availableRounds.Except(knownRounds).OrderBy(r => r).ToList();
 

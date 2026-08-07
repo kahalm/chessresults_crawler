@@ -33,6 +33,9 @@ public class CrawlerService
     private const int DefaultVpnRestartPauseMs = 3000;
     private const int DefaultRotateAfterRequests = 20;
     private const int DefaultRetryDelayMs = 5000;
+    // Zeitbudget für die gluetun-Control-Calls einer Rotation (zusätzlich zur Neustart-Pause).
+    // Endlich, aber großzügig: die Rotation darf weder ewig hängen noch vorzeitig abbrechen.
+    private const int VpnControlTimeoutMs = 30000;
     // Re-Queue eines kompletten Crawls bei Verbindungsfehlern (z.B. VPN-Tunnel kurz weg nach
     // Rotation/Deploy): bis zu CrawlMaxAttempts Anläufe mit gestuftem Backoff, statt sofort Failed.
     private const int DefaultCrawlMaxAttempts = 4;
@@ -470,11 +473,15 @@ public class CrawlerService
         }
     }
 
-    private async Task CrawlTeamPairingsAsync(Tournament tournament, string baseUrl, List<int> availableRounds, CancellationToken ct)
+    // internal (statt private) nur für den Regressionstest mit doppelten Teamnamen.
+    internal async Task CrawlTeamPairingsAsync(Tournament tournament, string baseUrl, List<int> availableRounds, CancellationToken ct)
     {
-        var teams = await _db.Teams
-            .Where(t => t.TournamentId == tournament.Id)
-            .ToDictionaryAsync(t => t.Name, ct);
+        // Wie im Spieler-Crawl tolerant gegen doppelte Teamnamen (Altbestand aus der Zeit vor
+        // BuildTeamNameMap oder echte Dubletten in den Quelldaten): ToDictionary würde hier eine
+        // nicht-transiente ArgumentException werfen und den Full-/PairingsOnly-Job hart als Failed
+        // beenden — das Turnier wäre danach gar nicht mehr crawlbar.
+        var teams = BuildTeamNameMap(
+            await _db.Teams.Where(t => t.TournamentId == tournament.Id).ToListAsync(ct));
 
         foreach (var roundNum in availableRounds)
         {
@@ -674,7 +681,9 @@ public class CrawlerService
         try
         {
             // Redirects werden manuell + je Hop geprüft gefolgt (SSRF-Schutz vor dem Request).
-            var response = await SendFollowingRedirectsAsync(HttpMethod.Get, new Uri(url), null, ct);
+            // using: mit ResponseHeadersRead gehört die Verbindung der Response bis zum Dispose —
+            // ohne das hängt sie bei jedem Abbruch (z.B. Bounded-Read-Overflow) bis zur GC fest.
+            using var response = await SendFollowingRedirectsAsync(HttpMethod.Get, new Uri(url), null, ct);
             var html = await ReadBodyBoundedAsync(response, ct);
             sw.Stop();
             var finalUrl = response.RequestMessage?.RequestUri?.ToString() ?? url;
@@ -690,7 +699,9 @@ public class CrawlerService
             await Task.Delay(_retryDelayMs, ct);
             await RateLimitAsync(ct);
             sw = Stopwatch.StartNew();
-            var response = await SendFollowingRedirectsAsync(HttpMethod.Get, new Uri(url), null, ct);
+            // using: mit ResponseHeadersRead gehört die Verbindung der Response bis zum Dispose —
+            // ohne das hängt sie bei jedem Abbruch (z.B. Bounded-Read-Overflow) bis zur GC fest.
+            using var response = await SendFollowingRedirectsAsync(HttpMethod.Get, new Uri(url), null, ct);
             var html = await ReadBodyBoundedAsync(response, ct);
             sw.Stop();
             var finalUrl = response.RequestMessage?.RequestUri?.ToString() ?? url;
@@ -707,7 +718,9 @@ public class CrawlerService
         var sw = Stopwatch.StartNew();
         try
         {
-            var response = await SendFollowingRedirectsAsync(HttpMethod.Get, new Uri(url), null, ct);
+            // using: mit ResponseHeadersRead gehört die Verbindung der Response bis zum Dispose —
+            // ohne das hängt sie bei jedem Abbruch (z.B. Bounded-Read-Overflow) bis zur GC fest.
+            using var response = await SendFollowingRedirectsAsync(HttpMethod.Get, new Uri(url), null, ct);
             var body = await ReadBodyBoundedAsync(response, ct);
             sw.Stop();
             LogCrawlRequest(url, (int)response.StatusCode, sw.ElapsedMilliseconds, body, response.IsSuccessStatusCode, null, false);
@@ -723,7 +736,9 @@ public class CrawlerService
             await RateLimitAsync(ct);
             _logger.LogDebug("Retrying {Url}", url);
             sw = Stopwatch.StartNew();
-            var response = await SendFollowingRedirectsAsync(HttpMethod.Get, new Uri(url), null, ct);
+            // using: mit ResponseHeadersRead gehört die Verbindung der Response bis zum Dispose —
+            // ohne das hängt sie bei jedem Abbruch (z.B. Bounded-Read-Overflow) bis zur GC fest.
+            using var response = await SendFollowingRedirectsAsync(HttpMethod.Get, new Uri(url), null, ct);
             var body = await ReadBodyBoundedAsync(response, ct);
             sw.Stop();
             LogCrawlRequest(url, (int)response.StatusCode, sw.ElapsedMilliseconds, body, response.IsSuccessStatusCode, null, true);
@@ -737,19 +752,35 @@ public class CrawlerService
     /// Tunnel dabei kurz unten ist und in dieser Phase kein Crawl-Request rausgehen darf. Bewusst
     /// KURZ gehalten: die rein informative Public-IP-Ermittlung (bis zu 5 s Polling) wird detached
     /// außerhalb des Locks geloggt, damit wartende Crawls nicht zusätzlich blockiert werden.
+    /// Nimmt bewusst KEIN Aufrufer-Token entgegen (siehe Kommentar im Rumpf).
     /// </summary>
-    private async Task RestartVpnTunnelAsync(CancellationToken ct)
+    private async Task RestartVpnTunnelAsync()
     {
+        var statusUrl = $"{_gluetunApiUrl}/v1/vpn/status";
+        // stop→pause→start ist eine ATOMARE Einheit: sobald das stop draußen ist, MUSS ein start
+        // folgen. Deshalb läuft die Rotation bewusst NICHT mit dem Aufrufer-Token — bricht der
+        // Request ab (RookHub-Proxy timeoutet nach 30 s, während der Rate-Limiter bis 60 s warten
+        // lässt) oder trifft ein Shutdown/Deploy genau dieses Fenster, bliebe der gluetun-Tunnel
+        // dauerhaft "stopped": jeder weitere Crawl scheitert dann auf Verbindungsebene, bis nach
+        // 20 fehlgeschlagenen Requests zufällig die nächste Rotation ein start sendet.
+        // Stattdessen ein eigener, kurzer Timeout-Token + garantierter Recovery-start.
+        var stopSent = false;
         try
         {
-            var statusUrl = $"{_gluetunApiUrl}/v1/vpn/status";
-            var stopContent = new StringContent("""{"status":"stopped"}""", Encoding.UTF8, "application/json");
-            var startContent = new StringContent("""{"status":"running"}""", Encoding.UTF8, "application/json");
+            using var rotationCts = new CancellationTokenSource(
+                TimeSpan.FromMilliseconds(_vpnRestartPauseMs + VpnControlTimeoutMs));
 
             _logger.LogInformation("Rotating VPN IP...");
-            await _gluetunClient.PutAsync(statusUrl, stopContent, ct);
-            await Task.Delay(_vpnRestartPauseMs, ct);
-            await _gluetunClient.PutAsync(statusUrl, startContent, ct);
+            // VOR dem Senden setzen: wirft das stop-PUT selbst (Timeout, Verbindungsabbruch beim
+            // Antwort-Lesen), kann gluetun den Request trotzdem schon ausgeführt und den Tunnel
+            // gestoppt haben. Erst nach der Bestätigung zu setzen hieße: genau im gefährlichsten
+            // Fall läuft kein Recovery — der Tunnel bliebe dauerhaft "stopped". Ein überflüssiges
+            // Recovery-„running" ist dagegen harmlos (idempotent).
+            stopSent = true;
+            await _gluetunClient.PutAsync(statusUrl, NewVpnStatusContent("stopped"), rotationCts.Token);
+            await Task.Delay(_vpnRestartPauseMs, rotationCts.Token);
+            await _gluetunClient.PutAsync(statusUrl, NewVpnStatusContent("running"), rotationCts.Token);
+            stopSent = false;   // start durch → kein Recovery nötig
             // Nach der Rotation den Rate-Limiter-Zeitstempel zuruecksetzen, damit die
             // erste Anfrage ueber die neue Verbindung den vollen DelayMs-Abstand abwartet.
             _lastRequest = DateTime.UtcNow;
@@ -757,12 +788,38 @@ public class CrawlerService
         catch (Exception ex)
         {
             _logger.LogWarning(ex, "VPN rotation failed (non-critical)");
+            if (stopSent)
+                await TryRecoverVpnStartAsync(statusUrl);
             return;
         }
 
         // Neue Public-IP NICHT mehr im Lock ermitteln (kostete bis zu 5 s Blockade aller Crawls).
         // Detached best-effort loggen, sobald gluetun die neue IP kennt.
         LogNewPublicIpDetached();
+    }
+
+    /// <summary>Baut den gluetun-Statusbody neu — ein HttpContent ist nur EINMAL sendbar.</summary>
+    private static StringContent NewVpnStatusContent(string status) =>
+        new($$"""{"status":"{{status}}"}""", Encoding.UTF8, "application/json");
+
+    /// <summary>
+    /// Letzte Rettung nach einer abgebrochenen/fehlgeschlagenen Rotation: das start-PUT wird noch
+    /// einmal gefeuert, damit kein gestoppter Tunnel zurückbleibt. Bewusst ohne jeden Aufrufer-
+    /// Token und mit eigenem kurzen Timeout — genau der Abbruch war ja die Ursache.
+    /// </summary>
+    private async Task TryRecoverVpnStartAsync(string statusUrl)
+    {
+        try
+        {
+            using var cts = new CancellationTokenSource(TimeSpan.FromMilliseconds(VpnControlTimeoutMs));
+            await _gluetunClient.PutAsync(statusUrl, NewVpnStatusContent("running"), cts.Token);
+            _logger.LogWarning("VPN rotation abgebrochen — Tunnel per Recovery-start reaktiviert");
+        }
+        catch (Exception ex)
+        {
+            // Hier ist der Tunnel womöglich wirklich unten → Error, damit der Alert greift.
+            _logger.LogError(ex, "VPN recovery start failed — Tunnel bleibt moeglicherweise gestoppt");
+        }
     }
 
     /// <summary>
@@ -891,11 +948,15 @@ public class CrawlerService
         await RateLimitAsync(ct);
         // POST-Antwort-Redirects werden ebenfalls manuell + je Hop geprüft gefolgt (schließt die
         // non-blind-SSRF-Lücke, bei der eine 3xx-POST-Antwort blind auf einen fremden Host führte).
-        var response = await SendFollowingRedirectsAsync(
+        // using + EnsureSuccess NACH dem Body-Read: gesendet wird mit ResponseHeadersRead, die
+        // Verbindung geht erst beim Lesen/Disposen an den Pool zurück. Warf EnsureSuccess zuerst
+        // (500/429-Phasen von chess-results), blieb die Response undisposed und die Verbindung bis
+        // zur GC-Finalisierung belegt.
+        using var response = await SendFollowingRedirectsAsync(
             HttpMethod.Post, new Uri(resolvedUrl), () => new FormUrlEncodedContent(formData), ct);
-        response.EnsureSuccessStatusCode();
 
         var resultHtml = await ReadBodyBoundedAsync(response, ct);
+        response.EnsureSuccessStatusCode();
         var results = await _parser.ParsePlayerSearchAsync(resultHtml);
 
         // Deduplicate: SpielerSuche returns one row per tournament per player
@@ -932,11 +993,12 @@ public class CrawlerService
         };
 
         await RateLimitAsync(ct);
-        var response = await SendFollowingRedirectsAsync(
+        // s. SearchPlayersAsync: erst Body lesen (gibt die Verbindung frei), dann EnsureSuccess.
+        using var response = await SendFollowingRedirectsAsync(
             HttpMethod.Post, new Uri(resolvedUrl), () => new FormUrlEncodedContent(formData), ct);
-        response.EnsureSuccessStatusCode();
 
         var resultHtml = await ReadBodyBoundedAsync(response, ct);
+        response.EnsureSuccessStatusCode();
         var results = await _parser.ParsePlayerTournamentsAsync(resultHtml);
 
         // Deduplicate and limit
@@ -997,7 +1059,9 @@ public class CrawlerService
             if (_requestCount >= _rotateAfterRequests)
             {
                 _requestCount = 0;
-                await RestartVpnTunnelAsync(ct);
+                // Bewusst ohne ct: die Rotation muss auch bei Request-Abbruch zu Ende laufen,
+                // sonst bleibt der Tunnel gestoppt (siehe RestartVpnTunnelAsync).
+                await RestartVpnTunnelAsync();
             }
 
             var elapsed = (DateTime.UtcNow - _lastRequest).TotalMilliseconds;

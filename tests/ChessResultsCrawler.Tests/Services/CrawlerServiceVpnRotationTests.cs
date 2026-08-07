@@ -94,4 +94,113 @@ public class CrawlerServiceVpnRotationTests : IDisposable
         Assert.Equal(0, publicIpCalls);
         Assert.Contains("<h2>T</h2>", body);
     }
+
+    [Fact]
+    public async Task Rotation_CallerCancelledBetweenStopAndStart_StillStartsTunnel()
+    {
+        // Regression: stop→pause→start lief früher komplett mit dem Aufrufer-Token. Wurde der
+        // Request genau zwischen stop und start abgebrochen (Proxy-Timeout/Deploy), blieb der
+        // gluetun-Tunnel dauerhaft "stopped" und JEDER weitere Crawl scheiterte auf
+        // Verbindungsebene. Die Rotation muss deshalb auch nach dem Abbruch zu Ende laufen.
+        using var cts = new CancellationTokenSource();
+        var putBodies = new List<string>();
+
+        var gluetun = new HttpClient(new RecordingHandler(async req =>
+        {
+            var path = req.RequestUri!.AbsolutePath;
+            if (req.Method == HttpMethod.Put && path.EndsWith("/v1/vpn/status"))
+            {
+                var body = await req.Content!.ReadAsStringAsync();
+                lock (putBodies) putBodies.Add(body);
+                // Abbruch direkt nach dem stop simulieren.
+                if (body.Contains("stopped")) await cts.CancelAsync();
+            }
+            return new HttpResponseMessage(HttpStatusCode.OK);
+        }));
+
+        var crawl = new HttpClient(new RecordingHandler(_ =>
+            Task.FromResult(new HttpResponseMessage(HttpStatusCode.OK)
+            {
+                Content = new StringContent("<html><body><h2>T</h2></body></html>"),
+                RequestMessage = new HttpRequestMessage(HttpMethod.Get, "https://chess-results.com/tnr1.aspx?lan=0"),
+            })));
+
+        var factory = Mock.Of<IHttpClientFactory>(f => f.CreateClient("Gluetun") == gluetun);
+        var config = new ConfigurationBuilder().AddInMemoryCollection(new Dictionary<string, string?>
+        {
+            ["Gluetun__ApiUrl"] = "http://gluetun.test:8000",
+            ["Crawler:RetryDelayMs"] = "0",
+            ["Crawler:MinDelayMs"] = "0",
+            ["Crawler:VpnRestartPauseMs"] = "20",   // kurze, aber echte Pause zwischen stop und start
+            ["Crawler:RotateAfterRequests"] = "1",
+        }).Build();
+
+        var service = new CrawlerService(crawl, factory, new HtmlParserService(), _db,
+            Mock.Of<ILogger<CrawlerService>>(), config);
+
+        // Der Fetch selbst darf am gecancelten Token scheitern — die Rotation nicht.
+        try
+        {
+            await service.FetchPageAsync("https://chess-results.com/tnr1.aspx?lan=0", "art=0", cts.Token);
+        }
+        catch (OperationCanceledException) { /* erwartet: der Aufrufer-Request ist abgebrochen */ }
+
+        lock (putBodies)
+        {
+            Assert.Equal(2, putBodies.Count);
+            Assert.Contains("stopped", putBodies[0]);
+            Assert.Contains("running", putBodies[1]);   // Tunnel bleibt NICHT gestoppt zurück
+        }
+    }
+
+    [Fact]
+    public async Task Rotation_StopRequestThrows_StillSendsRecoveryStart()
+    {
+        // Der gefährlichste Fall: das stop-PUT wirft (Timeout/Verbindungsabbruch beim Antwort-
+        // Lesen) — gluetun kann es trotzdem schon ausgeführt haben. Ohne Recovery bliebe der
+        // Tunnel dauerhaft gestoppt. Genau deshalb wird `stopSent` VOR dem Senden gesetzt.
+        var putBodies = new List<string>();
+
+        var gluetun = new HttpClient(new RecordingHandler(async req =>
+        {
+            var path = req.RequestUri!.AbsolutePath;
+            if (req.Method == HttpMethod.Put && path.EndsWith("/v1/vpn/status"))
+            {
+                var body = await req.Content!.ReadAsStringAsync();
+                lock (putBodies) putBodies.Add(body);
+                // Das stop scheitert NACH dem Absenden — der Tunnel ist womöglich trotzdem aus.
+                if (body.Contains("stopped")) throw new HttpRequestException("connection reset");
+            }
+            return new HttpResponseMessage(HttpStatusCode.OK);
+        }));
+
+        var crawl = new HttpClient(new RecordingHandler(_ =>
+            Task.FromResult(new HttpResponseMessage(HttpStatusCode.OK)
+            {
+                Content = new StringContent("<html><body><h2>T</h2></body></html>"),
+                RequestMessage = new HttpRequestMessage(HttpMethod.Get, "https://chess-results.com/tnr1.aspx?lan=0"),
+            })));
+
+        var factory = Mock.Of<IHttpClientFactory>(f => f.CreateClient("Gluetun") == gluetun);
+        var config = new ConfigurationBuilder().AddInMemoryCollection(new Dictionary<string, string?>
+        {
+            ["Gluetun__ApiUrl"] = "http://gluetun.test:8000",
+            ["Crawler:RetryDelayMs"] = "0",
+            ["Crawler:MinDelayMs"] = "0",
+            ["Crawler:VpnRestartPauseMs"] = "20",
+            ["Crawler:RotateAfterRequests"] = "1",
+        }).Build();
+
+        var service = new CrawlerService(crawl, factory, new HtmlParserService(), _db,
+            Mock.Of<ILogger<CrawlerService>>(), config);
+
+        await service.FetchPageAsync("https://chess-results.com/tnr1.aspx?lan=0", "art=0", CancellationToken.None);
+
+        lock (putBodies)
+        {
+            Assert.Equal(2, putBodies.Count);
+            Assert.Contains("stopped", putBodies[0]);
+            Assert.Contains("running", putBodies[1]);   // Recovery-start trotz geworfenem stop
+        }
+    }
 }
