@@ -44,6 +44,13 @@ public class CrawlerService
     // zeilen=99999 geholt; ein bösartiger/fehlerhafter Server könnte beliebig große Bodies liefern
     // und den Heap sprengen. Großzügig (32 MB), aber endlich — sauberer Abbruch statt OOM.
     private const long DefaultMaxResponseBytes = 32L * 1024 * 1024;
+    // HTTP-Retry pro Fetch: bis zu 3 Versuche bei Verbindungsfehlern und 429/5xx-Antworten.
+    // Wartezeit: Retry-After-Header (Sekunden ODER HTTP-Datum) sofern vorhanden, sonst
+    // exponentiell RetryDelayMs * 3^(n-1) → mit Default 5000 ms also 5 s / 15 s (bei 3 Versuchen gibt es nur 2 Wartezeiten).
+    private const int FetchMaxAttempts = 3;
+    // Deckel für serverseitige Retry-After-Angaben — schützt vor absurden/bösartigen Werten
+    // (z.B. "Retry-After: 86400"), die einen Crawl sonst stundenlang schlafen legen würden.
+    private static readonly TimeSpan MaxRetryAfter = TimeSpan.FromMinutes(5);
 
     public CrawlerService(HttpClient httpClient, IHttpClientFactory httpClientFactory, HtmlParserService parser, AppDbContext db,
         ILogger<CrawlerService> logger, IConfiguration configuration)
@@ -675,75 +682,91 @@ public class CrawlerService
     }
 
     public async Task<(string Url, string Html)> FetchWithRedirectAsync(string url, CancellationToken ct = default)
-    {
-        await RateLimitAsync(ct);
-        var sw = Stopwatch.StartNew();
-        try
-        {
-            // Redirects werden manuell + je Hop geprüft gefolgt (SSRF-Schutz vor dem Request).
-            // using: mit ResponseHeadersRead gehört die Verbindung der Response bis zum Dispose —
-            // ohne das hängt sie bei jedem Abbruch (z.B. Bounded-Read-Overflow) bis zur GC fest.
-            using var response = await SendFollowingRedirectsAsync(HttpMethod.Get, new Uri(url), null, ct);
-            var html = await ReadBodyBoundedAsync(response, ct);
-            sw.Stop();
-            var finalUrl = response.RequestMessage?.RequestUri?.ToString() ?? url;
-            LogCrawlRequest(url, (int)response.StatusCode, sw.ElapsedMilliseconds, html, response.IsSuccessStatusCode, null, false);
-            response.EnsureSuccessStatusCode();
-            return (finalUrl, html);
-        }
-        catch (HttpRequestException ex)
-        {
-            sw.Stop();
-            LogCrawlRequest(url, null, sw.ElapsedMilliseconds, null, false, ex.Message, false);
-            _logger.LogWarning(ex, "Fetch failed for {Url}, retrying in {Delay}ms", url, _retryDelayMs);
-            await Task.Delay(_retryDelayMs, ct);
-            await RateLimitAsync(ct);
-            sw = Stopwatch.StartNew();
-            // using: mit ResponseHeadersRead gehört die Verbindung der Response bis zum Dispose —
-            // ohne das hängt sie bei jedem Abbruch (z.B. Bounded-Read-Overflow) bis zur GC fest.
-            using var response = await SendFollowingRedirectsAsync(HttpMethod.Get, new Uri(url), null, ct);
-            var html = await ReadBodyBoundedAsync(response, ct);
-            sw.Stop();
-            var finalUrl = response.RequestMessage?.RequestUri?.ToString() ?? url;
-            LogCrawlRequest(url, (int)response.StatusCode, sw.ElapsedMilliseconds, html, response.IsSuccessStatusCode, null, true);
-            response.EnsureSuccessStatusCode();
-            return (finalUrl, html);
-        }
-    }
+        => await FetchWithRetriesAsync(url, ct);
 
     public async Task<string> FetchHtmlAsync(string url, CancellationToken ct = default)
     {
-        await RateLimitAsync(ct);
-        _logger.LogDebug("Fetching {Url}", url);
-        var sw = Stopwatch.StartNew();
-        try
+        var (_, body) = await FetchWithRetriesAsync(url, ct);
+        return body;
+    }
+
+    /// <summary>429 (Drosselung) und 5xx (Serverfehler) sind transient — ein Retry kann klappen.
+    /// Andere 4xx (404, 403 …) werden durch Wiederholen nicht besser → kein Retry.</summary>
+    internal static bool IsRetryableStatus(HttpStatusCode status) =>
+        status == HttpStatusCode.TooManyRequests || (int)status >= 500;
+
+    /// <summary>
+    /// Liest den Retry-After-Header (delta-seconds ODER HTTP-Datum, RFC 9110). null wenn nicht
+    /// vorhanden/nicht parsebar → Aufrufer nutzt den exponentiellen Fallback. Datum in der
+    /// Vergangenheit → 0; nach oben auf <see cref="MaxRetryAfter"/> gedeckelt.
+    /// </summary>
+    internal static TimeSpan? GetRetryAfterDelay(HttpResponseMessage response, DateTimeOffset now)
+    {
+        var retryAfter = response.Headers.RetryAfter;
+        TimeSpan? delay = retryAfter?.Delta ?? (retryAfter?.Date is { } date ? date - now : null);
+        if (delay is null)
+            return null;
+        if (delay < TimeSpan.Zero)
+            return TimeSpan.Zero;
+        return delay > MaxRetryAfter ? MaxRetryAfter : delay;
+    }
+
+    /// <summary>Exponentieller Fallback-Backoff (1-basierter Versuch): RetryDelayMs * 3^(n-1),
+    /// mit Default 5000 ms also 5 s / 15 s (bei 3 Versuchen gibt es nur 2 Wartezeiten).</summary>
+    private TimeSpan FetchBackoff(int attempt) =>
+        TimeSpan.FromMilliseconds(_retryDelayMs * Math.Pow(3, attempt - 1));
+
+    /// <summary>
+    /// Gemeinsame Fetch-Schleife mit bis zu <see cref="FetchMaxAttempts"/> Versuchen. Wiederholt
+    /// werden reine Verbindungsfehler (kein HTTP-Status, z.B. Tunnel kurz weg) sowie 429/5xx-
+    /// Antworten; die Wartezeit kommt aus dem Retry-After-Header, sonst exponentiell aus
+    /// <see cref="FetchBackoff"/>. Andere 4xx werfen sofort. Nach dem letzten Versuch propagiert
+    /// die HttpRequestException wie bisher (Crawl-Job → Failed bzw. Re-Queue-Logik im Aufrufer).
+    /// </summary>
+    private async Task<(string Url, string Body)> FetchWithRetriesAsync(string url, CancellationToken ct)
+    {
+        for (int attempt = 1; ; attempt++)
         {
-            // using: mit ResponseHeadersRead gehört die Verbindung der Response bis zum Dispose —
-            // ohne das hängt sie bei jedem Abbruch (z.B. Bounded-Read-Overflow) bis zur GC fest.
-            using var response = await SendFollowingRedirectsAsync(HttpMethod.Get, new Uri(url), null, ct);
-            var body = await ReadBodyBoundedAsync(response, ct);
-            sw.Stop();
-            LogCrawlRequest(url, (int)response.StatusCode, sw.ElapsedMilliseconds, body, response.IsSuccessStatusCode, null, false);
-            response.EnsureSuccessStatusCode();
-            return body;
-        }
-        catch (HttpRequestException ex)
-        {
-            sw.Stop();
-            LogCrawlRequest(url, null, sw.ElapsedMilliseconds, null, false, ex.Message, false);
-            _logger.LogWarning(ex, "Fetch failed for {Url}, retrying in {Delay}ms", url, _retryDelayMs);
-            await Task.Delay(_retryDelayMs, ct);
+            var isRetry = attempt > 1;
             await RateLimitAsync(ct);
-            _logger.LogDebug("Retrying {Url}", url);
-            sw = Stopwatch.StartNew();
-            // using: mit ResponseHeadersRead gehört die Verbindung der Response bis zum Dispose —
-            // ohne das hängt sie bei jedem Abbruch (z.B. Bounded-Read-Overflow) bis zur GC fest.
-            using var response = await SendFollowingRedirectsAsync(HttpMethod.Get, new Uri(url), null, ct);
-            var body = await ReadBodyBoundedAsync(response, ct);
-            sw.Stop();
-            LogCrawlRequest(url, (int)response.StatusCode, sw.ElapsedMilliseconds, body, response.IsSuccessStatusCode, null, true);
-            response.EnsureSuccessStatusCode();
-            return body;
+            _logger.LogDebug(isRetry ? "Retrying {Url}" : "Fetching {Url}", url);
+            TimeSpan? retryAfter = null;
+            var sw = Stopwatch.StartNew();
+            try
+            {
+                // Redirects werden manuell + je Hop geprüft gefolgt (SSRF-Schutz vor dem Request).
+                // using: mit ResponseHeadersRead gehört die Verbindung der Response bis zum Dispose —
+                // ohne das hängt sie bei jedem Abbruch (z.B. Bounded-Read-Overflow) bis zur GC fest.
+                using var response = await SendFollowingRedirectsAsync(HttpMethod.Get, new Uri(url), null, ct);
+                var body = await ReadBodyBoundedAsync(response, ct);
+                sw.Stop();
+                LogCrawlRequest(url, (int)response.StatusCode, sw.ElapsedMilliseconds, body, response.IsSuccessStatusCode, null, isRetry);
+                if (response.IsSuccessStatusCode)
+                    return (response.RequestMessage?.RequestUri?.ToString() ?? url, body);
+
+                // Nicht-retryfähig (404 …) oder letzter Versuch → wie bisher werfen. Die
+                // HttpRequestException trägt den StatusCode und wird unten NICHT gefangen.
+                if (!IsRetryableStatus(response.StatusCode) || attempt >= FetchMaxAttempts)
+                    response.EnsureSuccessStatusCode();
+
+                retryAfter = GetRetryAfterDelay(response, DateTimeOffset.UtcNow);
+            }
+            catch (HttpRequestException ex) when (ex.StatusCode is null)
+            {
+                // Reiner Verbindungsfehler (DNS, Reset, Tunnel weg) — kein HTTP-Status erhalten.
+                sw.Stop();
+                LogCrawlRequest(url, null, sw.ElapsedMilliseconds, null, false, ex.Message, isRetry);
+                if (attempt >= FetchMaxAttempts)
+                    throw;
+                _logger.LogWarning(ex, "Fetch failed for {Url} (Versuch {Attempt}/{Max})",
+                    url, attempt, FetchMaxAttempts);
+            }
+
+            var delay = retryAfter ?? FetchBackoff(attempt);
+            _logger.LogWarning("Fetch {Url}: naechster Versuch {Attempt}/{Max} in {DelaySeconds:0.#}s{Source}",
+                url, attempt + 1, FetchMaxAttempts, delay.TotalSeconds,
+                retryAfter is not null ? " (Retry-After)" : "");
+            await Task.Delay(delay, ct);
         }
     }
 

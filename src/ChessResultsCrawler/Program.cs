@@ -65,10 +65,10 @@ try
     // jeden Hop (chess-results.com + https) VOR dem Absenden — sonst würde HttpClient eine
     // Redirect-Kette (bis 50 Hops) blind bis zu einem internen Host folgen und erst danach prüfen.
     .ConfigurePrimaryHttpMessageHandler(() => new SocketsHttpHandler { AllowAutoRedirect = false });
-    builder.Services.AddHttpClient("Gluetun", client =>
-    {
-        client.Timeout = TimeSpan.FromSeconds(5);
-    });
+    // Timeout + optionaler X-API-Key (Gluetun:ApiKey) für alle Control-Server-Aufrufe —
+    // zentral in GluetunClientSetup, damit CrawlerService und VpnReadinessGate identisch laufen.
+    builder.Services.AddHttpClient("Gluetun",
+        client => GluetunClientSetup.Configure(client, builder.Configuration));
     builder.Services.AddScoped<HtmlParserService>();
     builder.Services.AddScoped<TournamentService>();
     builder.Services.AddScoped<RoundDetectionService>();
