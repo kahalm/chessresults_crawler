@@ -589,6 +589,126 @@ public class HtmlParserService
             pairing.AwayScore = ParseSingleScore(parts[1]);
         }
     }
+
+    /// <summary>
+    /// Parst die Trefferliste der Turniersuche (TurnierSuche.aspx).
+    /// Zieltabelle ist die innere table.CRs2 in #datenxx; deren Kopfzeile mischt th und td.
+    /// Spalten werden - wie ueberall in dieser Datei - ueber den Kopfzeilen-NAMEN aufgeloest, mit
+    /// deutschen Synonymen: eine Server-Node, die den lan-Parameter ignoriert, wuerde sonst still
+    /// eine leere Liste liefern statt aufzufallen.
+    /// </summary>
+    public async Task<List<ParsedDirectoryTournament>> ParseTournamentSearchAsync(string html)
+    {
+        var results = new List<ParsedDirectoryTournament>();
+        var context = BrowsingContext.New(Configuration.Default);
+        var document = await context.OpenAsync(req => req.Content(html));
+
+        var table = document.QuerySelector("#datenxx table.CRs2")
+            ?? document.QuerySelector("table.CRs2")
+            ?? document.QuerySelector("table.CRs1")
+            ?? FindTableByHeaders(document, ["dbkey"]);
+        if (table is null) return results;
+
+        var headerCells = table.QuerySelectorAll(":scope > tr, :scope > thead > tr, :scope > tbody > tr").FirstOrDefault()
+            ?.QuerySelectorAll("th, td")
+            .Select((cell, idx) => (Name: cell.TextContent.Trim(), Index: idx))
+            .ToList() ?? [];
+        var headers = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
+        foreach (var h in headerCells)
+        {
+            headers.TryAdd(h.Name, h.Index);
+        }
+        // Ohne dbkey-Spalte ist es nicht die Trefferliste (z.B. Fehlerseite, Cloudflare-Interstitial).
+        // Lieber leer zurueckgeben als aus einer fremden Tabelle Muell zu ziehen.
+        if (!headers.ContainsKey("dbkey")) return results;
+
+        var allRows = table.QuerySelectorAll(":scope > tr, :scope > tbody > tr");
+        foreach (var row in allRows.Skip(1))
+        {
+            var cells = row.QuerySelectorAll(":scope > td").ToList();
+            if (cells.Count < 3) continue;
+
+            var dbKey = GetCellValue(cells, headers, "dbkey");
+            if (dbKey is null || !Regex.IsMatch(dbKey, @"^\d{1,10}$")) continue;
+
+            var name = GetCellValue(cells, headers, "Tournament") ?? GetCellValue(cells, headers, "Turnierbezeichnung");
+            if (name is null) continue;
+
+            var entry = new ParsedDirectoryTournament
+            {
+                ChessResultsId = dbKey,
+                Name = name,
+                Federation = GetCellValue(cells, headers, "FED") ?? GetCellValue(cells, headers, "Land"),
+                State = GetCellValue(cells, headers, "State") ?? GetCellValue(cells, headers, "Bundesland"),
+                LocationText = GetCellValue(cells, headers, "Location") ?? GetCellValue(cells, headers, "Ort"),
+                TimeControlText = GetCellValue(cells, headers, "Time control") ?? GetCellValue(cells, headers, "Bedenkzeit"),
+                Director = GetCellValue(cells, headers, "Tournament director") ?? GetCellValue(cells, headers, "Turnierdirektor"),
+                Organizer = GetCellValue(cells, headers, "Organizer(s)") ?? GetCellValue(cells, headers, "Veranstalter"),
+                ChiefArbiter = GetCellValue(cells, headers, "Chief Arbiter") ?? GetCellValue(cells, headers, "Hauptschiedsrichter"),
+                StartDate = ParseSearchDate(GetCellValue(cells, headers, "from") ?? GetCellValue(cells, headers, "Von")),
+                EndDate = ParseSearchDate(GetCellValue(cells, headers, "to") ?? GetCellValue(cells, headers, "Bis")),
+                LastUpdateText = GetCellValue(cells, headers, "Last update") ?? GetCellValue(cells, headers, "Letztes Update"),
+            };
+            entry.LastUpdateAge = ParseRelativeAge(entry.LastUpdateText);
+
+            if (int.TryParse(GetCellValue(cells, headers, "Rd."), out var rounds)) entry.Rounds = rounds;
+            if (int.TryParse(GetCellValue(cells, headers, "n"), out var playerCount)) entry.PlayerCount = playerCount;
+
+            results.Add(entry);
+        }
+
+        // Ein dbkey kann in einer Trefferliste mehrfach auftauchen; erster Treffer gewinnt, damit der
+        // Aufrufer nicht zweimal denselben Eintrag upsertet.
+        return results
+            .GroupBy(r => r.ChessResultsId)
+            .Select(g => g.First())
+            .ToList();
+    }
+
+    /// <summary>
+    /// Datumsformat der Trefferliste haengt am lan-Parameter: lan=1 liefert "2026/12/18",
+    /// lan=0 liefert "18.12.2026". Beide werden akzeptiert.
+    /// </summary>
+    internal static DateOnly? ParseSearchDate(string? text)
+    {
+        if (string.IsNullOrWhiteSpace(text)) return null;
+        string[] formats = ["yyyy/MM/dd", "dd.MM.yyyy", "yyyy-MM-dd"];
+        return DateOnly.TryParseExact(text.Trim(), formats,
+            System.Globalization.CultureInfo.InvariantCulture,
+            System.Globalization.DateTimeStyles.None, out var date)
+            ? date
+            : null;
+    }
+
+    private static readonly (string[] Tokens, Func<double, TimeSpan> Factory)[] AgeUnits =
+    [
+        (["day", "days", "tag", "tage", "tagen"], v => TimeSpan.FromDays(v)),
+        (["hour", "hours", "std", "stunde", "stunden"], v => TimeSpan.FromHours(v)),
+        (["minute", "minutes", "min", "minuten"], v => TimeSpan.FromMinutes(v)),
+        (["second", "seconds", "sec", "sek", "sekunde", "sekunden"], v => TimeSpan.FromSeconds(v)),
+    ];
+
+    /// <summary>
+    /// "Last update" steht in der Trefferliste als relatives ALTER: "16 Days", "1 Days 2 Hours",
+    /// "8 Tage 23 Std.", "3 Hours 36 Min.", "7 Minutes". Rueckgabe ist bewusst die Zeitspanne und
+    /// nicht der Zeitpunkt - so bleibt die Funktion ohne Uhr testbar; den Zeitstempel bildet der
+    /// Aufrufer. Unbekannte Einheiten werden ignoriert statt die ganze Angabe zu verwerfen.
+    /// </summary>
+    internal static TimeSpan? ParseRelativeAge(string? text)
+    {
+        if (string.IsNullOrWhiteSpace(text)) return null;
+
+        TimeSpan? total = null;
+        foreach (Match match in Regex.Matches(text, @"(\d+)\s*([A-Za-zÄÖÜäöü]+)"))
+        {
+            if (!int.TryParse(match.Groups[1].Value, out var value)) continue;
+            var unit = match.Groups[2].Value.ToLowerInvariant();
+            var entry = AgeUnits.FirstOrDefault(u => u.Tokens.Contains(unit));
+            if (entry.Factory is null) continue;
+            total = (total ?? TimeSpan.Zero) + entry.Factory(value);
+        }
+        return total;
+    }
 }
 
 public class ParsedPlayer
@@ -654,4 +774,24 @@ public class ParsedPlayerResult
     public int? OpponentElo { get; set; }
     public string? Points { get; set; }
     public string? Result { get; set; }
+}
+
+
+public class ParsedDirectoryTournament
+{
+    public string ChessResultsId { get; set; } = "";
+    public string Name { get; set; } = "";
+    public string? Federation { get; set; }
+    public string? State { get; set; }
+    public DateOnly? StartDate { get; set; }
+    public DateOnly? EndDate { get; set; }
+    public string? LocationText { get; set; }
+    public string? TimeControlText { get; set; }
+    public string? Director { get; set; }
+    public string? Organizer { get; set; }
+    public string? ChiefArbiter { get; set; }
+    public int? Rounds { get; set; }
+    public int? PlayerCount { get; set; }
+    public string? LastUpdateText { get; set; }
+    public TimeSpan? LastUpdateAge { get; set; }
 }

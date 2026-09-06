@@ -943,6 +943,84 @@ public class CrawlerService
         return false;
     }
 
+    /// <summary>
+    /// Fragt die chess-results-Turniersuche (TurnierSuche.aspx) fuer eine Foederation und ein
+    /// Zeitfenster ab. Ablauf wie bei <see cref="SearchPlayersAsync"/>: GET holt die ASP.NET-
+    /// ViewState-Felder, POST geht auf DIESELBE aufgeloeste Node-URL (s1/s2/...) zurueck.
+    /// Cookies sind dafuer nicht noetig, der ViewState traegt den Zustand.
+    ///
+    /// lan=1 (englisch) ist bewusst gesetzt: die Trefferliste liefert dann Datumsangaben als
+    /// "yyyy/MM/dd" statt "dd.MM.yyyy". Der Parser kann beides, aber ein festes Format haelt die
+    /// Fixtures ehrlich.
+    ///
+    /// Der Datumsfilter der Suche greift auf das END-Datum eines Turniers, nicht auf den Beginn -
+    /// ein im Fenster endendes Langzeitturnier taucht also auch dann auf, wenn es davor begann.
+    /// </summary>
+    public async Task<List<ParsedDirectoryTournament>> SearchTournamentsAsync(
+        string federation, DateOnly from, DateOnly to, int maxRows = 2000, CancellationToken ct = default)
+    {
+        var url = "https://chess-results.com/TurnierSuche.aspx?lan=1";
+        var (resolvedUrl, formHtml) = await FetchWithRedirectAsync(url, ct);
+
+        EnsureChessResultsHost(resolvedUrl);
+
+        var viewState = ExtractHiddenField(formHtml, "__VIEWSTATE");
+        var eventValidation = ExtractHiddenField(formHtml, "__EVENTVALIDATION");
+        var viewStateGenerator = ExtractHiddenField(formHtml, "__VIEWSTATEGENERATOR");
+
+        var invariant = System.Globalization.CultureInfo.InvariantCulture;
+        var formData = new Dictionary<string, string>
+        {
+            ["__EVENTTARGET"] = "",
+            ["__EVENTARGUMENT"] = "",
+            ["__LASTFOCUS"] = "",
+            ["__VIEWSTATE"] = viewState ?? "",
+            ["__VIEWSTATEGENERATOR"] = viewStateGenerator ?? "",
+            ["__EVENTVALIDATION"] = eventValidation ?? "",
+            ["ctl00$P1$combo_land"] = federation,
+            ["ctl00$P1$txt_von_tag"] = from.ToString("dd.MM.yyyy", invariant),
+            ["ctl00$P1$txt_bis_tag"] = to.ToString("dd.MM.yyyy", invariant),
+            ["ctl00$P1$combo_art"] = "5",        // alle Turnierarten
+            ["ctl00$P1$combo_bedenkzeit"] = "0", // alle Bedenkzeiten
+            ["ctl00$P1$combo_sort"] = "3",       // nach Start-Datum
+            ["ctl00$P1$combo_anzahl_zeilen"] = RowCountOption(maxRows),
+            ["ctl00$P1$txt_bez"] = "",
+            ["ctl00$P1$txt_ort"] = "",
+            ["ctl00$P1$txt_veranstalter"] = "",
+            ["ctl00$P1$txt_leiter"] = "",
+            ["ctl00$P1$txt_Schiedsrichter"] = "",
+            ["ctl00$P1$txt_Hauptschiedsrichter"] = "",
+            ["ctl00$P1$txt_tnr"] = "",
+            ["ctl00$P1$txt_eventid"] = "",
+            ["ctl00$P1$cb_suchen"] = "Search",
+        };
+
+        await RateLimitAsync(ct);
+        // s. SearchPlayersAsync: erst Body lesen (gibt die Verbindung frei), dann EnsureSuccess.
+        using var response = await SendFollowingRedirectsAsync(
+            HttpMethod.Post, new Uri(resolvedUrl), () => new FormUrlEncodedContent(formData), ct);
+
+        var resultHtml = await ReadBodyBoundedAsync(response, ct);
+        response.EnsureSuccessStatusCode();
+
+        var results = await _parser.ParseTournamentSearchAsync(resultHtml);
+        return maxRows > 0 && results.Count > maxRows ? results.Take(maxRows).ToList() : results;
+    }
+
+    /// <summary>
+    /// Das Zeilenlimit der Suche ist ein Dropdown-INDEX, kein Zahlenwert: 0=100, 1=250, 2=500,
+    /// 3=1000, 4=1500, 5=2000. Gewaehlt wird die kleinste Stufe, die maxRows noch abdeckt.
+    /// </summary>
+    internal static string RowCountOption(int maxRows)
+    {
+        int[] steps = [100, 250, 500, 1000, 1500, 2000];
+        for (var i = 0; i < steps.Length; i++)
+        {
+            if (maxRows <= steps[i]) return i.ToString(System.Globalization.CultureInfo.InvariantCulture);
+        }
+        return (steps.Length - 1).ToString(System.Globalization.CultureInfo.InvariantCulture);
+    }
+
     public async Task<List<ParsedPlayerSearchResult>> SearchPlayersAsync(string lastName, string? firstName, CancellationToken ct = default)
     {
         // Step 1: GET the search page to obtain ASP.NET ViewState

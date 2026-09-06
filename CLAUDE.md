@@ -31,11 +31,11 @@ RookHub API (.NET :5001)  -- proxy -->  Crawler API (.NET :8080)  -- crawl -->  
 
 | Komponente | Technologie | Version |
 |-----------|-------------|---------|
-| Runtime | .NET | 9.0 |
-| Web Framework | ASP.NET Core Web API | 9.0 |
-| ORM | EF Core + Pomelo | 9.0.0 |
+| Runtime | .NET | 10.0 |
+| Web Framework | ASP.NET Core Web API | 10.0 |
+| ORM | EF Core + Microting-MySQL-Fork | 10.0.10 |
 | Datenbank | MariaDB | 11 |
-| HTML-Parsing | AngleSharp | 1.4.0 |
+| HTML-Parsing | AngleSharp | 1.7.1 |
 | API Docs | Swashbuckle (Swagger) | 10.1.7 |
 | VPN (Produktion) | Gluetun (WireGuard) | 1.0 |
 | Tests | xUnit 2.9.2 + Moq 4.20.72 | - |
@@ -55,6 +55,7 @@ RookHub API (.NET :5001)  -- proxy -->  Crawler API (.NET :8080)  -- crawl -->  
 | GET | `/api/tournaments/{id}/pairings/latest` | Paarungen der letzten Runde |
 | GET | `/api/tournaments/{id}/rounds` | Alle Runden |
 | GET | `/api/tournaments/{id}/rounds/check` | Neue Runden erkennen (`{ knownRounds, availableRounds, hasNewRound, newRoundNumbers }`) |
+| GET | `/api/tournament-search?fed=&from=&to=&maxRows=` | Turnierverzeichnis: Trefferliste der chess-results-Turniersuche fuer eine Foederation + Zeitfenster (zustandslos, nichts wird gespeichert). Datumsfilter greift auf das END-Datum. |
 | GET | `/api/health` | Health Check |
 | GET | `/api/health/ip` | Aktuelle IP (VPN-Verifizierung) |
 
