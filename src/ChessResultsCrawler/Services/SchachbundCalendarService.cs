@@ -96,6 +96,30 @@ public class SchachbundCalendarService
     /// <summary>Deckel gegen eine Uebersichtsseite, die eines Tages hundert Regionen verlinkt.</summary>
     internal const int MaxRegions = 40;
 
+    /// <summary>
+    /// Regionen, die die Uebersichtsseite verlinkt, die aber KEINEN Feed haben. Ihre Termine
+    /// stehen auf der Regionsseite und werden weiter gelesen — nur die Ausschreibung (Rundenzahl,
+    /// Bedenkzeit) gibt es fuer sie nicht.
+    ///
+    /// <para><b>Gemessen am 2026-09-15</b>: fuer alle vier antwortet
+    /// <c>/share/feed-turnierdatenbank-&lt;region&gt;.xml</c> ebenso mit 404 wie die Variante ohne
+    /// „turnierdatenbank-" (Bayern zur Kontrolle: 200). Vorher stand jede Nacht viermal
+    /// „schachbund: Feed … nicht lesbar" im Log — fuer Feeds, die es nie gab.</para>
+    ///
+    /// <para><b>Bewusst eine feste Liste und kein „404 heisst: kein Feed".</b> Ein 404 auf einer
+    /// GEWOEHNLICHEN Region ist ein echter Fehler — genau so fiel die Bindestrich-Falle bei
+    /// Nordrhein-Westfalen auf (siehe <see cref="FeedKey"/>). Alle anderen Regionen melden einen
+    /// fehlenden Feed deshalb weiter als Warnung.</para>
+    /// </summary>
+    internal static readonly IReadOnlySet<string> RegionsWithoutFeed =
+        new HashSet<string>(StringComparer.Ordinal)
+        {
+            "blindenschachbund", "fernschachbund", "problemschach", "schach960",
+        };
+
+    /// <summary>Ob fuer diese Region ein Feed abgerufen wird.</summary>
+    internal static bool HasFeed(string region) => !RegionsWithoutFeed.Contains(region);
+
     private readonly HttpClient _http;
     private readonly ILogger<SchachbundCalendarService> _log;
 
@@ -135,7 +159,11 @@ public class SchachbundCalendarService
 
             // Die Ausschreibungen aus dem Feed derselben Region. Ein Ausfall hier kostet nur
             // Rundenzahl und Bedenkzeit — die Termine stehen schon.
-            try
+            if (!HasFeed(region))
+            {
+                _log.LogDebug("schachbund: Region {Region} hat keinen Feed — Termine ohne Ausschreibung", region);
+            }
+            else try
             {
                 var announcements = await FetchAnnouncementsAsync(region, ct);
                 foreach (var row in rows)

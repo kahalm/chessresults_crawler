@@ -184,6 +184,24 @@ public class KnsbCalendarService
             return (null, 1);
         }
 
+        // Seit 2026-09-14 liefert schaakbond.nl unserem VPN-Ausgang (Rechenzentrums-IP) statt
+        // der JSON-Liste eine JavaScript-Warteseite: HTTP 200, text/html, rund 12 kB,
+        // „<title>One moment, please...</title>", Server openresty. Von einer privaten IP kommt
+        // dieselbe Adresse unveraendert als JSON (gemessen 2026-09-15: 186 Eintraege). Die Seite
+        // ist eine Sperre gegen die IP, keine geaenderte Schnittstelle — und sie wird bewusst NICHT
+        // umgangen (kein Loesen der Challenge, kein anderer User-Agent). Gemeldet wird sie als
+        // Quellenfehler mit Auszug, nicht als Parser-Absturz.
+        try
+        {
+            SourceResponse.EnsureJson("KNSB", (int)response.StatusCode,
+                response.Content.Headers.ContentType?.MediaType, body);
+        }
+        catch (SourceResponseException ex)
+        {
+            _log.LogWarning("{Message}", ex.Message);
+            throw;
+        }
+
         // WordPress-Kern-REST traegt die Gesamtseitenzahl NUR im Header — anders als bei ECF
         // ("The Events Calendar"), wo "total_pages" im JSON-Rumpf selbst steht.
         var totalPages = response.Headers.TryGetValues("X-WP-TotalPages", out var values)
