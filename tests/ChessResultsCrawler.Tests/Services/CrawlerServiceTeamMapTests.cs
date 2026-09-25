@@ -44,4 +44,49 @@ public class CrawlerServiceTeamMapTests
     {
         Assert.Empty(CrawlerService.BuildTeamNameMap(Array.Empty<Team>()));
     }
+
+    // ── Fußnoten-Marker auf der Paarungsseite ────────────────────────────────────────────────
+    // Echter Fall (Grand Prix PlusCity, 25.09.): die Paarungsseite zeigt „ASVOE VHS Poechlarn 2 *)",
+    // das Teamverzeichnis „ASVOE VHS Poechlarn 2". Jede Paarung dieses Teams fiel als
+    // „Team not found" durch — sieben Paarungen je Crawl, dreimal am Tag.
+
+    private static Dictionary<string, Team> Teams(params string[] names) =>
+        CrawlerService.BuildTeamNameMap(names.Select((n, i) => new Team { Snr = i + 1, Name = n }));
+
+    [Theory]
+    [InlineData("ASVOE VHS Poechlarn 2 *)")]
+    [InlineData("ASVOE VHS Poechlarn 2*)")]
+    [InlineData("ASVOE VHS Poechlarn 2 *")]
+    [InlineData("ASVOE VHS Poechlarn 2 **)")]
+    public void FindTeam_IgnoresFootnoteMarker(string pairingName)
+    {
+        var teams = Teams("ASVOE VHS Poechlarn 1", "ASVOE VHS Poechlarn 2", "ASVOE VHS Poechlarn 3");
+        Assert.Equal(2, CrawlerService.FindTeam(teams, pairingName)!.Snr);
+    }
+
+    [Fact]
+    public void FindTeam_ExactNameWinsOverStrippedOne()
+    {
+        // Heißt ein Team tatsächlich mit Sternchen, darf es nicht auf das ohne umgebogen werden.
+        var teams = Teams("Stern", "Stern *)");
+        Assert.Equal(2, CrawlerService.FindTeam(teams, "Stern *)")!.Snr);
+    }
+
+    [Theory]
+    [InlineData("Haag am Hausruck")]
+    [InlineData("SK Taufkirchen/ Pram")]
+    [InlineData("TMM (Gruppe A)")]     // Klammer am Ende ist kein Marker
+    public void StripFootnoteMarker_LeavesOrdinaryNamesAlone(string name)
+    {
+        Assert.Equal(name, CrawlerService.StripFootnoteMarker(name));
+    }
+
+    [Fact]
+    public void FindTeam_UnknownOrEmpty_ReturnsNull()
+    {
+        var teams = Teams("Team Pasching");
+        Assert.Null(CrawlerService.FindTeam(teams, "Lentia City"));
+        Assert.Null(CrawlerService.FindTeam(teams, ""));
+        Assert.Null(CrawlerService.FindTeam(teams, null));
+    }
 }

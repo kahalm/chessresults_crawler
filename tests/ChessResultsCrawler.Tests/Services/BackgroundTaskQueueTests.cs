@@ -30,6 +30,48 @@ public class BackgroundTaskQueueTests
         Assert.True(q.TryEnqueue((_, _) => Task.CompletedTask));
     }
 
+    /// <summary>
+    /// Die Schlange darf einen Auftrag nie still verschlucken. Mit <c>DropWrite</c> meldete
+    /// <c>TryWrite</c> auch bei voller Schlange Erfolg und warf den Auftrag weg: der Controller
+    /// hielt den Job fuer angenommen, die DB-Zeile blieb „Queued" — und blockierte als
+    /// „already running" (409) jeden weiteren Versuch fuer dieses Turnier bis zum naechsten
+    /// Neustart. Beobachtet auf Prod (25.09.): von 84 Turnieren kamen 74 in einer Woche nie dran.
+    /// </summary>
+    [Fact]
+    public async Task TryEnqueue_WhenFull_ReturnsFalse_AndDropsNothingThatWasAccepted()
+    {
+        var q = new BackgroundTaskQueue(capacity: 3);
+        var ran = new List<int>();
+        var accepted = new List<int>();
+        for (var i = 1; i <= 5; i++)
+        {
+            var n = i;
+            if (q.TryEnqueue((_, _) => { ran.Add(n); return Task.CompletedTask; }))
+                accepted.Add(n);
+        }
+
+        // Voll ist voll: der 4. und 5. Versuch muessen abgewiesen werden, damit der Aufrufer
+        // es merkt (429 + Job auf Failed) — nicht still verworfen.
+        Assert.Equal(new[] { 1, 2, 3 }, accepted);
+
+        for (var i = 0; i < accepted.Count; i++)
+        {
+            var item = await q.DequeueAsync(CancellationToken.None);
+            await item(null!, CancellationToken.None);
+        }
+        Assert.Equal(accepted, ran);   // alles Angenommene laeuft auch
+    }
+
+    [Fact]
+    public void DefaultCapacity_HoldsAStartupBurst()
+    {
+        // RookHub stoesst nach jedem API-Start den Refresh ALLER abonnierten Turniere an —
+        // am 25.09. waren das 84 auf einen Schlag. Die Vorgabe muss so einen Schwall fassen.
+        var q = new BackgroundTaskQueue();
+        for (var i = 0; i < 200; i++)
+            Assert.True(q.TryEnqueue((_, _) => Task.CompletedTask), $"Auftrag {i + 1} abgewiesen");
+    }
+
     [Fact]
     public async Task DequeueAsync_ReturnsTheEnqueuedDelegate()
     {

@@ -273,7 +273,34 @@ public class CrawlerService
         return map;
     }
 
-    private static readonly string[] ByeMarkers = { "spielfrei", "bye", "freilos" };
+    /// <summary>
+    /// Fußnoten-Marker am Ende eines Teamnamens: chess-results hängt auf der Paarungsseite z. B.
+    /// „ASVOE VHS Poechlarn 2 *)" an, im Teamverzeichnis steht derselbe Name ohne Marker.
+    /// </summary>
+    private static readonly System.Text.RegularExpressions.Regex FootnoteMarker =
+        new(@"\s*\*+\)?\s*$", System.Text.RegularExpressions.RegexOptions.Compiled);
+
+    /// <summary>Teamname ohne angehängten Fußnoten-Marker (<c>*</c>, <c>*)</c>, <c>**)</c>).</summary>
+    public static string StripFootnoteMarker(string name) => FootnoteMarker.Replace(name, "").TrimEnd();
+
+    /// <summary>
+    /// Das Team zu einem Namen von der Paarungsseite: erst exakt, dann ohne Fußnoten-Marker.
+    /// Exakt zuerst, damit ein Team, das WIRKLICH so heißt, nie auf ein anderes umgebogen wird.
+    /// </summary>
+    public static Team? FindTeam(IReadOnlyDictionary<string, Team> teams, string? name)
+    {
+        if (string.IsNullOrWhiteSpace(name))
+            return null;
+        if (teams.TryGetValue(name, out var team))
+            return team;
+        var stripped = StripFootnoteMarker(name);
+        return stripped != name && teams.TryGetValue(stripped, out team) ? team : null;
+    }
+
+    // „nicht ausgelost": so zeigt chess-results ein Team ohne Gegner in dieser Runde — fachlich
+    // dasselbe wie spielfrei. Ohne den Eintrag erzeugte ein ungerades Teamfeld bei JEDEM Crawl
+    // eine „Team not found"-Warnung (25.09.: 231 von 693 in einer Woche).
+    private static readonly string[] ByeMarkers = { "spielfrei", "bye", "freilos", "nicht ausgelost" };
 
     /// <summary>
     /// Erkennt einen "Spielfrei"/Bye/Freilos-Gegner (case-insensitive, getrimmt). Solche Einträge
@@ -529,8 +556,8 @@ public class CrawlerService
 
             foreach (var pp in parsedPairings)
             {
-                var homeTeam = teams.GetValueOrDefault(pp.HomeTeamName);
-                var awayTeam = teams.GetValueOrDefault(pp.AwayTeamName);
+                var homeTeam = FindTeam(teams, pp.HomeTeamName);
+                var awayTeam = FindTeam(teams, pp.AwayTeamName);
 
                 if (homeTeam is null || awayTeam is null)
                 {

@@ -11,12 +11,25 @@ public interface IBackgroundTaskQueue
 
 public class BackgroundTaskQueue : IBackgroundTaskQueue
 {
+    /// <summary>
+    /// Vorgabe-Kapazitaet. RookHub stoesst nach jedem API-Start den Refresh ALLER abonnierten
+    /// Turniere auf einmal an (25.09.: 84 Stueck) — die Schlange muss so einen Schwall fassen.
+    /// Die Auftraege sind kleine Closures, der Speicher spielt keine Rolle.
+    /// </summary>
+    public const int DefaultCapacity = 500;
+
     private readonly Channel<Func<IServiceProvider, CancellationToken, Task>> _queue;
 
-    public BackgroundTaskQueue(int capacity = 5)
+    public BackgroundTaskQueue(int capacity = DefaultCapacity)
     {
+        // Wait, NICHT DropWrite: bei DropWrite meldet TryWrite auch bei voller Schlange Erfolg
+        // und wirft den Auftrag weg. Der Controller hielt den Job dann fuer angenommen, seine
+        // DB-Zeile blieb „Queued" und sperrte das Turnier als „already running" (409) bis zum
+        // naechsten Neustart — mit der alten Kapazitaet 5 kamen so von 84 Turnieren 74 eine
+        // Woche lang nie dran. Mit Wait liefert TryWrite bei voller Schlange false, und die
+        // vorhandene 429-Behandlung (Job auf Failed, Sperre frei) greift wie gedacht.
         _queue = Channel.CreateBounded<Func<IServiceProvider, CancellationToken, Task>>(
-            new BoundedChannelOptions(capacity) { FullMode = BoundedChannelFullMode.DropWrite });
+            new BoundedChannelOptions(capacity) { FullMode = BoundedChannelFullMode.Wait });
     }
 
     public async ValueTask EnqueueAsync(Func<IServiceProvider, CancellationToken, Task> workItem)

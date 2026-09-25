@@ -277,7 +277,10 @@ try
     builder.Services.AddScoped<HtmlParserService>();
     builder.Services.AddScoped<TournamentService>();
     builder.Services.AddScoped<RoundDetectionService>();
-    builder.Services.AddSingleton<IBackgroundTaskQueue, BackgroundTaskQueue>();
+    // Kapazitaet einstellbar (Crawler:QueueCapacity); die Vorgabe fasst den Refresh-Schwall,
+    // den RookHub nach jedem API-Start fuer alle abonnierten Turniere ausloest.
+    builder.Services.AddSingleton<IBackgroundTaskQueue>(_ => new BackgroundTaskQueue(
+        builder.Configuration.GetValue("Crawler:QueueCapacity", BackgroundTaskQueue.DefaultCapacity)));
     // Gate, das den ersten Crawl nach dem Start bis zur VPN-Tunnel-Bereitschaft zurückhält.
     builder.Services.AddSingleton<VpnReadinessGate>();
     // Wiederholt einen Quellen-Abruf ueber einen ANDEREN VPN-Ausgang, wenn keine Verbindung

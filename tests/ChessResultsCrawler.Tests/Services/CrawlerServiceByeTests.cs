@@ -17,6 +17,8 @@ public class CrawlerServiceByeTests
     [InlineData("Bye", true)]
     [InlineData("freilos", true)]
     [InlineData("Freilos", true)]
+    [InlineData("nicht ausgelost", true)]   // chess-results: Team ohne Gegner in dieser Runde
+    [InlineData("Nicht ausgelost ", true)]
     [InlineData("SC Musterstadt", false)]
     [InlineData("Bye United", false)]   // enthält "bye", ist aber ein echter Name
     [InlineData("", false)]
