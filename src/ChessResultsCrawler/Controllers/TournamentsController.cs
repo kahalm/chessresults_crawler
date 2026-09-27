@@ -11,11 +11,16 @@ public class TournamentsController : ControllerBase
 {
     private readonly TournamentService _service;
     private readonly RoundDetectionService _roundDetection;
+    private readonly ClubService _clubs;
+    private readonly IBackgroundTaskQueue _taskQueue;
 
-    public TournamentsController(TournamentService service, RoundDetectionService roundDetection)
+    public TournamentsController(TournamentService service, RoundDetectionService roundDetection,
+        ClubService clubs, IBackgroundTaskQueue taskQueue)
     {
         _service = service;
         _roundDetection = roundDetection;
+        _clubs = clubs;
+        _taskQueue = taskQueue;
     }
 
     [HttpGet]
@@ -50,7 +55,62 @@ public class TournamentsController : ControllerBase
         if (tournament is null) return NotFound();
 
         var players = await _service.GetPlayersAsync(tournament.Id, team, sortBy);
-        return Ok(players.Select(PlayerResponse.FromEntity));
+        // Spieler ohne Verein in der Startliste: den übernommenen dazu (ClubService) — als eigenes
+        // Feld, nicht als TeamName: der trägt in Mannschaftsturnieren die Mannschaft und die
+        // Favoriten-Logik hängt daran.
+        var clubs = await _clubs.ResolveAsync(tournament.Id, players, HttpContext?.RequestAborted ?? default);
+        return Ok(players.Select(p =>
+        {
+            var response = PlayerResponse.FromEntity(p);
+            if (clubs.TryGetValue(p.Id, out var club))
+            {
+                response.Club = club.Club;
+                response.ClubSource = club.SourceTournamentName;
+            }
+            return response;
+        }));
+    }
+
+    /// <summary>
+    /// Wie viele Spieler „Vereine nachtragen" noch suchen würde und ob gerade ein Lauf geht — die
+    /// Turnierseite fragt das nach, solange sie wartet.
+    /// </summary>
+    [HttpGet("{id}/clubs")]
+    public async Task<IActionResult> GetClubStatus(string id)
+    {
+        var tournament = await ResolveTournamentAsync(id);
+        if (tournament is null) return NotFound();
+
+        var (pending, running) = await _clubs.StatusAsync(tournament);
+        return Ok(new { pending, running, maxPerRun = ClubService.MaxLookupsPerRun });
+    }
+
+    /// <summary>
+    /// „Vereine nachtragen": die Spieler ohne Verein über die chess-results-Spielersuche suchen (ein
+    /// Suchabruf je Spieler, höchstens <see cref="ClubService.MaxLookupsPerRun"/>), im Hintergrund.
+    /// 409, solange für dieses Turnier schon ein Lauf geht.
+    /// </summary>
+    [HttpPost("{id}/clubs")]
+    public async Task<IActionResult> FillClubs(string id)
+    {
+        var tournament = await ResolveTournamentAsync(id);
+        if (tournament is null) return NotFound();
+
+        var (pending, _) = await _clubs.StatusAsync(tournament);
+        if (pending == 0) return Ok(new { queued = 0 });
+
+        var chessResultsId = tournament.ChessResultsId;
+        if (!ClubService.TryBegin(chessResultsId))
+            return Conflict(new { error = "Club lookup already running for this tournament." });
+
+        if (!_taskQueue.TryEnqueue(async (sp, ct) =>
+                await sp.GetRequiredService<ClubService>().FillAsync(chessResultsId, ct)))
+        {
+            ClubService.End(chessResultsId);
+            return StatusCode(429, new { error = "Crawl queue is full. Try again later." });
+        }
+
+        return Accepted(new { queued = Math.Min(pending, ClubService.MaxLookupsPerRun) });
     }
 
     [HttpGet("{id}/teams")]

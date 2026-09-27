@@ -15,6 +15,7 @@ public class AppDbContext : DbContext
     public DbSet<Pairing> Pairings => Set<Pairing>();
     public DbSet<PlayerResult> PlayerResults => Set<PlayerResult>();
     public DbSet<CrawlJob> CrawlJobs => Set<CrawlJob>();
+    public DbSet<PlayerClub> PlayerClubs => Set<PlayerClub>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -39,9 +40,21 @@ public class AppDbContext : DbContext
                 .OnDelete(DeleteBehavior.Cascade);
         });
 
+        modelBuilder.Entity<PlayerClub>(e =>
+        {
+            e.HasIndex(c => c.FideId).IsUnique();
+            e.Property(c => c.FideId).HasMaxLength(20);
+            e.Property(c => c.Club).HasMaxLength(300);
+            e.Property(c => c.SourceTournamentId).HasMaxLength(20);
+            e.Property(c => c.SourceTournamentName).HasMaxLength(500);
+            e.Property(c => c.SourceEndDate).HasMaxLength(20);
+        });
+
         modelBuilder.Entity<Player>(e =>
         {
             e.HasIndex(p => new { p.TournamentId, p.Snr }).IsUnique();
+            // Vereinsabgleich über Turniere hinweg (ClubService): derselbe Spieler anderswo mit Verein.
+            e.HasIndex(p => p.FideId);
             e.Property(p => p.Name).HasMaxLength(500);
             e.Property(p => p.Title).HasMaxLength(10);
             e.Property(p => p.FideId).HasMaxLength(20);

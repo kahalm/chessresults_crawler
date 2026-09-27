@@ -55,6 +55,15 @@ public class PlayerResponse
     public string? TeamName { get; set; }
     public int? BoardNumber { get; set; }
 
+    /// <summary>
+    /// Nur wenn die Startliste KEINEN Verein nennt: der übernommene (ClubService) — aus der
+    /// Spielersuche oder einem anderen geholten Turnier desselben Spielers.
+    /// </summary>
+    public string? Club { get; set; }
+
+    /// <summary>Das Turnier, aus dem <see cref="Club"/> stammt („laut …").</summary>
+    public string? ClubSource { get; set; }
+
     public static PlayerResponse FromEntity(Player p) => new()
     {
         Id = p.Id,

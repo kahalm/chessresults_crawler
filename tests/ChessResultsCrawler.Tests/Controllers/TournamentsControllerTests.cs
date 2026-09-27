@@ -23,7 +23,8 @@ public class TournamentsControllerTests : IDisposable
             .UseInMemoryDatabase(Guid.NewGuid().ToString())
             .Options;
         _db = new AppDbContext(options);
-        _ctrl = new TournamentsController(new TournamentService(_db), null!);
+        _ctrl = new TournamentsController(new TournamentService(_db), null!,
+            new ClubService(_db, null!, Microsoft.Extensions.Logging.Abstractions.NullLogger<ClubService>.Instance), null!);
     }
 
     public void Dispose() => _db.Dispose();

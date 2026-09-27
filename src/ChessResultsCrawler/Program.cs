@@ -276,6 +276,7 @@ try
         client => GluetunClientSetup.Configure(client, builder.Configuration));
     builder.Services.AddScoped<HtmlParserService>();
     builder.Services.AddScoped<TournamentService>();
+    builder.Services.AddScoped<ClubService>();
     builder.Services.AddScoped<RoundDetectionService>();
     // Kapazitaet einstellbar (Crawler:QueueCapacity); die Vorgabe fasst den Refresh-Schwall,
     // den RookHub nach jedem API-Start fuer alle abonnierten Turniere ausloest.
