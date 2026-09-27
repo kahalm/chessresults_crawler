@@ -508,7 +508,15 @@ public class CrawlerService
         var art2Html = await FetchPageAsync(baseUrl, "art=2", ct);
         var availableRounds = await _parser.ParseAvailableRoundsAsync(art2Html, tournament.TotalRounds);
 
-        if (availableRounds.Count == 0 && tournament.TotalRounds > 0)
+        // Ohne Rundenlinks alle Runden 1..TotalRounds annehmen — so sieht es bei Mannschafts-
+        // Rundenturnieren (Ligen) aus: „Teamauslosung aller Runden" auf EINER Seite, kein einziger
+        // rd=-Link, art=2&rd=N liefert trotzdem die einzelne Runde. Aber nur, wenn die Seite schon
+        // eine Paarungstabelle traegt: TotalRounds ist die GEPLANTE Rundenzahl aus den
+        // Turnierdetails („Rundenanzahl"), die vor der ersten Auslosung schon dasteht. Ohne diese
+        // Bedingung legte der Crawl eines kommenden Turniers N leere Runden an — und die
+        // Rundenerkennung meldete danach keine Runde je wieder als neu.
+        if (availableRounds.Count == 0 && tournament.TotalRounds > 0
+            && await _parser.HasPairingsTableAsync(art2Html))
         {
             availableRounds = Enumerable.Range(1, tournament.TotalRounds).ToList();
         }

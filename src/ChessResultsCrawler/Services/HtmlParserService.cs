@@ -83,6 +83,7 @@ public class HtmlParserService
         if (table is null) return pairings;
 
         var allRows = table.QuerySelectorAll(":scope > tr, :scope > tbody > tr");
+        var columns = FindTeamPairingColumns(allRows);
 
         foreach (var row in allRows)
         {
@@ -102,7 +103,16 @@ public class HtmlParserService
             if (!int.TryParse(nrText, out var matchNo)) continue;
             var pairing = new ParsedTeamPairing { MatchNumber = matchNo };
 
-            if (cells.Count >= 6)
+            if (columns is { } col)
+            {
+                // Spalten aus der Kopfzeile (siehe FindTeamPairingColumns). Eine Zeile, der die
+                // hinterste benoetigte Spalte fehlt, ist keine Paarung dieses Layouts.
+                if (cells.Count <= col.Last) continue;
+                pairing.HomeTeamName = CleanTeamName(cells[col.Home].TextContent);
+                pairing.AwayTeamName = CleanTeamName(cells[col.Away].TextContent);
+                ParseSplitScore(cells[col.Colon - 1].TextContent.Trim(), cells[col.Colon + 1].TextContent.Trim(), pairing);
+            }
+            else if (cells.Count >= 6)
             {
                 // Standard format: Nr | HomeTeam | AwayTeam | HomeScore | : | AwayScore
                 pairing.HomeTeamName = CleanTeamName(cells[1].TextContent);
@@ -125,6 +135,42 @@ public class HtmlParserService
         }
 
         return pairings;
+    }
+
+    /// <summary>
+    /// Die Spalten der Mannschaftspaarung aus der KOPFZEILE (erste Zeile mit <c>th</c>): die beiden
+    /// „Team"-Spalten und die „:"-Spalte, links und rechts davon stehen die Brettpunkte.
+    ///
+    /// <para>Noetig, weil das Layout nicht fest ist. Die Mannschafts-EM 2023 zeigt sechs Spalten
+    /// (Nr. | Team | Team | Erg. | : | Erg.), die Olympiade 2026 (tnr1469895) dagegen sechzehn:
+    /// Nr. | Snr | Flagge | FED | Team | Pkt. | MP | Erg. | : | Erg. | MP | Pkt. | Team | FED |
+    /// Flagge | Snr. Mit den festen Indizes landete dort die Setznummer als Heimteam und die leere
+    /// Flaggenzelle als Gastteam — jede Zeile fiel durch, jede Runde ergab 0 Paarungen, ohne Fehler
+    /// und ohne Warnung (dasselbe Bild bei Olympiade 2024 und Mannschafts-EM 2025).</para>
+    ///
+    /// <para><c>null</c>, wenn die Kopfzeile fehlt oder nicht zwei Team-Spalten und eine „:"-Spalte
+    /// nennt — dann greifen die bisherigen festen Positionen.</para>
+    /// </summary>
+    private static (int Home, int Away, int Colon, int Last)? FindTeamPairingColumns(IEnumerable<IElement> rows)
+    {
+        var header = rows.FirstOrDefault(r => r.QuerySelectorAll(":scope > th").Length > 0);
+        if (header is null) return null;
+
+        var names = header.QuerySelectorAll(":scope > th, :scope > td")
+            .Select(c => c.TextContent.Trim())
+            .ToList();
+        var teamCols = names
+            .Select((name, idx) => (name, idx))
+            .Where(h => h.name.Equals("Team", StringComparison.OrdinalIgnoreCase)
+                     || h.name.Equals("Mannschaft", StringComparison.OrdinalIgnoreCase))
+            .Select(h => h.idx)
+            .ToList();
+        var colon = names.IndexOf(":");
+
+        if (teamCols.Count < 2 || colon < 1 || colon + 1 >= names.Count) return null;
+        var home = teamCols[0];
+        var away = teamCols[1];
+        return (home, away, colon, Math.Max(away, colon + 1));
     }
 
     /// <summary>
@@ -195,6 +241,20 @@ public class HtmlParserService
         return headerText.Contains("Erg.", StringComparison.OrdinalIgnoreCase);
     }
 
+    /// <summary>
+    /// Traegt eine art=2-Seite ueberhaupt eine Paarungstabelle (<c>table.CRs1</c>/<c>CRs2</c>)?
+    /// Vor der ersten Auslosung steht dort nur die Ueberschrift „Paarungen/Ergebnisse" ohne
+    /// Tabelle — die Rundenzahl aus den Turnierdetails ist dann schon bekannt, Runden gibt es
+    /// aber noch keine.
+    /// </summary>
+    public async Task<bool> HasPairingsTableAsync(string html)
+    {
+        var context = BrowsingContext.New(Configuration.Default);
+        var document = await context.OpenAsync(req => req.Content(html));
+        return document.QuerySelector("table.CRs1") is not null
+            || document.QuerySelector("table.CRs2") is not null;
+    }
+
     private static string NormalizeResult(string result)
     {
         return result.Replace("&frac12;", "½");
@@ -208,6 +268,23 @@ public class HtmlParserService
     {
         var context = BrowsingContext.New(Configuration.Default);
         var document = await context.OpenAsync(req => req.Content(html));
+
+        // Zuerst die Turnierdetails: „Rundenanzahl | 11" (lan=1: „Number of rounds") ist die
+        // GEPLANTE Rundenzahl und steht schon vor der ersten Runde da. Die Texte weiter unten nennen
+        // nur gespielte Runden, und ein laufendes Mannschaftsturnier schreibt „Stand nach der
+        // 10 Runde" — das trifft keines der Muster, die Olympiade 2026 blieb so bei TotalRounds 0
+        // (und RookHub zeigte keine Rundenauswahl).
+        foreach (var row in document.QuerySelectorAll("tr"))
+        {
+            var cells = row.QuerySelectorAll(":scope > td").ToList();
+            if (cells.Count < 2) continue;
+            var label = cells[0].TextContent.Trim().TrimEnd(':');
+            if (!label.Equals("Rundenanzahl", StringComparison.OrdinalIgnoreCase) &&
+                !label.Equals("Number of rounds", StringComparison.OrdinalIgnoreCase)) continue;
+            if (int.TryParse(cells[1].TextContent.Trim(), out var planned) && planned > 0)
+                return planned;
+        }
+
         var text = document.Body?.TextContent ?? "";
 
         // German: "nach 7 Runden" or "nach 9 Runden"
