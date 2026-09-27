@@ -193,7 +193,7 @@ public class CrawlerService
                 {
                     case CrawlJobType.Full:
                         await CrawlPlayersAsync(tournament, resolvedUrl, ct);
-                        await CrawlAllPairingsAsync(tournament, resolvedUrl, ct);
+                        await CrawlAllPairingsAsync(tournament, resolvedUrl, ct, playersFresh: true);
                         break;
                     case CrawlJobType.PlayersOnly:
                         await CrawlPlayersAsync(tournament, resolvedUrl, ct);
@@ -500,7 +500,10 @@ public class CrawlerService
             await tx.CommitAsync(ct);
     }
 
-    private async Task CrawlAllPairingsAsync(Tournament tournament, string baseUrl, CancellationToken ct)
+    /// <param name="playersFresh">Die Spielerliste wurde in DIESEM Auftrag eben geholt (Full) — dann
+    /// holt der Paarungs-Crawl sie bei unbekannten Startnummern nicht ein zweites Mal.</param>
+    private async Task CrawlAllPairingsAsync(Tournament tournament, string baseUrl, CancellationToken ct,
+        bool playersFresh = false)
     {
         _logger.LogInformation("Crawling pairings for tournament {Id}", tournament.ChessResultsId);
 
@@ -527,16 +530,17 @@ public class CrawlerService
 
         if (isTeam)
         {
-            await CrawlTeamPairingsAsync(tournament, baseUrl, availableRounds, ct);
+            await CrawlTeamPairingsAsync(tournament, baseUrl, availableRounds, ct, playersFresh);
         }
         else
         {
-            await CrawlIndividualPairingsAsync(tournament, baseUrl, availableRounds, ct);
+            await CrawlIndividualPairingsAsync(tournament, baseUrl, availableRounds, ct, playersFresh);
         }
     }
 
     // internal (statt private) nur für den Regressionstest mit doppelten Teamnamen.
-    internal async Task CrawlTeamPairingsAsync(Tournament tournament, string baseUrl, List<int> availableRounds, CancellationToken ct)
+    internal async Task CrawlTeamPairingsAsync(Tournament tournament, string baseUrl, List<int> availableRounds,
+        CancellationToken ct, bool playersFresh = false)
     {
         // Wie im Spieler-Crawl tolerant gegen doppelte Teamnamen (Altbestand aus der Zeit vor
         // BuildTeamNameMap oder echte Dubletten in den Quelldaten): ToDictionary würde hier eine
@@ -553,6 +557,20 @@ public class CrawlerService
             var roundHtml = await FetchPageAsync(baseUrl, $"art=2&rd={roundNum}", ct);
             var parsedPairings = await _parser.ParseTeamPairingsAsync(roundHtml);
             _logger.LogInformation("Round {Round}: parsed {Count} team pairings", roundNum, parsedPairings.Count);
+
+            // Teams, die der Bestand nicht kennt: die Teams entstehen im SPIELER-Crawl, und ein
+            // PairingsOnly-Auftrag holte den nie. Stand beim ersten Abruf noch keine Aufstellung auf
+            // chess-results, blieb jede Paarung danach „Team not found". Einmal je Auftrag nachholen.
+            if (!playersFresh && parsedPairings.Any(pp =>
+                    (FindTeam(teams, pp.HomeTeamName) is null && !IsByeOpponent(pp.HomeTeamName))
+                    || (FindTeam(teams, pp.AwayTeamName) is null && !IsByeOpponent(pp.AwayTeamName))))
+            {
+                _logger.LogInformation("Round {Round}: unknown teams, re-crawling players of {Id}", roundNum, tournament.ChessResultsId);
+                await CrawlPlayersAsync(tournament, baseUrl, ct);
+                teams = BuildTeamNameMap(
+                    await _db.Teams.Where(t => t.TournamentId == tournament.Id).ToListAsync(ct));
+                playersFresh = true;
+            }
 
             // H-9: Wrap delete+insert in transaction for re-crawl safety
             await using var tx = await _db.Database.BeginTransactionAsync(ct);
@@ -596,7 +614,8 @@ public class CrawlerService
         }
     }
 
-    private async Task CrawlIndividualPairingsAsync(Tournament tournament, string baseUrl, List<int> availableRounds, CancellationToken ct)
+    private async Task CrawlIndividualPairingsAsync(Tournament tournament, string baseUrl, List<int> availableRounds,
+        CancellationToken ct, bool playersFresh = false)
     {
         var playersBySnr = await _db.Players
             .Where(p => p.TournamentId == tournament.Id)
@@ -610,6 +629,22 @@ public class CrawlerService
             var roundHtml = await FetchPageAsync(baseUrl, $"art=2&rd={roundNum}", ct);
             var parsedPairings = await _parser.ParseIndividualPairingsAsync(roundHtml);
             _logger.LogInformation("Round {Round}: parsed {Count} individual pairings", roundNum, parsedPairings.Count);
+
+            // Startnummern, die die Spielerliste nicht kennt: ein PairingsOnly-Auftrag (Rundenmonitor)
+            // holte die Spieler nie. Stand beim ersten Abruf noch keine Startliste auf chess-results —
+            // bei Schnellschach-Rallyes tragen die Schiedsrichter sie oft erst am Morgen ein —, blieb
+            // die Spielerliste leer und jede Paarung namenlos. Nachmeldungen genauso. Einmal je Auftrag.
+            if (!playersFresh && parsedPairings.Any(pp =>
+                    (pp.WhiteSnr > 0 && !playersBySnr.ContainsKey(pp.WhiteSnr))
+                    || (pp.BlackSnr > 0 && !playersBySnr.ContainsKey(pp.BlackSnr))))
+            {
+                _logger.LogInformation("Round {Round}: unknown players, re-crawling players of {Id}", roundNum, tournament.ChessResultsId);
+                await CrawlPlayersAsync(tournament, baseUrl, ct);
+                playersBySnr = await _db.Players
+                    .Where(p => p.TournamentId == tournament.Id)
+                    .ToDictionaryAsync(p => p.Snr, ct);
+                playersFresh = true;
+            }
 
             // H-9: Wrap delete+insert in transaction for re-crawl safety
             await using var tx = await _db.Database.BeginTransactionAsync(ct);
