@@ -188,6 +188,7 @@ public class CrawlerService
                     tournament.Location = details.Location;
                 if (details.DateText is not null)
                     tournament.DateText = details.DateText;
+                tournament.GroupsJson = TournamentGroups.Serialize(details.Groups, tournament.ChessResultsId);
 
                 switch (job.JobType)
                 {

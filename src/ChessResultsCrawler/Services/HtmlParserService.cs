@@ -255,6 +255,37 @@ public class HtmlParserService
             || document.QuerySelector("table.CRs2") is not null;
     }
 
+    /// <summary>
+    /// Die Zeile „Turnierauswahl" („Tournament selection"): die GRUPPEN derselben Veranstaltung —
+    /// „Gruppe A, Gruppe B, Mädchen, <i><b>Schnellschach</b></i>" bei einer Rallye, „Open, Women"
+    /// bei der Olympiade. Die anderen stehen als Link auf ihre tnr-Seite, die eigene kursiv-fett ohne
+    /// Link (sie bekommt <c>ChessResultsId = null</c>, der Aufrufer kennt sie). Reihenfolge wie auf
+    /// der Seite.
+    /// </summary>
+    internal static List<ParsedTournamentGroup> ParseTournamentSelection(AngleSharp.Dom.IElement cell)
+    {
+        var groups = new List<ParsedTournamentGroup>();
+        foreach (var node in cell.Children)
+        {
+            var link = node.LocalName == "a" ? node : null;
+            if (link is not null)
+            {
+                var id = Regex.Match(link.GetAttribute("href") ?? "", @"tnr(\d+)\.aspx", RegexOptions.IgnoreCase);
+                var text = link.TextContent.Trim();
+                if (id.Success && text.Length > 0)
+                    groups.Add(new ParsedTournamentGroup { ChessResultsId = id.Groups[1].Value, Label = text });
+            }
+            else if (node.LocalName is "i" or "b")
+            {
+                var text = node.TextContent.Trim();
+                if (text.Length > 0)
+                    groups.Add(new ParsedTournamentGroup { ChessResultsId = null, Label = text, IsCurrent = true });
+            }
+        }
+        // Eine „Auswahl" aus nur dem eigenen Turnier ist keine.
+        return groups.Count > 1 && groups.Any(g => g.IsCurrent) ? groups : [];
+    }
+
     private static string NormalizeResult(string result)
     {
         return result.Replace("&frac12;", "½");
@@ -383,7 +414,12 @@ public class HtmlParserService
 
             if (string.IsNullOrWhiteSpace(value)) continue;
 
-            if (label.Equals("Date", StringComparison.OrdinalIgnoreCase) ||
+            if (label.Equals("Turnierauswahl", StringComparison.OrdinalIgnoreCase) ||
+                label.Equals("Tournament selection", StringComparison.OrdinalIgnoreCase))
+            {
+                details.Groups = ParseTournamentSelection(cells[1]);
+            }
+            else if (label.Equals("Date", StringComparison.OrdinalIgnoreCase) ||
                 label.Equals("Datum", StringComparison.OrdinalIgnoreCase))
             {
                 details.DateText = value;
@@ -1225,6 +1261,18 @@ public class ParsedTournamentDetails
     /// jede Ableitung aus dem Freitext; fehlt sie, bleibt nur der Text.
     /// </summary>
     public string? TimeControlKind { get; set; }
+
+    /// <summary>Die Gruppen derselben Veranstaltung (Zeile „Turnierauswahl"); leer ohne eine solche.</summary>
+    public List<ParsedTournamentGroup> Groups { get; set; } = [];
+}
+
+/// <summary>Eine Gruppe aus der „Turnierauswahl" — Nummer und Bezeichnung, wie chess-results sie zeigt.</summary>
+public class ParsedTournamentGroup
+{
+    /// <summary>chess-results-Nummer; <c>null</c> fuer die eigene (dort ohne Link).</summary>
+    public string? ChessResultsId { get; set; }
+    public string Label { get; set; } = "";
+    public bool IsCurrent { get; set; }
 }
 
 /// <summary>

@@ -1,4 +1,5 @@
 using ChessResultsCrawler.Models;
+using ChessResultsCrawler.Services;
 
 namespace ChessResultsCrawler.DTOs;
 
@@ -14,8 +15,15 @@ public class TournamentResponse
     public DateTime CreatedAt { get; set; }
     public DateTime UpdatedAt { get; set; }
 
+    /// <summary>
+    /// Die Gruppen derselben Veranstaltung (Rallye: Gruppe A/B/Mädchen/Schnellschach; Olympiade:
+    /// Open/Women), die eigene mit <c>Current = true</c>. Leer, wenn chess-results keine nennt.
+    /// </summary>
+    public List<TournamentGroupResponse> Groups { get; set; } = [];
+
     public static TournamentResponse FromEntity(Tournament t) => new()
     {
+        Groups = TournamentGroups.Deserialize(t.GroupsJson, t.ChessResultsId),
         Id = t.Id,
         ChessResultsId = t.ChessResultsId,
         Name = t.Name,
@@ -26,6 +34,13 @@ public class TournamentResponse
         CreatedAt = t.CreatedAt,
         UpdatedAt = t.UpdatedAt
     };
+}
+
+public class TournamentGroupResponse
+{
+    public string ChessResultsId { get; set; } = "";
+    public string Label { get; set; } = "";
+    public bool Current { get; set; }
 }
 
 public class PlayerResponse

@@ -10,6 +10,15 @@ public class Tournament
     public string? SNode { get; set; }
     public string? Location { get; set; }
     public string? DateText { get; set; }
+
+    /// <summary>
+    /// Die Gruppen derselben Veranstaltung als JSON (<c>[{"id":"1503214","label":"Gruppe A"},…]</c>,
+    /// die eigene mit ihrer Nummer), aus der Zeile „Turnierauswahl". <c>null</c> ohne Gruppen.
+    /// Gespeichert statt je Abruf neu gelesen: die Zeile steht auf der Detailseite, die jeder Crawl
+    /// ohnehin holt, und die Turnierseite braucht sie ohne eigenen Seitenabruf.
+    /// </summary>
+    [System.ComponentModel.DataAnnotations.MaxLength(4000)]
+    public string? GroupsJson { get; set; }
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
     public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
 
