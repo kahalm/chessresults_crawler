@@ -1,0 +1,95 @@
+[Event "1. BUNDESLIGA AUT 2025/2026"]
+[Site "Kunsthotel Fuchspalast"]
+[Date "2026.04.15"]
+[Round "6"]
+[Board "6"]
+[White "Saric, Ante"]
+[Black "Schiestl, Josef"]
+[Result "1-0"]
+[ECO "E63"]
+[WhiteElo "2474"]
+[BlackElo "2032"]
+[PlyCount "0"]
+[EventDate "2025.12.10"]
+[EventType "team"]
+[EventRounds "11"]
+[EventCountry "AUT"]
+[WhiteTeam "SV - Das Wien - St. Veit"]
+[BlackTeam "Mayrhofen Zell/Zillertal"]
+
+1. Nf3 Nf6 2. c4 g6 3. g3 Bg7 4. Bg2 O-O 5. O-O d6 6. Nc3 a6 7. d4 Nc6 8. b3 Rb8
+9. d5 Na5 10. Bg5 c5 11. dxc6 Nxc6 12. Rc1 Bg4 13. h3 Bf5 14. Nd5 Ne4 15. Be3 Qa5
+16. a4 b6 17. Nh4 e6 18. Nxf5 gxf5 19. Nf4 Rfd8 20. g4 Nb4 21. Nh5 Bh8 22. Bxe4 fxe4
+23. Bd2 Qc5 24. Ng3 Na2 25. Rc2 Nb4 26. Nxe4 Qe5 27. Bxb4 Qxe4 28. Qd3 Qxd3 29. exd3
+b5 30. cxb5 axb5 31. a5 Bd4 32. Rfc1 Ra8 33. Rc6 Bc5 34. Bd2 b4 35. a6 Rd7 36. Rc4
+ 1-0
+
+[Event "1. BUNDESLIGA AUT 2025/2026"]
+[Site "Kunsthotel Fuchspalast"]
+[Date "2026.04.19"]
+[Round "11"]
+[Board "6"]
+[White "Schiestl, Josef"]
+[Black "Leitgeb, Julian"]
+[Result "0-1"]
+[ECO "B47"]
+[WhiteElo "2032"]
+[BlackElo "2306"]
+[PlyCount "0"]
+[EventDate "2025.12.10"]
+[EventType "team"]
+[EventRounds "11"]
+[EventCountry "AUT"]
+[WhiteTeam "Mayrhofen Zell/Zillertal"]
+[BlackTeam "LL-resources Fuerstenfeld/TSV Hartberg"]
+
+1. e4 c5 2. Nf3 e6 3. d4 cxd4 4. Nxd4 Nc6 5. Nc3 Qc7 6. Qd3 Nf6 7. Nxc6 bxc6 8. Qg3
+Qxg3 9. hxg3 e5 10. f3 Rb8 11. Bc4 Be7 12. b3 O-O 13. Bb2 Bb7 14. O-O-O Rbd8 15.
+Bd3 Rfe8 16. g4 Bc5 17. Kb1 h6 18. Na4 Bf8 19. c4 d5 20. cxd5 cxd5 21. exd5 Nxd5
+22. Bc2 Ne3 23. Rxd8 Rxd8 24. Bxe5 Rd2 25. Bf4 Rxc2 26. Bxe3 Rxg2 27. Bxa7 Bxf3 28.
+Rf1 Bxg4 29. Bc5 h5 30. b4 h4 31. b5 Bxc5 32. Nxc5 h3 33. b6 Bc8  0-1
+
+[Event "1. BUNDESLIGA AUT 2024/2025"]
+[Site "Rathaus Linz"]
+[Date "2024.10.09"]
+[Round "1"]
+[Board "6"]
+[White "Hartl, Daniel"]
+[Black "Schiestl, Josef"]
+[Result "1-0"]
+[ECO ""]
+[WhiteElo "2271"]
+[BlackElo "2068"]
+[PlyCount "0"]
+[EventDate "2024.10.09"]
+[EventType "team"]
+[EventRounds "11"]
+[EventCountry "AUT"]
+[WhiteTeam "SC MPOE Maria Saal"]
+[BlackTeam "Mayrhofen/Zell/Zillertal"]
+
+1. d4 Nf6 2. c4 g6 3. g3 Bg7 4. Bg2 O-O 5. Nc3 d6 6. Nf3 Nc6 7. O-O a6 8. b3 e5 9.
+dxe5 dxe5 10. Qxd8 Rxd8 11. Bg5 Be6 12. Nd2 h6 13. Bxf6 Bxf6 14. Rfd1 Be7 15. Nd5
+Bxd5 16. cxd5 Nd4 17. Kf1 Rac8 18. Nc4 Bd6 19. e3 Nc2 20. Rac1 Na3 21. Nb2 Kg7 22.
+Nd3 h5 23. Ke2 Rb8 24. f4 exf4 25. gxf4 Re8 26. e4 f6 27. Ke3 Re7 28. Bf3 Rc8 29.
+Rg1 Kf7 30. Rg2 Rh8 31. Nc5 c6 32. dxc6 bxc6 33. Nxa6 c5 34. Rd2 Nb5 35. Nxc5 g5
+36. Nd3 f5 37. e5 gxf4+ 38. Kxf4 Bb8 39. Bd5+ Kg7 40. Kxf5 Rf8+ 41. Ke4 Ba7 42. Rc6
+Rd7 43. Nf4  1-0
+
+[Event "1. BUNDESLIGA AUT 2024/2025"]
+[Site "Rathaus Linz"]
+[Date "2024.10.10"]
+[Round "2"]
+[Board "6"]
+[White "Schiestl, Josef"]
+[Black "Freitag, Manfred"]
+[Result "1/2-1/2"]
+[ECO ""]
+[WhiteElo "2068"]
+[BlackElo "2342"]
+[PlyCount "0"]
+[EventDate "2024.10.09"]
+[EventType "team"]
+[EventRounds "11"]
+[EventCountry "AUT"]
+[WhiteTeam "Mayrhofen/Zell/Zillertal"]

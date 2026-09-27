@@ -1279,6 +1279,50 @@ public class CrawlerService
             success, isRetry, error);
     }
 
+    /// <summary>
+    /// chess-results-Partiedatenbank (<c>PartieSuche.aspx</c>): alle Partien eines Spielers als PGN,
+    /// gesucht über die FIDE-ID (LeagueHub). Ablauf wie die Turniersuche: GET für die versteckten
+    /// Felder, dann POST mit dem Download-Knopf. Die Knopf-Beschriftung ist der WERT, den ASP.NET
+    /// erwartet („Download als PGN-Datei", deutsche Maske) — ein anderer Wert endet in einem
+    /// „Laufzeitfehler". Ohne Partien antwortet die Seite mit HTML statt PGN → leerer String.
+    /// </summary>
+    public async Task<string> SearchGamesPgnByFideAsync(string fideId, CancellationToken ct = default)
+    {
+        var url = "https://chess-results.com/PartieSuche.aspx?lan=0";
+        var (resolvedUrl, formHtml) = await FetchWithRedirectAsync(url, ct);
+        EnsureChessResultsHost(resolvedUrl);
+        var formData = new Dictionary<string, string>
+        {
+            ["__EVENTTARGET"] = "",
+            ["__EVENTARGUMENT"] = "",
+            ["__LASTFOCUS"] = "",
+            ["__VIEWSTATE"] = ExtractHiddenField(formHtml, "__VIEWSTATE") ?? "",
+            ["__VIEWSTATEGENERATOR"] = ExtractHiddenField(formHtml, "__VIEWSTATEGENERATOR") ?? "",
+            ["__EVENTVALIDATION"] = ExtractHiddenField(formHtml, "__EVENTVALIDATION") ?? "",
+            ["ctl00$P1$Txt_FideID"] = fideId,
+            ["ctl00$P1$txt_nachname"] = "",
+            ["ctl00$P1$txt_vorname"] = "",
+            ["ctl00$P1$Txt_NatID"] = "",
+            ["ctl00$P1$txt_bez"] = "",
+            ["ctl00$P1$txt_dbkey"] = "",
+            ["ctl00$P1$txt_rdvon"] = "",
+            ["ctl00$P1$txt_rdbis"] = "",
+            ["ctl00$P1$txt_von_tag"] = "",
+            ["ctl00$P1$txt_bis_tag"] = "",
+            ["ctl00$P1$combo_spielerfarbe"] = "-",
+            ["ctl00$P1$combo_ergebnis"] = "-",
+            ["ctl00$P1$combo_anzahl_zeilen"] = "5",   // Index 5 = 2000 Zeilen
+            ["ctl00$P1$cb_DownLoadPGN"] = "Download als PGN-Datei",
+        };
+        await RateLimitAsync(ct);
+        using var response = await SendFollowingRedirectsAsync(
+            HttpMethod.Post, new Uri(resolvedUrl), () => new FormUrlEncodedContent(formData), ct);
+        var body = await ReadBodyBoundedAsync(response, ct);
+        response.EnsureSuccessStatusCode();
+        var type = response.Content.Headers.ContentType?.MediaType ?? "";
+        return type.Contains("html", StringComparison.OrdinalIgnoreCase) || !body.Contains("[Event ") ? "" : body;
+    }
+
     private async Task RateLimitAsync(CancellationToken ct = default)
     {
         if (!await _rateLimiter.WaitAsync(TimeSpan.FromSeconds(60), ct))

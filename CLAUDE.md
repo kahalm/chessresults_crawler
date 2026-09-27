@@ -31,6 +31,21 @@ Zeichenkette; die Antwort liest es als „beginnt im abgefragten Jahr". Der Aufr
 also **aufsteigend** abfragen und je Ereignis-Nummer den ERSTEN Treffer behalten. Betroffen war
 1 von 139.
 
+## LeagueHub: Mannschaftsligen + Partiedatenbank (für RookHub)
+
+Zustandslos wie die Turniersuche (`Controllers/LeagueController.cs`, `Services/LeaguePagesParser.cs`):
+- `GET /api/league/{tnr}` holt die vier Seiten einer Mannschaftsliga NACHEINANDER (chess-results drosselt Salven)
+  und gibt sie geparst zurück: art=2 Mannschaftskämpfe, art=3 Brettpartien + Datum je Runde, art=16 Meldelisten,
+  art=20 Einsatz-Statistik. **Immer mit `zeilen=99999`** — ohne das kappt chess-results art=3 (alle Runden) und
+  art=16 stillschweigend bei ~150 Zeilen. Namen bleiben roh (akademische Titel, „Brett nicht besetzt"); den
+  Abgleich mit der Meldeliste macht RookHub. Sonderfälle in den Fixtures: LL 2022/23 mit PGN-Spalte HINTER dem
+  Ergebnis und Namen ohne Komma, Gebietsklasse mit leeren Brettern.
+- `GET /api/league/games/{fideId}` — chess-results-Partiedatenbank (`PartieSuche.aspx`) per FIDE-ID als PGN.
+  Der Knopf-WERT muss die deutsche Beschriftung „Download als PGN-Datei" sein, sonst „Laufzeitfehler"; ohne
+  Partien kommt HTML → leerer String.
+- Parser ist die Portierung von parse.py der Python-Fassung (`~/claude/league-analyzer`); die Testwerte stammen
+  aus deren Parser auf denselben Dateien.
+
 ## Zusammenspiel der Projekte
 
 ```
