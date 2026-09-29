@@ -83,6 +83,65 @@ public class HtmlParserServiceTests
         Assert.Equal("Valid Player", players[0].Name);
     }
 
+    [Fact]
+    public async Task ParsePlayerListAsync_Art16EloSorted_TakesSnrFromNameLink()
+    {
+        // Echte art=16-Seite ("Spieler nach Elo sortiert"): "Nr." ist nur der Elo-Rang,
+        // die Startnummer steht im Namenslink (art=9&snr=).
+        var html = File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "Fixtures", "league-1479341-art16.html"));
+
+        var players = await _parser.ParsePlayerListAsync(html);
+
+        Assert.Equal(105, players.Count);
+        Assert.Equal(105, players.Select(p => p.Snr).Distinct().Count());
+        var mitteregger = Assert.Single(players, p => p.Name == "Mitteregger, Johann");
+        Assert.Equal(76, mitteregger.Snr);
+        Assert.Equal("1635930", mitteregger.FideId);
+        Assert.Equal(1910, mitteregger.Elo);
+        Assert.Equal("Sportverein Innsbruck", mitteregger.TeamName);
+        Assert.Equal(1, mitteregger.BoardNumber);
+        var mayrhofer = Assert.Single(players, p => p.Name == "Mayrhofer, Rudolf");
+        Assert.Equal(1, mayrhofer.Snr);
+        Assert.Equal("Absam", mayrhofer.TeamName);
+    }
+
+    [Fact]
+    public async Task ParsePlayerListAsync_RowWithoutNameLink_FallsBackToNrColumn()
+    {
+        var html = @"<html><body><table class='CRs1'>
+            <tr><th>Nr.</th><th>Name</th><th>Elo</th><th>Team</th></tr>
+            <tr><td>1</td><td><a href='https://chess-results.com/tnr1.aspx?lan=0&amp;art=9&amp;turdet=YES&amp;snr=7'>Linked, Anna</a></td><td>2000</td><td>A</td></tr>
+            <tr><td>2</td><td>Unlinked, Bert</td><td>1900</td><td>A</td></tr>
+            <tr><td>3</td><td><a href='https://chess-results.com/tnr1.aspx?lan=0&amp;art=10&amp;snr=5'>TeamLink, Carl</a></td><td>1800</td><td>B</td></tr>
+            </table></body></html>";
+
+        var players = await _parser.ParsePlayerListAsync(html);
+
+        Assert.Equal(3, players.Count);
+        Assert.Equal(7, players.Single(p => p.Name == "Linked, Anna").Snr);
+        Assert.Equal(2, players.Single(p => p.Name == "Unlinked, Bert").Snr);
+        // Nur der art=9-Link (Spielerkarte) zaehlt; sonst "Nr.".
+        Assert.Equal(3, players.Single(p => p.Name == "TeamLink, Carl").Snr);
+    }
+
+    [Fact]
+    public async Task ParsePlayerListAsync_FallbackNrCollidesWithLinkedSnr_LinkedRowWins()
+    {
+        // Zeile 1 ohne Link faellt auf Nr. 1 zurueck; Zeile 2 traegt snr=1 im Link.
+        // Snr ist je Turnier eindeutig - der Link gewinnt, sonst scheitert der Upsert.
+        var html = @"<html><body><table class='CRs1'>
+            <tr><th>Nr.</th><th>Name</th><th>Elo</th></tr>
+            <tr><td>1</td><td>Unlinked, Bert</td><td>2000</td></tr>
+            <tr><td>2</td><td><a href='tnr1.aspx?lan=0&amp;art=9&amp;snr=1'>Linked, Anna</a></td><td>1900</td></tr>
+            </table></body></html>";
+
+        var players = await _parser.ParsePlayerListAsync(html);
+
+        var player = Assert.Single(players);
+        Assert.Equal(1, player.Snr);
+        Assert.Equal("Linked, Anna", player.Name);
+    }
+
     #endregion
 
     #region ParseTeamPairingsAsync

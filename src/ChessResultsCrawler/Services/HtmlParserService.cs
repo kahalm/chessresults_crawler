@@ -9,12 +9,16 @@ namespace ChessResultsCrawler.Services;
 public class HtmlParserService
 {
     /// <summary>
-    /// Parses art=15 page (player list).
+    /// Parses the player list: art=16 (team tournaments, "Startrangliste" sorted by Elo) or
+    /// art=0 (individual tournaments, starting rank list).
     /// Returns list of parsed players with Snr, Name, Title, FideId, Elo, Country, Team name, BoardNumber.
+    /// Snr is the real starting number from the name link (art=9&amp;snr=N): on art=16 the "Nr."
+    /// column is only the row number of the Elo sort, not the starting number. "Nr." is used only
+    /// for rows without such a link.
     /// </summary>
     public async Task<List<ParsedPlayer>> ParsePlayerListAsync(string html)
     {
-        var players = new List<ParsedPlayer>();
+        var players = new List<(ParsedPlayer Player, bool SnrFromLink)>();
         var context = BrowsingContext.New(Configuration.Default);
         var document = await context.OpenAsync(req => req.Content(html));
 
@@ -22,7 +26,7 @@ public class HtmlParserService
         var table = document.QuerySelector("table.CRs1")
             ?? document.QuerySelector("table.CRs2")
             ?? FindTableByHeaders(document, ["Nr.", "Name"]);
-        if (table is null) return players;
+        if (table is null) return [];
 
         var headerCells = table.QuerySelectorAll(":scope > tr, :scope > thead > tr, :scope > tbody > tr").FirstOrDefault()
             ?.QuerySelectorAll("th, td")
@@ -41,12 +45,21 @@ public class HtmlParserService
             var cells = row.QuerySelectorAll(":scope > td").ToList();
             if (cells.Count < 3) continue;
 
-            var snrText = GetCellValue(cells, headers, "Nr.");
-            if (!int.TryParse(snrText, out var snr)) continue;
+            // Die Startnummer steht verlaesslich nur im Namenslink (tnr<id>.aspx?...&art=9&...&snr=<n>).
+            // Auf art=16 ("Spieler nach Elo sortiert") ist "Nr." nur die laufende Zeile der
+            // Elo-Sortierung - wer sie als Snr nimmt, holt spaeter die Spielerkarte einer anderen Person.
+            var snr = GetLinkedSnr(cells, headers);
+            var snrFromLink = snr is not null;
+            if (snr is null)
+            {
+                var snrText = GetCellValue(cells, headers, "Nr.");
+                if (int.TryParse(snrText, out var nr)) snr = nr;
+            }
+            if (snr is null) continue;
 
             var player = new ParsedPlayer
             {
-                Snr = snr,
+                Snr = snr.Value,
                 Name = GetCellValue(cells, headers, "Name") ?? "",
                 Title = GetCellValue(cells, headers, "Title") ?? GetCellValue(cells, headers, "Ti.") ?? GetCellValue(cells, headers, "Typ"),
                 FideId = GetCellValue(cells, headers, "FideID") ?? GetCellValue(cells, headers, "FIDE-ID"),
@@ -61,10 +74,31 @@ public class HtmlParserService
             if (int.TryParse(boardText, out var board)) player.BoardNumber = board;
 
             if (!string.IsNullOrWhiteSpace(player.Name))
-                players.Add(player);
+                players.Add((player, snrFromLink));
         }
 
-        return players;
+        // Snr ist je Turnier eindeutig (Upsert-Schluessel). Eine "Nr."-Rueckfallzeile darf keine
+        // Startnummer belegen, die ein Namenslink schon vergeben hat; sonst gewinnt die erste Zeile.
+        return players
+            .GroupBy(p => p.Player.Snr)
+            .Select(g => g.OrderByDescending(p => p.SnrFromLink).First().Player)
+            .ToList();
+    }
+
+    /// <summary>
+    /// Startnummer aus dem Link auf den Spielernamen (art=9-Spielerkarte), sonst null.
+    /// </summary>
+    private static int? GetLinkedSnr(List<IElement> cells, Dictionary<string, int> headers)
+    {
+        if (!headers.TryGetValue("Name", out var idx) || idx >= cells.Count) return null;
+        foreach (var a in cells[idx].QuerySelectorAll("a[href]"))
+        {
+            var href = a.GetAttribute("href") ?? "";
+            if (!Regex.IsMatch(href, @"[?&]art=9(?:&|$)")) continue;
+            var m = Regex.Match(href, @"[?&]snr=(\d+)(?:&|$)");
+            if (m.Success && int.TryParse(m.Groups[1].Value, out var snr)) return snr;
+        }
+        return null;
     }
 
     /// <summary>
