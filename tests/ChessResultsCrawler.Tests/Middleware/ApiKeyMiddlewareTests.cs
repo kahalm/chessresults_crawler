@@ -3,6 +3,8 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.FileProviders;
 using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
+using Moq;
 
 namespace ChessResultsCrawler.Tests.Middleware;
 
@@ -25,12 +27,13 @@ public class ApiKeyMiddlewareTests
     }
 
     private static (ApiKeyMiddleware middleware, DefaultHttpContext context, bool[] called) Create(
-        string? configApiKey, string path = "/api/tournaments", string environment = "Development")
+        string? configApiKey, string path = "/api/tournaments", string environment = "Development",
+        ILogger<ApiKeyMiddleware>? logger = null)
     {
         var called = new[] { false };
         RequestDelegate next = _ => { called[0] = true; return Task.CompletedTask; };
         var config = BuildConfig(configApiKey);
-        var middleware = new ApiKeyMiddleware(next, config, new FakeEnv { EnvironmentName = environment });
+        var middleware = new ApiKeyMiddleware(next, config, new FakeEnv { EnvironmentName = environment }, logger);
         var context = new DefaultHttpContext();
         context.Request.Path = path;
         context.Response.Body = new MemoryStream();
@@ -179,5 +182,81 @@ public class ApiKeyMiddlewareTests
 
         Assert.False(called[0]);
         Assert.Equal(401, context.Response.StatusCode);
+    }
+
+    // ----- Platzhalter aus den .env-Vorlagen (Review W2 I2-001) --------------------------------
+
+    private const string TemplatePlaceholder = "change_me_to_a_secure_key"; // rookhub/.env.vpn.example
+
+    [Fact]
+    public async Task PlaceholderKeyInProduction_FailsClosed_Returns503_EvenWithMatchingHeader()
+    {
+        // Der Platzhalter steht in einem oeffentlichen Repo — wer ihn mitschickt, darf nicht rein.
+        var (middleware, context, called) = Create(TemplatePlaceholder, environment: Environments.Production);
+        context.Request.Headers["X-Api-Key"] = TemplatePlaceholder;
+
+        await middleware.InvokeAsync(context);
+
+        Assert.False(called[0]);
+        Assert.Equal(503, context.Response.StatusCode);
+    }
+
+    [Fact]
+    public async Task PlaceholderKeyInProduction_HealthStillOpen()
+    {
+        var (middleware, context, called) = Create(TemplatePlaceholder, "/api/health", Environments.Production);
+
+        await middleware.InvokeAsync(context);
+
+        Assert.True(called[0]);
+    }
+
+    [Fact]
+    public async Task PlaceholderKeyInDevelopment_TreatedAsMissing_PassesThrough()
+    {
+        // Wie ein fehlender Schluessel: Development bleibt der offene lokale Fallback.
+        var (middleware, context, called) = Create(TemplatePlaceholder);
+
+        await middleware.InvokeAsync(context);
+
+        Assert.True(called[0]);
+    }
+
+    [Fact]
+    public void PlaceholderKey_LogsOneError()
+    {
+        var logger = new Mock<ILogger<ApiKeyMiddleware>>();
+
+        Create(TemplatePlaceholder, environment: Environments.Production, logger: logger.Object);
+
+        logger.Verify(l => l.Log(LogLevel.Error, It.IsAny<EventId>(), It.IsAny<It.IsAnyType>(),
+            It.IsAny<Exception?>(), It.IsAny<Func<It.IsAnyType, Exception?, string>>()), Times.Once);
+    }
+
+    [Fact]
+    public void RealKey_LogsNothing()
+    {
+        var logger = new Mock<ILogger<ApiKeyMiddleware>>();
+
+        Create("secret-key", environment: Environments.Production, logger: logger.Object);
+
+        logger.Verify(l => l.Log(It.IsAny<LogLevel>(), It.IsAny<EventId>(), It.IsAny<It.IsAnyType>(),
+            It.IsAny<Exception?>(), It.IsAny<Func<It.IsAnyType, Exception?, string>>()), Times.Never);
+    }
+
+    [Theory]
+    [InlineData("change_me_to_a_secure_key", true)]
+    [InlineData("change_me", true)]
+    [InlineData("CHANGE_ME_please", true)]
+    [InlineData("  change_me_to_a_secure_key ", true)]
+    [InlineData("your_crawler_key", true)]
+    [InlineData("secret-key", false)]
+    [InlineData("my_change_me", false)]
+    [InlineData("changeme", false)]
+    [InlineData("", false)]
+    [InlineData(null, false)]
+    public void IsPlaceholder_RecognisesTemplatePrefixes(string? value, bool expected)
+    {
+        Assert.Equal(expected, ApiKeyMiddleware.IsPlaceholder(value));
     }
 }
