@@ -2,6 +2,7 @@ using System.Globalization;
 using System.Text.RegularExpressions;
 using AngleSharp;
 using AngleSharp.Dom;
+using static ChessResultsCrawler.Services.SourceText;
 
 namespace ChessResultsCrawler.Services;
 
@@ -251,10 +252,6 @@ public class FideCalendarService
         int.TryParse(text, NumberStyles.Integer, CultureInfo.InvariantCulture, out var n) && n > 0
             ? n : null;
 
-    /// <summary>Mehrfache Leerzeichen und Zeilenumbrueche aus dem Markup zusammenziehen.</summary>
-    private static string Collapse(string text) =>
-        Regex.Replace(text, @"\s+", " ").Trim();
-
     /// <summary>
     /// Die Jahresansicht auseinandernehmen. Je Ereignis ein Link auf <c>calendar.php?id=</c> mit
     /// dem Namen und daneben ein <c>span.session-time</c> mit „01 May - 07 May / Malmo (SWE)".
@@ -390,16 +387,9 @@ public class FideCalendarService
 
     /// <summary>
     /// Derselbe Schutz wie im CrawlerService, nur fuer den anderen Host: https und ein exakter
-    /// Hostvergleich. Redirects folgt dieser Client nicht automatisch (siehe Program.cs) — ein
+    /// Hostvergleich. Redirects folgt dieser Client nicht automatisch (siehe SourceClientSetup) — ein
     /// 3xx kaeme also als Antwort zurueck und scheiterte an EnsureSuccessStatusCode, statt blind
     /// irgendwohin zu laufen.
     /// </summary>
-    internal static void EnsureAllowedTarget(Uri url)
-    {
-        if (url.Scheme != Uri.UriSchemeHttps)
-            throw new InvalidOperationException($"Refusing non-https target: {url}");
-
-        if (!url.Host.Equals(AllowedHost, StringComparison.OrdinalIgnoreCase))
-            throw new InvalidOperationException($"Refusing unexpected host: {url.Host}");
-    }
+    internal static void EnsureAllowedTarget(Uri url) => SourceHostGuard.Ensure(url, AllowedHost);
 }

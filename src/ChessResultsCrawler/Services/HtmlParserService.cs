@@ -3,6 +3,7 @@ using AngleSharp.Dom;
 using ChessResultsCrawler.Models;
 using System.Text.RegularExpressions;
 using static ChessResultsCrawler.Services.HtmlTable;
+using static ChessResultsCrawler.Services.SourceText;
 
 namespace ChessResultsCrawler.Services;
 
@@ -1009,10 +1010,6 @@ public class HtmlParserService
         var m = CalendarTnrPattern.Match(href);
         return m.Success ? m.Groups[1].Value : null;
     }
-
-    /// <summary>Mehrfache Leerzeichen und Umbrueche aus dem Markup zusammenziehen.</summary>
-    private static string Collapse(string? text) =>
-        Regex.Replace(text ?? "", @"\s+", " ").Trim();
 
     /// <summary>
     /// Parst die Trefferliste der Turniersuche (TurnierSuche.aspx).

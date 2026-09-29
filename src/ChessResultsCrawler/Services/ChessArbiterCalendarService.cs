@@ -396,12 +396,5 @@ public class ChessArbiterCalendarService
         Regex.Replace(HttpUtility.HtmlDecode(Regex.Replace(html ?? "", "<[^>]+>", " ")) ?? "",
             @"\s+", " ").Trim();
 
-    internal static void EnsureAllowedTarget(Uri url)
-    {
-        if (url.Scheme != Uri.UriSchemeHttps)
-            throw new InvalidOperationException($"Refusing non-https target: {url}");
-
-        if (!url.Host.Equals(AllowedHost, StringComparison.OrdinalIgnoreCase))
-            throw new InvalidOperationException($"Refusing unexpected host: {url.Host}");
-    }
+    internal static void EnsureAllowedTarget(Uri url) => SourceHostGuard.Ensure(url, AllowedHost);
 }

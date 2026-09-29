@@ -2,6 +2,7 @@ using System.Globalization;
 using System.Text.RegularExpressions;
 using AngleSharp;
 using AngleSharp.Dom;
+using static ChessResultsCrawler.Services.SourceText;
 
 namespace ChessResultsCrawler.Services;
 
@@ -230,15 +231,6 @@ public class FsiCalendarService
         return m.Success && int.TryParse(m.Value, out var n) && n is > 0 and < 100 ? n : null;
     }
 
-    private static string Collapse(string? text) => Regex.Replace(text ?? "", @"\s+", " ").Trim();
-
     /// <summary>Derselbe Schutz wie bei den anderen Hosts: https und ein exakter Hostvergleich.</summary>
-    internal static void EnsureAllowedTarget(Uri url)
-    {
-        if (url.Scheme != Uri.UriSchemeHttps)
-            throw new InvalidOperationException($"Refusing non-https target: {url}");
-
-        if (!url.Host.Equals(AllowedHost, StringComparison.OrdinalIgnoreCase))
-            throw new InvalidOperationException($"Refusing unexpected host: {url.Host}");
-    }
+    internal static void EnsureAllowedTarget(Uri url) => SourceHostGuard.Ensure(url, AllowedHost);
 }

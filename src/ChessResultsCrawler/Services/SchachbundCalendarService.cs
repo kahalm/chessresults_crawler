@@ -2,6 +2,7 @@ using System.Globalization;
 using System.Text.RegularExpressions;
 using System.Web;
 using System.Xml.Linq;
+using static ChessResultsCrawler.Services.SourceText;
 
 namespace ChessResultsCrawler.Services;
 
@@ -531,9 +532,6 @@ public class SchachbundCalendarService
         DateOnly.TryParseExact(text?.Trim(), "dd.MM.yyyy", CultureInfo.InvariantCulture,
             DateTimeStyles.None, out var date) ? date : null;
 
-    private static string Collapse(string? text) =>
-        Regex.Replace(text ?? "", @"\s+", " ").Trim();
-
     /// <summary>Markup raus, Entitaeten aufgeloest, Leerraum zusammengezogen.</summary>
     private static string Strip(string? html) =>
         Collapse(HttpUtility.HtmlDecode(Regex.Replace(html ?? "", "<[^>]+>", " ")) ?? "")
@@ -542,12 +540,5 @@ public class SchachbundCalendarService
     private static string? Empty(string? text) =>
         text is { Length: > 0 } && Collapse(text) is { Length: > 0 } value ? value : null;
 
-    internal static void EnsureAllowedTarget(Uri url)
-    {
-        if (url.Scheme != Uri.UriSchemeHttps)
-            throw new InvalidOperationException($"Refusing non-https target: {url}");
-
-        if (!url.Host.Equals(AllowedHost, StringComparison.OrdinalIgnoreCase))
-            throw new InvalidOperationException($"Refusing unexpected host: {url.Host}");
-    }
+    internal static void EnsureAllowedTarget(Uri url) => SourceHostGuard.Ensure(url, AllowedHost);
 }

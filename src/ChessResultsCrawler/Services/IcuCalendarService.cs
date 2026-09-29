@@ -3,6 +3,7 @@ using System.Text.Json;
 using System.Text.RegularExpressions;
 using AngleSharp;
 using AngleSharp.Dom;
+using static ChessResultsCrawler.Services.SourceText;
 
 namespace ChessResultsCrawler.Services;
 
@@ -469,9 +470,6 @@ public class IcuCalendarService
         year is >= 1900 and <= 2200 && day >= 1 && day <= DateTime.DaysInMonth(year, month)
             ? new DateOnly(year, month, day) : null;
 
-    private static string Collapse(string? text) =>
-        text is null ? "" : string.Join(' ', text.Split((char[]?)null, StringSplitOptions.RemoveEmptyEntries));
-
     private static readonly Regex IdPattern = new(@"^\d{1,9}$", RegexOptions.Compiled);
 
     private static readonly Regex EventLinkPattern =
@@ -505,12 +503,5 @@ public class IcuCalendarService
         @"\b(lessons?|course|training|seminar|workshop|webinar|agm|annual general meeting)\b",
         RegexOptions.IgnoreCase | RegexOptions.Compiled);
 
-    internal static void EnsureAllowedTarget(Uri url)
-    {
-        if (url.Scheme != Uri.UriSchemeHttps)
-            throw new InvalidOperationException($"Refusing non-https target: {url}");
-
-        if (!url.Host.Equals(AllowedHost, StringComparison.OrdinalIgnoreCase))
-            throw new InvalidOperationException($"Refusing unexpected host: {url.Host}");
-    }
+    internal static void EnsureAllowedTarget(Uri url) => SourceHostGuard.Ensure(url, AllowedHost);
 }

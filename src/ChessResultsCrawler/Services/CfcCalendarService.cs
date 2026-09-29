@@ -210,14 +210,7 @@ public class CfcCalendarService
         $"{start:yyyy-MM-dd}|{end:yyyy-MM-dd}|{(city ?? "").Trim().ToLowerInvariant()}"
         + $"|{name.Trim().ToLowerInvariant()}";
 
-    internal static void EnsureAllowedTarget(Uri url)
-    {
-        if (url.Scheme != Uri.UriSchemeHttps)
-            throw new InvalidOperationException($"Refusing non-https target: {url}");
-
-        if (!url.Host.Equals(AllowedHost, StringComparison.OrdinalIgnoreCase))
-            throw new InvalidOperationException($"Refusing unexpected host: {url.Host}");
-    }
+    internal static void EnsureAllowedTarget(Uri url) => SourceHostGuard.Ensure(url, AllowedHost);
 
     private sealed class CfcPayload
     {

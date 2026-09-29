@@ -1,6 +1,7 @@
 using System.Text.RegularExpressions;
 using System.Web;
 using System.Xml.Linq;
+using static ChessResultsCrawler.Services.SourceText;
 
 namespace ChessResultsCrawler.Services;
 
@@ -345,20 +346,11 @@ public class SjakkCalendarService
             ? DateOnly.FromDateTime(value.DateTime)
             : null;
 
-    private static string Collapse(string? text) => Regex.Replace(text ?? "", @"\s+", " ").Trim();
-
     private static string Strip(string? html) =>
         Collapse(HttpUtility.HtmlDecode(Regex.Replace(html ?? "", "<[^>]+>", " ")) ?? "")
             .Trim('\u00a0', ' ', ',');
 
     private static string? Empty(string? text) => text is { Length: > 0 } ? text : null;
 
-    internal static void EnsureAllowedTarget(Uri url)
-    {
-        if (url.Scheme != Uri.UriSchemeHttps)
-            throw new InvalidOperationException($"Refusing non-https target: {url}");
-
-        if (!url.Host.Equals(AllowedHost, StringComparison.OrdinalIgnoreCase))
-            throw new InvalidOperationException($"Refusing unexpected host: {url.Host}");
-    }
+    internal static void EnsureAllowedTarget(Uri url) => SourceHostGuard.Ensure(url, AllowedHost);
 }

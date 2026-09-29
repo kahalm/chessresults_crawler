@@ -3,6 +3,7 @@ using System.Text;
 using System.Text.Json;
 using System.Text.RegularExpressions;
 using AngleSharp;
+using static ChessResultsCrawler.Services.SourceText;
 
 namespace ChessResultsCrawler.Services;
 
@@ -435,9 +436,6 @@ public class ChessSkCalendarService
     private static string? Empty(string? text) =>
         text is { Length: > 0 } && Collapse(text) is { Length: > 0 } value ? value : null;
 
-    private static string Collapse(string? text) =>
-        Regex.Replace(text ?? "", @"\s+", " ").Trim();
-
     /// <summary>Kleinschreibung ohne Diakritika — die Quelle schreibt dasselbe Wort verschieden.</summary>
     internal static string Fold(string? text)
     {
@@ -453,12 +451,5 @@ public class ChessSkCalendarService
         return builder.ToString().Normalize(NormalizationForm.FormC);
     }
 
-    internal static void EnsureAllowedTarget(Uri url)
-    {
-        if (url.Scheme != Uri.UriSchemeHttps)
-            throw new InvalidOperationException($"Refusing non-https target: {url}");
-
-        if (!url.Host.Equals(AllowedHost, StringComparison.OrdinalIgnoreCase))
-            throw new InvalidOperationException($"Refusing unexpected host: {url.Host}");
-    }
+    internal static void EnsureAllowedTarget(Uri url) => SourceHostGuard.Ensure(url, AllowedHost);
 }

@@ -5,6 +5,7 @@ using System.Text.Json;
 using System.Text.RegularExpressions;
 using AngleSharp;
 using AngleSharp.Dom;
+using static ChessResultsCrawler.Services.SourceText;
 
 namespace ChessResultsCrawler.Services;
 
@@ -354,9 +355,6 @@ public class ChessScotlandCalendarService
 
     // ----- Hilfen ------------------------------------------------------------
 
-    private static string Collapse(string? text) =>
-        text is null ? "" : string.Join(' ', text.Split((char[]?)null, StringSplitOptions.RemoveEmptyEntries));
-
     /// <summary>Nur Kleinbuchstaben/Ziffern/Bindestrich — deckt jeden gemessenen Slug, schuetzt vor Pfad-Ausbruch.</summary>
     private static readonly Regex SlugPattern = new(@"^[a-z0-9][a-z0-9-]{0,150}$", RegexOptions.Compiled);
 
@@ -383,12 +381,5 @@ public class ChessScotlandCalendarService
     private static readonly Regex ParentheticalPattern = new(
         @"\(.*?\)\s*$", RegexOptions.Compiled);
 
-    internal static void EnsureAllowedTarget(Uri url)
-    {
-        if (url.Scheme != Uri.UriSchemeHttps)
-            throw new InvalidOperationException($"Refusing non-https target: {url}");
-
-        if (!url.Host.Equals(AllowedHost, StringComparison.OrdinalIgnoreCase))
-            throw new InvalidOperationException($"Refusing unexpected host: {url.Host}");
-    }
+    internal static void EnsureAllowedTarget(Uri url) => SourceHostGuard.Ensure(url, AllowedHost);
 }
