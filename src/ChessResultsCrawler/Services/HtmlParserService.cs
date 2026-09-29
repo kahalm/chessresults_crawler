@@ -1,8 +1,8 @@
 using System.Globalization;
-using AngleSharp;
 using AngleSharp.Dom;
 using ChessResultsCrawler.Models;
 using System.Text.RegularExpressions;
+using static ChessResultsCrawler.Services.HtmlTable;
 
 namespace ChessResultsCrawler.Services;
 
@@ -19,8 +19,7 @@ public class HtmlParserService
     public async Task<List<ParsedPlayer>> ParsePlayerListAsync(string html)
     {
         var players = new List<(ParsedPlayer Player, bool SnrFromLink)>();
-        var context = BrowsingContext.New(Configuration.Default);
-        var document = await context.OpenAsync(req => req.Content(html));
+        var document = await OpenAsync(html);
 
         // Prefer CRs1/CRs2 tables (chess-results data tables), fall back to header search
         var table = document.QuerySelector("table.CRs1")
@@ -28,15 +27,7 @@ public class HtmlParserService
             ?? FindTableByHeaders(document, ["Nr.", "Name"]);
         if (table is null) return [];
 
-        var headerCells = table.QuerySelectorAll(":scope > tr, :scope > thead > tr, :scope > tbody > tr").FirstOrDefault()
-            ?.QuerySelectorAll("th, td")
-            .Select((cell, idx) => (Name: cell.TextContent.Trim(), Index: idx))
-            .ToList() ?? [];
-        var headers = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
-        foreach (var h in headerCells)
-        {
-            headers.TryAdd(h.Name, h.Index);
-        }
+        var headers = HeaderMap(table);
 
         var allRows = table.QuerySelectorAll(":scope > tr, :scope > tbody > tr");
         var rows = allRows.Skip(1);
@@ -109,8 +100,7 @@ public class HtmlParserService
     public async Task<List<ParsedTeamPairing>> ParseTeamPairingsAsync(string html)
     {
         var pairings = new List<ParsedTeamPairing>();
-        var context = BrowsingContext.New(Configuration.Default);
-        var document = await context.OpenAsync(req => req.Content(html));
+        var document = await OpenAsync(html);
 
         var table = document.QuerySelector("table.CRs1")
             ?? document.QuerySelector("table.CRs2");
@@ -214,8 +204,7 @@ public class HtmlParserService
     public async Task<List<ParsedPairing>> ParseIndividualPairingsAsync(string html)
     {
         var pairings = new List<ParsedPairing>();
-        var context = BrowsingContext.New(Configuration.Default);
-        var document = await context.OpenAsync(req => req.Content(html));
+        var document = await OpenAsync(html);
 
         var table = document.QuerySelector("table.CRs1")
             ?? document.QuerySelector("table.CRs2");
@@ -259,8 +248,7 @@ public class HtmlParserService
     /// </summary>
     public async Task<bool> IsTeamPairingsPageAsync(string html)
     {
-        var context = BrowsingContext.New(Configuration.Default);
-        var document = await context.OpenAsync(req => req.Content(html));
+        var document = await OpenAsync(html);
         var text = document.Body?.TextContent ?? "";
         // Team pages have "Teamauslosung" or "Team Composition" headers
         // Individual pages have "Paarungen" or "Pairings" headers
@@ -283,8 +271,7 @@ public class HtmlParserService
     /// </summary>
     public async Task<bool> HasPairingsTableAsync(string html)
     {
-        var context = BrowsingContext.New(Configuration.Default);
-        var document = await context.OpenAsync(req => req.Content(html));
+        var document = await OpenAsync(html);
         return document.QuerySelector("table.CRs1") is not null
             || document.QuerySelector("table.CRs2") is not null;
     }
@@ -331,8 +318,7 @@ public class HtmlParserService
     /// </summary>
     public async Task<int?> ParseTotalRoundsAsync(string html)
     {
-        var context = BrowsingContext.New(Configuration.Default);
-        var document = await context.OpenAsync(req => req.Content(html));
+        var document = await OpenAsync(html);
 
         // Zuerst die Turnierdetails: „Rundenanzahl | 11" (lan=1: „Number of rounds") ist die
         // GEPLANTE Rundenzahl und steht schon vor der ersten Runde da. Die Texte weiter unten nennen
@@ -375,8 +361,7 @@ public class HtmlParserService
     public async Task<List<int>> ParseAvailableRoundsAsync(string html, int? maxRound = null)
     {
         var roundNumbers = new List<int>();
-        var context = BrowsingContext.New(Configuration.Default);
-        var document = await context.OpenAsync(req => req.Content(html));
+        var document = await OpenAsync(html);
 
         // Look for links or text like "Rd.1", "Rd.2", "Rd. 1" etc.
         var links = document.QuerySelectorAll("a");
@@ -416,8 +401,7 @@ public class HtmlParserService
     /// </summary>
     public async Task<string?> ParseTournamentNameAsync(string html)
     {
-        var context = BrowsingContext.New(Configuration.Default);
-        var document = await context.OpenAsync(req => req.Content(html));
+        var document = await OpenAsync(html);
 
         // Tournament name is typically in a large header div
         var header = document.QuerySelector("div.defaultDialog h2")
@@ -434,8 +418,7 @@ public class HtmlParserService
     public async Task<ParsedTournamentDetails> ParseTournamentDetailsAsync(string html)
     {
         var details = new ParsedTournamentDetails();
-        var context = BrowsingContext.New(Configuration.Default);
-        var document = await context.OpenAsync(req => req.Content(html));
+        var document = await OpenAsync(html);
 
         var rows = document.QuerySelectorAll("table tr");
         foreach (var row in rows)
@@ -489,23 +472,14 @@ public class HtmlParserService
     public async Task<List<ParsedPlayerSearchResult>> ParsePlayerSearchAsync(string html)
     {
         var results = new List<ParsedPlayerSearchResult>();
-        var context = BrowsingContext.New(Configuration.Default);
-        var document = await context.OpenAsync(req => req.Content(html));
+        var document = await OpenAsync(html);
 
         var table = document.QuerySelector("table.CRs1")
             ?? document.QuerySelector("table.CRs2")
             ?? FindTableByHeaders(document, ["Name"]);
         if (table is null) return results;
 
-        var headerCells = table.QuerySelectorAll(":scope > tr, :scope > thead > tr, :scope > tbody > tr").FirstOrDefault()
-            ?.QuerySelectorAll("th, td")
-            .Select((cell, idx) => (Name: cell.TextContent.Trim(), Index: idx))
-            .ToList() ?? [];
-        var headers = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
-        foreach (var h in headerCells)
-        {
-            headers.TryAdd(h.Name, h.Index);
-        }
+        var headers = HeaderMap(table);
 
         var allRows = table.QuerySelectorAll(":scope > tr, :scope > tbody > tr");
         var rows = allRows.Skip(1);
@@ -542,23 +516,14 @@ public class HtmlParserService
     public async Task<List<ParsedPlayerTournament>> ParsePlayerTournamentsAsync(string html)
     {
         var results = new List<ParsedPlayerTournament>();
-        var context = BrowsingContext.New(Configuration.Default);
-        var document = await context.OpenAsync(req => req.Content(html));
+        var document = await OpenAsync(html);
 
         var table = document.QuerySelector("table.CRs1")
             ?? document.QuerySelector("table.CRs2")
             ?? FindTableByHeaders(document, ["Name"]);
         if (table is null) return results;
 
-        var headerCells = table.QuerySelectorAll(":scope > tr, :scope > thead > tr, :scope > tbody > tr").FirstOrDefault()
-            ?.QuerySelectorAll("th, td")
-            .Select((cell, idx) => (Name: cell.TextContent.Trim(), Index: idx))
-            .ToList() ?? [];
-        var headers = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
-        foreach (var h in headerCells)
-        {
-            headers.TryAdd(h.Name, h.Index);
-        }
+        var headers = HeaderMap(table);
 
         // Find the tournament name column index
         int tournamentColIdx = -1;
@@ -652,8 +617,7 @@ public class HtmlParserService
     public async Task<List<ParsedPlayerResult>> ParsePlayerDetailPageAsync(string html)
     {
         var results = new List<ParsedPlayerResult>();
-        var context = BrowsingContext.New(Configuration.Default);
-        var document = await context.OpenAsync(req => req.Content(html));
+        var document = await OpenAsync(html);
 
         var table = FindTableByHeaders(document, ["Rd.", "Name"])
             ?? FindTableByHeaders(document, ["Rd.", "Erg."])
@@ -661,15 +625,7 @@ public class HtmlParserService
             ?? document.QuerySelector("table.CRs2");
         if (table is null) return results;
 
-        var headerCells = table.QuerySelectorAll(":scope > tr, :scope > thead > tr, :scope > tbody > tr").FirstOrDefault()
-            ?.QuerySelectorAll("th, td")
-            .Select((cell, idx) => (Name: cell.TextContent.Trim(), Index: idx))
-            .ToList() ?? [];
-        var headers = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
-        foreach (var h in headerCells)
-        {
-            headers.TryAdd(h.Name, h.Index);
-        }
+        var headers = HeaderMap(table);
 
         var allRows = table.QuerySelectorAll(":scope > tr, :scope > tbody > tr");
         var rows = allRows.Skip(1);
@@ -724,20 +680,13 @@ public class HtmlParserService
     public async Task<List<ParsedRoundDate>> ParseRoundPlanAsync(string html)
     {
         var results = new List<ParsedRoundDate>();
-        var context = BrowsingContext.New(Configuration.Default);
-        var document = await context.OpenAsync(req => req.Content(html));
+        var document = await OpenAsync(html);
 
         var table = FindTableByHeaders(document, ["Round", "Date"])
                     ?? FindTableByHeaders(document, ["Runde", "Datum"]);
         if (table is null) return results;
 
-        var headerCells = table.QuerySelectorAll(":scope > tr, :scope > thead > tr, :scope > tbody > tr")
-            .FirstOrDefault()
-            ?.QuerySelectorAll("th, td")
-            .Select((cell, idx) => (Name: cell.TextContent.Trim(), Index: idx))
-            .ToList() ?? [];
-        var headers = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
-        foreach (var h in headerCells) headers.TryAdd(h.Name, h.Index);
+        var headers = HeaderMap(table);
 
         foreach (var row in table.QuerySelectorAll(":scope > tr, :scope > tbody > tr").Skip(1))
         {
@@ -792,8 +741,7 @@ public class HtmlParserService
     /// </summary>
     public async Task<ParsedPlayerCard?> ParsePlayerCardAsync(string html)
     {
-        var context = BrowsingContext.New(Configuration.Default);
-        var document = await context.OpenAsync(req => req.Content(html));
+        var document = await OpenAsync(html);
 
         // Der Block wird ueber seine ZEILEN erkannt (Beschriftung + Wert), nicht ueber die
         // Klasse: „Player info" ist eine Ueberschrift daneben, und die Klasse CRs1 tragen auf
@@ -886,21 +834,6 @@ public class HtmlParserService
     }
 
     /// <summary>
-    /// Die Tabelle, deren erste Zeile die verlangten Kopfnamen traegt.
-    ///
-    /// <para><b>Bevorzugt wird eine Tabelle OHNE verschachtelte Tabelle</b> — und das ist der
-    /// ganze Witz dieser Methode. chess-results baut sein Layout aus Tabellen: die Datentabelle
-    /// steckt mehrere Ebenen tief (beim Rundenplan drei). <c>TextContent</c> ist REKURSIV, also
-    /// „enthaelt" schon die aeusserste Wrapper-Tabelle jeden Kopfnamen, der irgendwo darin
-    /// vorkommt. Ohne diese Bevorzugung kam die WRAPPER-Tabelle zurueck, deren eigene Zeilen
-    /// keine Datenzeilen sind — das Ergebnis war eine leere Liste, ohne Fehler und ohne Hinweis.
-    /// Auf dem Dev-Stand gemessen: 337 geprueften Turnieren standen 0 Spieltermine gegenueber.
-    /// Eine Datentabelle ist immer ein BLATT.</para>
-    ///
-    /// <para>Findet sich kein Blatt, gilt der erste Treffer wie bisher — besser die Wrapper-
-    /// Tabelle als gar nichts, falls eine Seite ihre Daten doch verschachtelt fuehrt.</para>
-    /// </summary>
-    /// <summary>
     /// Wie viele Partien der Spieler in diesem Turnier WIRKLICH gespielt hat.
     ///
     /// <para>Die Rundenzahl des Turniers taugt dafuer nicht: in einer Liga steht ein Spieler an
@@ -931,40 +864,6 @@ public class HtmlParserService
             if (cells.Skip(1).Any(c => c.Length >= 3 && c.Any(char.IsLetter))) games++;
         }
         return games;
-    }
-
-    private static IElement? FindTableByHeaders(IDocument document, string[] requiredHeaders)
-    {
-        IElement? fallback = null;
-
-        foreach (var table in document.QuerySelectorAll("table"))
-        {
-            var firstRow = table.QuerySelector("tr");
-            if (firstRow is null) continue;
-
-            var headerTexts = firstRow.QuerySelectorAll("th, td")
-                .Select(c => c.TextContent.Trim())
-                .ToList();
-
-            var matches = requiredHeaders.All(h =>
-                headerTexts.Any(ht => ht.Contains(h, StringComparison.OrdinalIgnoreCase)));
-            if (!matches) continue;
-
-            if (table.QuerySelector("table") is null) return table;    // Blatt = Datentabelle
-            fallback ??= table;
-        }
-
-        return fallback;
-    }
-
-    private static string? GetCellValue(List<IElement> cells, Dictionary<string, int> headers, string headerName)
-    {
-        if (headers.TryGetValue(headerName, out var idx) && idx < cells.Count)
-        {
-            var val = cells[idx].TextContent.Trim();
-            return string.IsNullOrWhiteSpace(val) ? null : val;
-        }
-        return null;
     }
 
     private static string CleanTeamName(string text)
@@ -1003,13 +902,6 @@ public class HtmlParserService
     }
 
     /// <summary>
-    /// Parst die Trefferliste der Turniersuche (TurnierSuche.aspx).
-    /// Zieltabelle ist die innere table.CRs2 in #datenxx; deren Kopfzeile mischt th und td.
-    /// Spalten werden - wie ueberall in dieser Datei - ueber den Kopfzeilen-NAMEN aufgeloest, mit
-    /// deutschen Synonymen: eine Server-Node, die den lan-Parameter ignoriert, wuerde sonst still
-    /// eine leere Liste liefern statt aufzufallen.
-    /// </summary>
-    /// <summary>
     /// Die Vereins-/Mannschaftsnamen der Startrangliste einer Mannschaftsveranstaltung.
     ///
     /// <para>Zweck ist NICHT die Turnierauswertung, sondern die Verortung: chess-results nennt den
@@ -1025,22 +917,13 @@ public class HtmlParserService
     public async Task<List<string>> ParseTeamNamesAsync(string html)
     {
         var names = new List<string>();
-        var context = BrowsingContext.New(Configuration.Default);
-        var document = await context.OpenAsync(req => req.Content(html));
+        var document = await OpenAsync(html);
 
         var table = FindTableByHeaders(document, ["Team"])
             ?? FindTableByHeaders(document, ["Mannschaft"]);
         if (table is null) return names;
 
-        var headerCells = table.QuerySelectorAll(":scope > tr, :scope > thead > tr, :scope > tbody > tr").FirstOrDefault()
-            ?.QuerySelectorAll("th, td")
-            .Select((cell, idx) => (Name: cell.TextContent.Trim(), Index: idx))
-            .ToList() ?? [];
-        var headers = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
-        foreach (var h in headerCells)
-        {
-            headers.TryAdd(h.Name, h.Index);
-        }
+        var headers = HeaderMap(table);
 
         foreach (var row in table.QuerySelectorAll(":scope > tr, :scope > tbody > tr").Skip(1))
         {
@@ -1071,8 +954,7 @@ public class HtmlParserService
     public async Task<List<ParsedCalendarEntry>> ParseCalendarAsync(string html)
     {
         var results = new List<ParsedCalendarEntry>();
-        var context = BrowsingContext.New(Configuration.Default);
-        var document = await context.OpenAsync(req => req.Content(html));
+        var document = await OpenAsync(html);
 
         var table = document.QuerySelector("#datenxx") ?? document.QuerySelector("table.CRs2");
         if (table is null) return results;
@@ -1132,11 +1014,17 @@ public class HtmlParserService
     private static string Collapse(string? text) =>
         Regex.Replace(text ?? "", @"\s+", " ").Trim();
 
+    /// <summary>
+    /// Parst die Trefferliste der Turniersuche (TurnierSuche.aspx).
+    /// Zieltabelle ist die innere table.CRs2 in #datenxx; deren Kopfzeile mischt th und td.
+    /// Spalten werden - wie ueberall in dieser Datei - ueber den Kopfzeilen-NAMEN aufgeloest, mit
+    /// deutschen Synonymen: eine Server-Node, die den lan-Parameter ignoriert, wuerde sonst still
+    /// eine leere Liste liefern statt aufzufallen.
+    /// </summary>
     public async Task<List<ParsedDirectoryTournament>> ParseTournamentSearchAsync(string html)
     {
         var results = new List<ParsedDirectoryTournament>();
-        var context = BrowsingContext.New(Configuration.Default);
-        var document = await context.OpenAsync(req => req.Content(html));
+        var document = await OpenAsync(html);
 
         var table = document.QuerySelector("#datenxx table.CRs2")
             ?? document.QuerySelector("table.CRs2")
@@ -1144,15 +1032,7 @@ public class HtmlParserService
             ?? FindTableByHeaders(document, ["dbkey"]);
         if (table is null) return results;
 
-        var headerCells = table.QuerySelectorAll(":scope > tr, :scope > thead > tr, :scope > tbody > tr").FirstOrDefault()
-            ?.QuerySelectorAll("th, td")
-            .Select((cell, idx) => (Name: cell.TextContent.Trim(), Index: idx))
-            .ToList() ?? [];
-        var headers = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
-        foreach (var h in headerCells)
-        {
-            headers.TryAdd(h.Name, h.Index);
-        }
+        var headers = HeaderMap(table);
         // Ohne dbkey-Spalte ist es nicht die Trefferliste (z.B. Fehlerseite, Cloudflare-Interstitial).
         // Lieber leer zurueckgeben als aus einer fremden Tabelle Muell zu ziehen.
         if (!headers.ContainsKey("dbkey")) return results;
