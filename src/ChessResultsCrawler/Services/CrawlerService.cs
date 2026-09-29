@@ -914,19 +914,6 @@ public class CrawlerService
     }
 
     /// <summary>
-    /// Fragt die chess-results-Turniersuche (TurnierSuche.aspx) fuer eine Foederation und ein
-    /// Zeitfenster ab. Ablauf wie bei <see cref="SearchPlayersAsync"/>: GET holt die ASP.NET-
-    /// ViewState-Felder, POST geht auf DIESELBE aufgeloeste Node-URL (s1/s2/...) zurueck.
-    /// Cookies sind dafuer nicht noetig, der ViewState traegt den Zustand.
-    ///
-    /// lan=1 (englisch) ist bewusst gesetzt: die Trefferliste liefert dann Datumsangaben als
-    /// "yyyy/MM/dd" statt "dd.MM.yyyy". Der Parser kann beides, aber ein festes Format haelt die
-    /// Fixtures ehrlich.
-    ///
-    /// Der Datumsfilter der Suche greift auf das END-Datum eines Turniers, nicht auf den Beginn -
-    /// ein im Fenster endendes Langzeitturnier taucht also auch dann auf, wenn es davor begann.
-    /// </summary>
-    /// <summary>
     /// Die Vereins-/Mannschaftsnamen eines Turniers — EIN Seitenabruf, nichts wird gespeichert.
     ///
     /// <para>Gedacht als Hinweisgeber fuer die Verortung in RookHub: der Spielort steht dort als
@@ -952,40 +939,32 @@ public class CrawlerService
     public async Task<ParsedTournamentInfo> FetchTournamentInfoAsync(
         string chessResultsId, CancellationToken ct = default)
     {
-        var (resolvedUrl, firstHtml) = await FetchWithRedirectAsync(
-            $"https://chess-results.com/tnr{chessResultsId}.aspx?lan=1&art=0&turdet=YES", ct);
-        EnsureChessResultsHost(resolvedUrl);
-
         // Die Turnierdetails stehen NICHT im GET. chess-results blendet sie bei Turnieren, die
         // laenger als fuenf Tage vorbei sind, hinter einem Knopf aus („To reduce the server load
         // by daily scanning of all links … all links for tournaments older than 5 days are shown
         // after clicking the following button") — dahinter steckt ein ASP.NET-Postback auf
         // `cb_alleDetails`. Ohne diesen zweiten Schritt liefert die Seite die Startrangliste und
         // sonst nichts; genau daran lieferte der Endpunkt anfangs ueberall `null`.
-        var formData = new Dictionary<string, string>
-        {
-            ["__EVENTTARGET"] = "",
-            ["__EVENTARGUMENT"] = "",
-            ["__VIEWSTATE"] = ExtractHiddenField(firstHtml, "__VIEWSTATE") ?? "",
-            ["__VIEWSTATEGENERATOR"] = ExtractHiddenField(firstHtml, "__VIEWSTATEGENERATOR") ?? "",
-            ["__EVENTVALIDATION"] = ExtractHiddenField(firstHtml, "__EVENTVALIDATION") ?? "",
-            ["cb_alleDetails"] = "Show tournament details",
-        };
+        var page = await PostBackAsync(
+            $"https://chess-results.com/tnr{chessResultsId}.aspx?lan=1&art=0&turdet=YES",
+            form => new Dictionary<string, string>
+            {
+                ["__EVENTTARGET"] = "",
+                ["__EVENTARGUMENT"] = "",
+                ["__VIEWSTATE"] = form.ViewState,
+                ["__VIEWSTATEGENERATOR"] = form.ViewStateGenerator,
+                ["__EVENTVALIDATION"] = form.EventValidation,
+                ["cb_alleDetails"] = "Show tournament details",
+            }, ct);
 
-        await RateLimitAsync(ct);
-        using var response = await SendFollowingRedirectsAsync(
-            HttpMethod.Post, new Uri(resolvedUrl), () => new FormUrlEncodedContent(formData), ct);
-
-        var html = await ReadBodyBoundedAsync(response, ct);
-        response.EnsureSuccessStatusCode();
-
+        var html = page.Body;
         var details = await _parser.ParseTournamentDetailsAsync(html);
         return new ParsedTournamentInfo
         {
             ChessResultsId = chessResultsId,
             // Der Name steht schon im ersten Abruf — und dort verlaesslicher (die Detailseite
             // wiederholt ihn nicht immer).
-            Name = await _parser.ParseTournamentNameAsync(firstHtml),
+            Name = await _parser.ParseTournamentNameAsync(page.FormHtml),
             DateText = details.DateText,
             Location = details.Location,
             TimeControl = details.TimeControl,
@@ -995,33 +974,34 @@ public class CrawlerService
     }
 
     /// <summary>
-    /// Eine Trefferliste der Turniersuche. <paramref name="art"/> ist die chess-results-Turnierart:
+    /// Fragt die chess-results-Turniersuche (TurnierSuche.aspx) fuer eine Foederation und ein
+    /// Zeitfenster ab — ein Postback (<see cref="PostBackAsync"/>).
+    ///
+    /// lan=1 (englisch) ist bewusst gesetzt: die Trefferliste liefert dann Datumsangaben als
+    /// "yyyy/MM/dd" statt "dd.MM.yyyy". Der Parser kann beides, aber ein festes Format haelt die
+    /// Fixtures ehrlich.
+    ///
+    /// Der Datumsfilter der Suche greift auf das END-Datum eines Turniers, nicht auf den Beginn -
+    /// ein im Fenster endendes Langzeitturnier taucht also auch dann auf, wenn es davor begann.
+    ///
+    /// <para><paramref name="art"/> ist die chess-results-Turnierart:
     /// "5" alle (Vorgabe), "0" Schweizer System, "1" Rundenturnier, "2" Rundenturnier fuer
     /// MANNSCHAFTEN, "3" Schweizer System fuer MANNSCHAFTEN. Damit laesst sich Einzel gegen
-    /// Mannschaft aus der Quelle beantworten, statt es am Turniernamen zu raten.
+    /// Mannschaft aus der Quelle beantworten, statt es am Turniernamen zu raten.</para>
     /// </summary>
     public async Task<List<ParsedDirectoryTournament>> SearchTournamentsAsync(
         string federation, DateOnly from, DateOnly to, int maxRows = 2000, string art = "5",
         CancellationToken ct = default)
     {
-        var url = "https://chess-results.com/TurnierSuche.aspx?lan=1";
-        var (resolvedUrl, formHtml) = await FetchWithRedirectAsync(url, ct);
-
-        EnsureChessResultsHost(resolvedUrl);
-
-        var viewState = ExtractHiddenField(formHtml, "__VIEWSTATE");
-        var eventValidation = ExtractHiddenField(formHtml, "__EVENTVALIDATION");
-        var viewStateGenerator = ExtractHiddenField(formHtml, "__VIEWSTATEGENERATOR");
-
         var invariant = System.Globalization.CultureInfo.InvariantCulture;
-        var formData = new Dictionary<string, string>
+        var page = await PostBackAsync("https://chess-results.com/TurnierSuche.aspx?lan=1", form => new Dictionary<string, string>
         {
             ["__EVENTTARGET"] = "",
             ["__EVENTARGUMENT"] = "",
             ["__LASTFOCUS"] = "",
-            ["__VIEWSTATE"] = viewState ?? "",
-            ["__VIEWSTATEGENERATOR"] = viewStateGenerator ?? "",
-            ["__EVENTVALIDATION"] = eventValidation ?? "",
+            ["__VIEWSTATE"] = form.ViewState,
+            ["__VIEWSTATEGENERATOR"] = form.ViewStateGenerator,
+            ["__EVENTVALIDATION"] = form.EventValidation,
             ["ctl00$P1$combo_land"] = federation,
             ["ctl00$P1$txt_von_tag"] = from.ToString("dd.MM.yyyy", invariant),
             ["ctl00$P1$txt_bis_tag"] = to.ToString("dd.MM.yyyy", invariant),
@@ -1038,17 +1018,9 @@ public class CrawlerService
             ["ctl00$P1$txt_tnr"] = "",
             ["ctl00$P1$txt_eventid"] = "",
             ["ctl00$P1$cb_suchen"] = "Search",
-        };
+        }, ct);
 
-        await RateLimitAsync(ct);
-        // s. SearchPlayersAsync: erst Body lesen (gibt die Verbindung frei), dann EnsureSuccess.
-        using var response = await SendFollowingRedirectsAsync(
-            HttpMethod.Post, new Uri(resolvedUrl), () => new FormUrlEncodedContent(formData), ct);
-
-        var resultHtml = await ReadBodyBoundedAsync(response, ct);
-        response.EnsureSuccessStatusCode();
-
-        var results = await _parser.ParseTournamentSearchAsync(resultHtml);
+        var results = await _parser.ParseTournamentSearchAsync(page.Body);
         return maxRows > 0 && results.Count > maxRows ? results.Take(maxRows).ToList() : results;
     }
 
@@ -1076,32 +1048,20 @@ public class CrawlerService
     public async Task<List<ParsedCalendarEntry>> FetchCalendarAsync(
         string federation = "-", CancellationToken ct = default)
     {
-        var url = "https://chess-results.com/Kalender.aspx?lan=1";
-        var (resolvedUrl, formHtml) = await FetchWithRedirectAsync(url, ct);
-
-        EnsureChessResultsHost(resolvedUrl);
-
-        var formData = new Dictionary<string, string>
+        var page = await PostBackAsync("https://chess-results.com/Kalender.aspx?lan=1", form => new Dictionary<string, string>
         {
             // Die Laenderauswahl loest den Postback aus; ein Suchknopf existiert hier nicht.
             ["__EVENTTARGET"] = "ctl00$P1$combo_landsel$DropDownList1",
             ["__EVENTARGUMENT"] = "",
-            ["__VIEWSTATE"] = ExtractHiddenField(formHtml, "__VIEWSTATE") ?? "",
-            ["__VIEWSTATEGENERATOR"] = ExtractHiddenField(formHtml, "__VIEWSTATEGENERATOR") ?? "",
-            ["__EVENTVALIDATION"] = ExtractHiddenField(formHtml, "__EVENTVALIDATION") ?? "",
+            ["__VIEWSTATE"] = form.ViewState,
+            ["__VIEWSTATEGENERATOR"] = form.ViewStateGenerator,
+            ["__EVENTVALIDATION"] = form.EventValidation,
             ["ctl00$P1$combo_landsel$DropDownList1"] = federation,
             // 0 = alle Kategorien (2 Jugend, 3 Senioren, 5 Frauen).
             ["ctl00$P1$combo_kat$DropDownList1"] = "0",
-        };
+        }, ct);
 
-        await RateLimitAsync(ct);
-        using var response = await SendFollowingRedirectsAsync(
-            HttpMethod.Post, new Uri(resolvedUrl), () => new FormUrlEncodedContent(formData), ct);
-
-        var resultHtml = await ReadBodyBoundedAsync(response, ct);
-        response.EnsureSuccessStatusCode();
-
-        return await _parser.ParseCalendarAsync(resultHtml);
+        return await _parser.ParseCalendarAsync(page.Body);
     }
 
     /// <summary>
@@ -1120,42 +1080,17 @@ public class CrawlerService
 
     public async Task<List<ParsedPlayerSearchResult>> SearchPlayersAsync(string lastName, string? firstName, CancellationToken ct = default)
     {
-        // Step 1: GET the search page to obtain ASP.NET ViewState
-        var url = "https://chess-results.com/SpielerSuche.aspx?lan=0";
-        var (resolvedUrl, formHtml) = await FetchWithRedirectAsync(url, ct);
-
-        // SSRF protection: only allow chess-results.com domains
-        EnsureChessResultsHost(resolvedUrl);
-
-        // Step 2: Extract hidden form fields (__VIEWSTATE, __EVENTVALIDATION, __VIEWSTATEGENERATOR)
-        var viewState = ExtractHiddenField(formHtml, "__VIEWSTATE");
-        var eventValidation = ExtractHiddenField(formHtml, "__EVENTVALIDATION");
-        var viewStateGenerator = ExtractHiddenField(formHtml, "__VIEWSTATEGENERATOR");
-
-        // Step 3: POST the search form
-        var formData = new Dictionary<string, string>
+        // Kein __EVENTTARGET/__EVENTARGUMENT: die Spielersuche lief nie damit (s. PostBackAsync).
+        var page = await PostBackAsync("https://chess-results.com/SpielerSuche.aspx?lan=0", form => new Dictionary<string, string>
         {
-            ["__VIEWSTATE"] = viewState ?? "",
-            ["__EVENTVALIDATION"] = eventValidation ?? "",
-            ["__VIEWSTATEGENERATOR"] = viewStateGenerator ?? "",
+            ["__VIEWSTATE"] = form.ViewState,
+            ["__EVENTVALIDATION"] = form.EventValidation,
+            ["__VIEWSTATEGENERATOR"] = form.ViewStateGenerator,
             ["ctl00$P1$txt_nachname"] = lastName,
             ["ctl00$P1$txt_vorname"] = firstName ?? "",
             ["ctl00$P1$cb_suchen"] = "Suchen"
-        };
-
-        await RateLimitAsync(ct);
-        // POST-Antwort-Redirects werden ebenfalls manuell + je Hop geprüft gefolgt (schließt die
-        // non-blind-SSRF-Lücke, bei der eine 3xx-POST-Antwort blind auf einen fremden Host führte).
-        // using + EnsureSuccess NACH dem Body-Read: gesendet wird mit ResponseHeadersRead, die
-        // Verbindung geht erst beim Lesen/Disposen an den Pool zurück. Warf EnsureSuccess zuerst
-        // (500/429-Phasen von chess-results), blieb die Response undisposed und die Verbindung bis
-        // zur GC-Finalisierung belegt.
-        using var response = await SendFollowingRedirectsAsync(
-            HttpMethod.Post, new Uri(resolvedUrl), () => new FormUrlEncodedContent(formData), ct);
-
-        var resultHtml = await ReadBodyBoundedAsync(response, ct);
-        response.EnsureSuccessStatusCode();
-        var results = await _parser.ParsePlayerSearchAsync(resultHtml);
+        }, ct);
+        var results = await _parser.ParsePlayerSearchAsync(page.Body);
 
         // Deduplicate: SpielerSuche returns one row per tournament per player
         // Prefer entries with a real ChessResultsId (not "0" or empty)
@@ -1205,33 +1140,16 @@ public class CrawlerService
     {
         // lan=1 (englisch): der Parser sucht die Spalten ueber ihre KOPFZEILEN, und die
         // englische Fassung liefert zusaetzlich Datumsangaben als "yyyy/MM/dd".
-        var url = "https://chess-results.com/SpielerSuche.aspx?lan=1";
-        var (resolvedUrl, formHtml) = await FetchWithRedirectAsync(url, ct);
-
-        EnsureChessResultsHost(resolvedUrl);
-
-        var viewState = ExtractHiddenField(formHtml, "__VIEWSTATE");
-        var eventValidation = ExtractHiddenField(formHtml, "__EVENTVALIDATION");
-        var viewStateGenerator = ExtractHiddenField(formHtml, "__VIEWSTATEGENERATOR");
-
-        var formData = new Dictionary<string, string>
+        var page = await PostBackAsync("https://chess-results.com/SpielerSuche.aspx?lan=1", form => new Dictionary<string, string>
         {
-            ["__VIEWSTATE"] = viewState ?? "",
-            ["__EVENTVALIDATION"] = eventValidation ?? "",
-            ["__VIEWSTATEGENERATOR"] = viewStateGenerator ?? "",
+            ["__VIEWSTATE"] = form.ViewState,
+            ["__EVENTVALIDATION"] = form.EventValidation,
+            ["__VIEWSTATEGENERATOR"] = form.ViewStateGenerator,
             ["ctl00$P1$txt_nachname"] = lastName,
             ["ctl00$P1$txt_vorname"] = firstName ?? "",
             ["ctl00$P1$cb_suchen"] = "Search"
-        };
-
-        await RateLimitAsync(ct);
-        // s. SearchPlayersAsync: erst Body lesen (gibt die Verbindung frei), dann EnsureSuccess.
-        using var response = await SendFollowingRedirectsAsync(
-            HttpMethod.Post, new Uri(resolvedUrl), () => new FormUrlEncodedContent(formData), ct);
-
-        var resultHtml = await ReadBodyBoundedAsync(response, ct);
-        response.EnsureSuccessStatusCode();
-        var results = await _parser.ParsePlayerTournamentsAsync(resultHtml);
+        }, ct);
+        var results = await _parser.ParsePlayerTournamentsAsync(page.Body);
 
         // Deduplicate and limit
         return results
@@ -1239,6 +1157,60 @@ public class CrawlerService
             .Select(g => g.First())
             .Take(50)
             .ToList();
+    }
+
+    /// <summary>Die drei versteckten ASP.NET-Felder einer Formularseite; fehlt ein Feld oder
+    /// sein value-Attribut, steht dort "".</summary>
+    internal sealed record AspNetFormState(string ViewState, string ViewStateGenerator, string EventValidation);
+
+    /// <summary>Antwort eines Postbacks: die Formularseite aus dem GET (daraus liest z.B. die
+    /// Turnierinfo den Namen), der Body der POST-Antwort und deren Medientyp.</summary>
+    private sealed record PostBackResponse(string FormHtml, string Body, string? MediaType);
+
+    /// <summary>
+    /// Der ASP.NET-Postback von chess-results an EINER Stelle: GET der Formularseite (gedrosselt,
+    /// mit Retry, Redirects je Hop geprueft), die versteckten Felder EINMAL parsen, dann POST auf
+    /// DIESELBE aufgeloeste Node-URL (s1/s2/...) — sonst passt der ViewState nicht zur Node.
+    /// Cookies sind nicht noetig, der ViewState traegt den Zustand.
+    ///
+    /// <para>Die Formularfelder baut der Aufrufer aus <see cref="AspNetFormState"/>: welche
+    /// Steuerfelder (__EVENTTARGET, __LASTFOCUS …) eine Seite bekommt, ist je Seite gewachsen und
+    /// bleibt Sache der Seite; die Reihenfolge im Dictionary ist die Sendereihenfolge.</para>
+    ///
+    /// <para>Der POST geht genau einmal durch den Riegel und wird nicht wiederholt. Redirects auf
+    /// die POST-Antwort werden ebenfalls manuell und je Hop geprueft gefolgt (schliesst die
+    /// non-blind-SSRF-Luecke, bei der eine 3xx-POST-Antwort blind auf einen fremden Host fuehrte).
+    /// Erst den Body lesen, dann EnsureSuccess: gesendet wird mit ResponseHeadersRead, die
+    /// Verbindung geht erst beim Lesen/Disposen an den Pool zurueck — warf EnsureSuccess zuerst
+    /// (500/429-Phasen von chess-results), blieb sie bis zur GC-Finalisierung belegt.</para>
+    /// </summary>
+    private async Task<PostBackResponse> PostBackAsync(
+        string formUrl, Func<AspNetFormState, Dictionary<string, string>> buildForm, CancellationToken ct)
+    {
+        var (resolvedUrl, formHtml) = await FetchWithRedirectAsync(formUrl, ct);
+        // SSRF-Schutz: der POST geht nur an einen chess-results.com-Host.
+        EnsureChessResultsHost(resolvedUrl);
+
+        var formData = buildForm(ExtractFormState(formHtml));
+
+        await RateLimitAsync(ct);
+        using var response = await SendFollowingRedirectsAsync(
+            HttpMethod.Post, new Uri(resolvedUrl), () => new FormUrlEncodedContent(formData), ct);
+
+        var body = await ReadBodyBoundedAsync(response, ct);
+        response.EnsureSuccessStatusCode();
+        return new PostBackResponse(formHtml, body, response.Content.Headers.ContentType?.MediaType);
+    }
+
+    /// <summary>Die drei versteckten Felder mit EINEM Parse der Seite (frueher je Postback drei
+    /// volle Parses). Suche wie <see cref="ExtractHiddenField"/>.</summary>
+    internal static AspNetFormState ExtractFormState(string html)
+    {
+        var document = new AngleSharp.Html.Parser.HtmlParser().ParseDocument(html);
+        return new AspNetFormState(
+            HiddenFieldValue(document, "__VIEWSTATE") ?? "",
+            HiddenFieldValue(document, "__VIEWSTATEGENERATOR") ?? "",
+            HiddenFieldValue(document, "__EVENTVALIDATION") ?? "");
     }
 
     /// <summary>
@@ -1249,9 +1221,11 @@ public class CrawlerService
     /// Regex. Der Parser wird je Aufruf neu erzeugt (ParseDocument ist nicht thread-safe, Crawls
     /// laufen parallel) — die Form ist klein, der Overhead vernachlässigbar.
     /// </summary>
-    internal static string? ExtractHiddenField(string html, string fieldName)
+    internal static string? ExtractHiddenField(string html, string fieldName) =>
+        HiddenFieldValue(new AngleSharp.Html.Parser.HtmlParser().ParseDocument(html), fieldName);
+
+    private static string? HiddenFieldValue(AngleSharp.Dom.IDocument document, string fieldName)
     {
-        var document = new AngleSharp.Html.Parser.HtmlParser().ParseDocument(html);
         var input = document.QuerySelector($"input[name=\"{fieldName}\"]")
                     ?? document.QuerySelector($"input[id=\"{fieldName}\"]");
         // Wie zuvor: ohne passendes Feld ODER ohne value-Attribut → null (das alte Regex
@@ -1284,17 +1258,14 @@ public class CrawlerService
     /// </summary>
     public async Task<string> SearchGamesPgnByFideAsync(string fideId, CancellationToken ct = default)
     {
-        var url = "https://chess-results.com/PartieSuche.aspx?lan=0";
-        var (resolvedUrl, formHtml) = await FetchWithRedirectAsync(url, ct);
-        EnsureChessResultsHost(resolvedUrl);
-        var formData = new Dictionary<string, string>
+        var page = await PostBackAsync("https://chess-results.com/PartieSuche.aspx?lan=0", form => new Dictionary<string, string>
         {
             ["__EVENTTARGET"] = "",
             ["__EVENTARGUMENT"] = "",
             ["__LASTFOCUS"] = "",
-            ["__VIEWSTATE"] = ExtractHiddenField(formHtml, "__VIEWSTATE") ?? "",
-            ["__VIEWSTATEGENERATOR"] = ExtractHiddenField(formHtml, "__VIEWSTATEGENERATOR") ?? "",
-            ["__EVENTVALIDATION"] = ExtractHiddenField(formHtml, "__EVENTVALIDATION") ?? "",
+            ["__VIEWSTATE"] = form.ViewState,
+            ["__VIEWSTATEGENERATOR"] = form.ViewStateGenerator,
+            ["__EVENTVALIDATION"] = form.EventValidation,
             ["ctl00$P1$Txt_FideID"] = fideId,
             ["ctl00$P1$txt_nachname"] = "",
             ["ctl00$P1$txt_vorname"] = "",
@@ -1309,19 +1280,14 @@ public class CrawlerService
             ["ctl00$P1$combo_ergebnis"] = "-",
             ["ctl00$P1$combo_anzahl_zeilen"] = "5",   // Index 5 = 2000 Zeilen
             ["ctl00$P1$cb_DownLoadPGN"] = "Download als PGN-Datei",
-        };
-        await RateLimitAsync(ct);
-        using var response = await SendFollowingRedirectsAsync(
-            HttpMethod.Post, new Uri(resolvedUrl), () => new FormUrlEncodedContent(formData), ct);
-        var body = await ReadBodyBoundedAsync(response, ct);
-        response.EnsureSuccessStatusCode();
-        var type = response.Content.Headers.ContentType?.MediaType ?? "";
-        return type.Contains("html", StringComparison.OrdinalIgnoreCase) || !body.Contains("[Event ") ? "" : body;
+        }, ct);
+        var type = page.MediaType ?? "";
+        return type.Contains("html", StringComparison.OrdinalIgnoreCase) || !page.Body.Contains("[Event ") ? "" : page.Body;
     }
 
     /// <summary>
     /// Genau EIN Durchlauf je HTTP-Anfrage: GETs gehen in <see cref="FetchWithRetriesAsync"/>
-    /// durch den Riegel (je Versuch), die POSTs der Postbacks rufen ihn direkt vor dem Senden.
+    /// durch den Riegel (je Versuch), der POST in <see cref="PostBackAsync"/> ruft ihn direkt davor.
     /// Ein zusaetzlicher Aufruf vor <see cref="FetchPageAsync"/> und Co. zaehlt doppelt: +1,5 s
     /// Wartezeit und die Rotation „alle N Abrufe" laeuft schon nach N/2.
     /// </summary>
