@@ -49,6 +49,9 @@ public class RotateOnConnectFailureHandler : DelegatingHandler
         _attemptTimeout = attemptTimeout;
     }
 
+    /// <summary>Das Zeitlimit je Versuch (fuer den Registrierungstest der Quellen-Clients).</summary>
+    internal TimeSpan AttemptTimeout => _attemptTimeout;
+
     protected override async Task<HttpResponseMessage> SendAsync(
         HttpRequestMessage request, CancellationToken ct)
     {
