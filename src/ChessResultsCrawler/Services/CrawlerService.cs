@@ -936,7 +936,6 @@ public class CrawlerService
     /// </summary>
     public async Task<List<string>> FetchTeamNamesAsync(string chessResultsId, CancellationToken ct = default)
     {
-        await RateLimitAsync(ct);
         var html = await FetchPageAsync($"https://chess-results.com/tnr{chessResultsId}.aspx", "lan=1", ct);
         return await _parser.ParseTeamNamesAsync(html);
     }
@@ -953,7 +952,6 @@ public class CrawlerService
     public async Task<ParsedTournamentInfo> FetchTournamentInfoAsync(
         string chessResultsId, CancellationToken ct = default)
     {
-        await RateLimitAsync(ct);
         var (resolvedUrl, firstHtml) = await FetchWithRedirectAsync(
             $"https://chess-results.com/tnr{chessResultsId}.aspx?lan=1&art=0&turdet=YES", ct);
         EnsureChessResultsHost(resolvedUrl);
@@ -1181,7 +1179,6 @@ public class CrawlerService
     public async Task<List<ParsedRoundDate>> FetchRoundPlanAsync(
         string chessResultsId, CancellationToken ct = default)
     {
-        await RateLimitAsync(ct);
         var html = await FetchPageAsync(
             $"https://chess-results.com/tnr{chessResultsId}.aspx", "lan=1&art=14", ct);
         return await _parser.ParseRoundPlanAsync(html);
@@ -1199,7 +1196,6 @@ public class CrawlerService
     public async Task<ParsedPlayerCard?> FetchPlayerCardAsync(
         string chessResultsId, int snr, CancellationToken ct = default)
     {
-        await RateLimitAsync(ct);
         var html = await FetchPageAsync(
             $"https://chess-results.com/tnr{chessResultsId}.aspx", $"lan=1&art=9&snr={snr}", ct);
         return await _parser.ParsePlayerCardAsync(html);
@@ -1323,6 +1319,12 @@ public class CrawlerService
         return type.Contains("html", StringComparison.OrdinalIgnoreCase) || !body.Contains("[Event ") ? "" : body;
     }
 
+    /// <summary>
+    /// Genau EIN Durchlauf je HTTP-Anfrage: GETs gehen in <see cref="FetchWithRetriesAsync"/>
+    /// durch den Riegel (je Versuch), die POSTs der Postbacks rufen ihn direkt vor dem Senden.
+    /// Ein zusaetzlicher Aufruf vor <see cref="FetchPageAsync"/> und Co. zaehlt doppelt: +1,5 s
+    /// Wartezeit und die Rotation „alle N Abrufe" laeuft schon nach N/2.
+    /// </summary>
     private async Task RateLimitAsync(CancellationToken ct = default)
     {
         if (!await _rateLimiter.WaitAsync(TimeSpan.FromSeconds(60), ct))
