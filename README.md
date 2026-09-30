@@ -69,7 +69,9 @@ cp .env.example .env
 docker compose up --build
 ```
 
-**Hinweis:** Die Standalone-Konfiguration (`docker-compose.yml`) nutzt immer Gluetun/VPN.
+**Hinweis:** Die Standalone-Konfiguration (`docker-compose.yml`) nutzt immer Gluetun/VPN. `CRAWLER_API_KEY` ist
+Pflicht (ohne echten Wert antwortet die API mit 503), alle Ports lauschen nur auf 127.0.0.1, und Elasticsearch +
+Kibana (ohne Anmeldung) starten nur mit `docker compose --profile logging up --build`.
 
 ### Zugriff
 

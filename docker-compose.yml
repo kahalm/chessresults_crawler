@@ -1,3 +1,10 @@
+# Standalone-Vorlage: nur Crawler + eigene DB (+ optional ES/Kibana). Empfohlen ist der Start ueber
+# RookHubs Compose-Dateien (siehe CLAUDE.md); diese Datei wird in Prod/Dev NICHT benutzt.
+# - Alle Ports nur an 127.0.0.1 gebunden: MariaDB, die Crawler-API und das ungeschuetzte ES/Kibana sind
+#   so nicht aus dem Netz erreichbar, auch wenn die Datei auf einem Server mit oeffentlicher IP laeuft.
+# - CRAWLER_API_KEY ist Pflicht (Compose bricht sonst ab); ohne echten Wert antwortet die API mit 503.
+# - Elasticsearch + Kibana nur mit Profil: docker compose --profile logging up --build
+#   (dazu CRAWLER_ES_URL=http://elasticsearch:9200 in der .env, sonst loggt der Crawler nur auf die Konsole).
 services:
   mariadb:
     image: mariadb:11
@@ -8,7 +15,7 @@ services:
       MYSQL_USER: ${MYSQL_USER:-chessresults}
       MYSQL_PASSWORD: ${MYSQL_PASSWORD:?set a strong password in .env}
     ports:
-      - "3306:3306"
+      - "127.0.0.1:3306:3306"
     volumes:
       - mariadb_data:/var/lib/mysql
     command: --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci
@@ -19,7 +26,8 @@ services:
       retries: 5
 
   gluetun:
-    image: qmcgaw/gluetun
+    # Major-Version gepinnt: ein ungepinntes :latest zieht Watchtower nachts auch ueber einen Major-Sprung.
+    image: qmcgaw/gluetun:v3
     restart: unless-stopped
     cap_add:
       - NET_ADMIN
@@ -34,11 +42,12 @@ services:
       SERVER_COUNTRIES: ${SERVER_COUNTRIES:-Germany}
       FIREWALL_VPN_INPUT_PORTS: ${FIREWALL_VPN_INPUT_PORTS:-8080}
     ports:
-      - "8080:8080"
+      - "127.0.0.1:8080:8080"
 
   elasticsearch:
     image: docker.elastic.co/elasticsearch/elasticsearch:8.17.0
     container_name: crawler-elasticsearch
+    profiles: ["logging"]
     restart: unless-stopped
     environment:
       - discovery.type=single-node
@@ -47,7 +56,7 @@ services:
       - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
       - cluster.name=crawler-logs
     ports:
-      - "${ES_PORT:-9200}:9200"
+      - "127.0.0.1:${ES_PORT:-9200}:9200"
     volumes:
       - es-data:/usr/share/elasticsearch/data
     healthcheck:
@@ -60,12 +69,13 @@ services:
   kibana:
     image: docker.elastic.co/kibana/kibana:8.17.0
     container_name: crawler-kibana
+    profiles: ["logging"]
     restart: unless-stopped
     environment:
       - ELASTICSEARCH_HOSTS=http://elasticsearch:9200
       - xpack.security.enabled=false
     ports:
-      - "${KIBANA_PORT:-5601}:5601"
+      - "127.0.0.1:${KIBANA_PORT:-5601}:5601"
     depends_on:
       elasticsearch:
         condition: service_healthy
@@ -84,7 +94,10 @@ services:
     environment:
       ConnectionStrings__DefaultConnection: "Server=mariadb;Port=3306;Database=${MYSQL_DATABASE:-chessresults};User=${MYSQL_USER:-chessresults};Password=${MYSQL_PASSWORD:?set a strong password in .env};"
       ASPNETCORE_ENVIRONMENT: Production
-      Elasticsearch__Url: http://elasticsearch:9200
+      # Derselbe Wert wie RookHubs CRAWLER_API_KEY; der Platzhalter aus .env.example zaehlt wie keiner (503).
+      API_KEY: ${CRAWLER_API_KEY:?set CRAWLER_API_KEY in .env (same value as RookHub)}
+      # Leer = nur Konsolen-Log; mit Profil "logging": http://elasticsearch:9200
+      Elasticsearch__Url: ${CRAWLER_ES_URL:-}
 
 volumes:
   mariadb_data:

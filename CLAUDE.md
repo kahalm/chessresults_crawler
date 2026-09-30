@@ -187,7 +187,8 @@ Crawler-Swagger: http://localhost:8080/swagger/ui/index.html
 Umgebung auf alles außer `/api/health` mit 503 — denselben Wert wie RookHubs `CRAWLER_API_KEY` setzen. Nur für
 lokale Entwicklung ohne Schlüssel: `API_KEY_ALLOW_ANONYMOUS=true` (gilt nicht in Production).
 
-Standalone (nur Crawler + eigene DB, braucht VPN-Config in .env):
+Standalone (nur Crawler + eigene DB, braucht VPN-Config und `CRAWLER_API_KEY` in .env — Vorlage `.env.example`;
+alle Ports nur an 127.0.0.1, Elasticsearch/Kibana ohne Anmeldung nur mit `--profile logging`):
 ```bash
 docker compose up --build
 ```
