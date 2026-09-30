@@ -40,7 +40,8 @@ public class RotateOnConnectFailureHandler : DelegatingHandler
     /// <c>HttpClient.Timeout</c>, weil das fuer die GANZE Sendung gilt — also fuer alle Versuche
     /// zusammen. Mit dem 30-s-Limit der Quelle war nach dem ersten Fehlversuch Schluss, und die
     /// Wiederholung kam nie zum Zug (am 2026-09-09 an der Slowakei gemessen: 500 nach genau 30 s).
-    /// Der Client steht deshalb auf unbegrenzt, die Schranke liegt je Versuch hier.</param>
+    /// Die Schranke je Versuch liegt deshalb hier; das Client-Zeitlimit deckt alle Versuche samt
+    /// Wechseln ab (<see cref="SourceClientSetup.ClientTimeout"/>).</param>
     public RotateOnConnectFailureHandler(VpnReadinessGate vpnGate,
         ILogger<RotateOnConnectFailureHandler> logger, TimeSpan attemptTimeout)
     {

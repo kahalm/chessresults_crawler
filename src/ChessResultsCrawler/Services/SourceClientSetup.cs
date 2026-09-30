@@ -15,8 +15,11 @@ namespace ChessResultsCrawler.Services;
 /// Antwort zurueck und scheitert an <c>EnsureSuccessStatusCode</c>, statt blind irgendwohin zu
 /// laufen;</item>
 /// <item>die Wiederholung ueber einen anderen VPN-Ausgang (<see cref="RotateOnConnectFailureHandler"/>)
-/// mit dem Zeitlimit JE VERSUCH. Der Client selbst steht auf unbegrenzt: <c>HttpClient.Timeout</c>
-/// gilt fuer alle Versuche ZUSAMMEN und liess die Wiederholung nie zum Zug kommen.</item>
+/// mit dem Zeitlimit JE VERSUCH. <c>HttpClient.Timeout</c> gilt dagegen fuer alle Versuche
+/// ZUSAMMEN (mit dem Limit je Versuch liess es die Wiederholung nie zum Zug kommen) und steht
+/// deshalb auf <see cref="ClientTimeout"/>: alle Versuche, alle Wechsel und ein Fenster fuer den
+/// Rumpf;</item>
+/// <item>derselbe Deckel fuer den gepufferten Rumpf (<see cref="MaxResponseBytes"/>).</item>
 /// </list>
 /// <para>Je Quelle unterscheidet sich nur das Zeitlimit je Versuch.</para>
 /// </summary>
@@ -31,6 +34,36 @@ internal static class SourceClientSetup
     /// durch; wer ihn aendert, sollte das vorher pruefen.</para>
     /// </summary>
     internal const string UserAgent = "ChessResultsCrawler/1.0 (+RookHub)";
+
+    /// <summary>
+    /// Deckel fuer den gepufferten Antwortrumpf (<c>HttpClient.MaxResponseContentBufferSize</c>)
+    /// — wie der 32-MB-Deckel des chess-results-Pfads im <see cref="CrawlerService"/>. Ohne ihn
+    /// puffert der Client bis 2 GB: eine fehlkonfigurierte oder uebernommene Verbandsseite mit
+    /// riesigem oder endlosem Rumpf trieb den Container in den Speichertod und riss chess-results-
+    /// Crawls, Rundenmonitor und LeagueHub mit. Die groesste gemessene Quelle (Italien) liefert rund
+    /// 1,25 MB. Darueber wirft der Client eine <see cref="HttpRequestException"/> (→ 502).
+    /// </summary>
+    internal const long MaxResponseBytes = 16 * 1024 * 1024;
+
+    /// <summary>
+    /// Obergrenze fuer EINEN Ausgangswechsel (<see cref="VpnReadinessGate.RotateAsync"/>): bis 60 s
+    /// Warten auf den Crawl-Riegel, dann stop→Pause→start unter hoechstens 33 s (Vorgabe) und im
+    /// Fehlerfall noch ein Recovery-start mit 30 s — zusammen 123 s, der Rest ist Reserve fuer eine
+    /// laengere <c>Crawler:VpnRestartPauseMs</c>.
+    /// </summary>
+    internal static readonly TimeSpan RotationBudget = TimeSpan.FromSeconds(150);
+
+    /// <summary>
+    /// <c>HttpClient.Timeout</c> eines Quellen-Clients: alle <see cref="RotateOnConnectFailureHandler.MaxAttempts"/>
+    /// Versuche mit ihrem Zeitlimit, die Wechsel dazwischen und EIN weiteres Versuchs-Fenster fuer das
+    /// Lesen des Rumpfs. Das Limit je Versuch endet mit den Kopfzeilen; den Rumpf puffert der Client
+    /// danach allein unter diesem Deckel — ohne ihn (vorher: unbegrenzt) hing ein troepfelnder Rumpf,
+    /// bis RookHubs Aufrufer abbrach. Das Extra-Fenster sorgt dafuer, dass der Deckel auch nach vier
+    /// ausgeschoepften Fehlversuchen die erfolgreiche Wiederholung nicht abschneidet.
+    /// </summary>
+    internal static TimeSpan ClientTimeout(int attemptSeconds) =>
+        TimeSpan.FromSeconds(attemptSeconds) * (RotateOnConnectFailureHandler.MaxAttempts + 1)
+        + RotationBudget * (RotateOnConnectFailureHandler.MaxAttempts - 1);
 
     /// <summary>Registriert die Clients aller Verbandsquellen.</summary>
     public static IServiceCollection AddSourceClients(this IServiceCollection services)
@@ -91,24 +124,27 @@ internal static class SourceClientSetup
     }
 
     /// <summary>
-    /// Ein Quellen-Client: <see cref="UserAgent"/>, unbegrenztes Client-Zeitlimit,
-    /// <see cref="CrawlHttpHandler"/> und die Wiederholung ueber einen anderen VPN-Ausgang mit
-    /// <paramref name="attemptSeconds"/> Sekunden je Versuch.
+    /// Ein Quellen-Client: <see cref="UserAgent"/>, Client-Zeitlimit <see cref="ClientTimeout"/>,
+    /// Rumpf-Deckel <see cref="MaxResponseBytes"/>, <see cref="CrawlHttpHandler"/> und die
+    /// Wiederholung ueber einen anderen VPN-Ausgang mit <paramref name="attemptSeconds"/> Sekunden
+    /// je Versuch.
     /// </summary>
     public static IHttpClientBuilder AddSourceClient<TClient>(this IServiceCollection services, int attemptSeconds)
         where TClient : class =>
         services.AddHttpClient<TClient>(client =>
             {
                 client.DefaultRequestHeaders.Add("User-Agent", UserAgent);
-                client.Timeout = Timeout.InfiniteTimeSpan;
+                client.Timeout = ClientTimeout(attemptSeconds);
+                client.MaxResponseContentBufferSize = MaxResponseBytes;
             })
             .ConfigurePrimaryHttpMessageHandler(CrawlHttpHandler.Create)
             .WithExitRotationRetry(attemptSeconds);
 
     /// <summary>
     /// Haengt die Wiederholung ueber einen anderen VPN-Ausgang an einen Quellen-Client und legt das
-    /// Zeitlimit JE VERSUCH fest. Der Client selbst laeuft unbegrenzt — sein Zeitlimit haette fuer
-    /// alle Versuche zusammen gegolten und die Wiederholung damit ausgehebelt.
+    /// Zeitlimit JE VERSUCH fest. Das Client-Zeitlimit gilt fuer alle Versuche zusammen und liegt
+    /// deshalb weit darueber (<see cref="ClientTimeout"/>) — sonst haette es die Wiederholung
+    /// ausgehebelt.
     /// </summary>
     internal static IHttpClientBuilder WithExitRotationRetry(this IHttpClientBuilder builder, int attemptSeconds) =>
         builder.AddHttpMessageHandler(sp => new RotateOnConnectFailureHandler(
