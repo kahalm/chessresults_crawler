@@ -123,6 +123,10 @@ RookHub API (.NET :5001)  -- proxy -->  Crawler API (.NET :8080)  -- crawl -->  
 | PlayerResults | Einzelergebnisse | RoundId, PlayerId, BoardNumber, Result |
 | CrawlJobs | Job-Tracking | TournamentId, ChessResultsId, JobType, Status, ErrorMessage |
 
+**Aufbewahrung** (`Services/RetentionService.cs`, beim Start und dann täglich): abgeschlossene/fehlgeschlagene
+CrawlJobs 30 Tage nach ihrem Ende, PlayerClubs-Zeilen ohne Auffrischung seit 180 Tagen werden gelöscht. Turniere und
+Spieler bleiben (RookHub verweist per `CrawlerTournamentId` darauf). Die Crawler-DB ist nicht im Ersatz-Backup.
+
 ## Projektstruktur
 
 ```

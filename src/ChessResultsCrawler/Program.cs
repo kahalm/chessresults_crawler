@@ -88,6 +88,8 @@ try
     builder.Services.AddHostedService<BackgroundTaskWorker>();
     // Periodisches Lebenszeichen nach ES (Standard 60 s) → log-watcher erkennt toten Crawler.
     builder.Services.AddHostedService<HeartbeatService>();
+    // Aufbewahrungsfristen (alte Crawl-Aufträge, Vereins-Suchergebnisse): beim Start, dann täglich.
+    builder.Services.AddHostedService<RetentionService>();
     builder.Services.AddHttpClient(); // For HealthController IP check
 
     // API
