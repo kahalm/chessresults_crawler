@@ -120,6 +120,8 @@ try
         app.UseSwaggerUI();
     }
 
+    // VOR dem Request-Logging: abgewiesene Anfragen (401/503) erreichen es nie — die Middleware
+    // meldet sie selbst als gedrosselte Warning mit LogTags "security" (Pfad + Status, nie der Key).
     app.UseMiddleware<ApiKeyMiddleware>();
     app.UseSerilogRequestLogging(options =>
     {

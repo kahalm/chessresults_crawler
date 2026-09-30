@@ -1,5 +1,6 @@
 using System.Security.Cryptography;
 using System.Text;
+using Serilog.Context;
 
 namespace ChessResultsCrawler.Middleware;
 
@@ -21,14 +22,27 @@ public class ApiKeyMiddleware
     /// </summary>
     private static readonly string[] PlaceholderPrefixes = ["change_me", "your_"];
 
+    /// <summary>
+    /// Abgewiesene Anfragen (401/503) laufen nie durch das Request-Logging (das steht in Program.cs dahinter),
+    /// darum meldet die Middleware sie selbst — gedrosselt auf hoechstens so viele Warnings je Fenster, damit ein
+    /// Scan im Docker-Netz sichtbar wird, das Log aber nicht flutet. Die uebrigen zaehlt die naechste Meldung mit.
+    /// </summary>
+    internal const int RejectLogBudget = 10;
+    internal static readonly TimeSpan RejectLogWindow = TimeSpan.FromMinutes(1);
+
     private readonly RequestDelegate _next;
     private readonly string? _apiKey;
     private readonly bool _allowAnonymous;
+    private readonly ILogger? _logger;
+    private readonly TimeProvider _time;
+    private readonly RejectLogThrottle _rejectLog = new(RejectLogBudget, RejectLogWindow);
 
     public ApiKeyMiddleware(RequestDelegate next, IConfiguration config, IHostEnvironment env,
-        ILogger<ApiKeyMiddleware>? logger = null)
+        ILogger<ApiKeyMiddleware>? logger = null, TimeProvider? timeProvider = null)
     {
         _next = next;
+        _logger = logger;
+        _time = timeProvider ?? TimeProvider.System;
         var configured = config["API_KEY"];
 
         // Ein stehengebliebener Platzhalter ist ein oeffentlich bekannter Schluessel, also keiner:
@@ -70,6 +84,7 @@ public class ApiKeyMiddleware
                 await _next(context);
                 return;
             }
+            LogRejected(context, StatusCodes.Status503ServiceUnavailable, "API_KEY nicht konfiguriert");
             context.Response.StatusCode = StatusCodes.Status503ServiceUnavailable;
             await context.Response.WriteAsJsonAsync(new { message = "API key not configured." });
             return;
@@ -79,12 +94,66 @@ public class ApiKeyMiddleware
         var providedKey = context.Request.Headers[ApiKeyHeader];
         if (providedKey.Count != 1 || !KeysEqual(providedKey.ToString(), _apiKey))
         {
+            LogRejected(context, StatusCodes.Status401Unauthorized, providedKey.Count switch
+            {
+                0 => "X-Api-Key fehlt",
+                1 => "X-Api-Key falsch",
+                _ => "mehrere X-Api-Key-Werte",
+            });
             context.Response.StatusCode = StatusCodes.Status401Unauthorized;
             await context.Response.WriteAsJsonAsync(new { message = "Invalid or missing API key." });
             return;
         }
 
         await _next(context);
+    }
+
+    /// <summary>
+    /// Gedrosselte Security-Warning fuer eine abgewiesene Anfrage: Methode, Pfad (ohne Query), Aufrufer-IP, Status,
+    /// Grund — NIE der mitgeschickte oder der konfigurierte Schluessel. RequestPath/StatusCode heissen wie im
+    /// Request-Logging, IpAddress wie in RookHub/piratechess, damit die Ingest-Pipeline und die log-watcher-
+    /// Security-Heuristik (url.path, http.response.status_code, labels.IpAddress) sie finden.
+    /// </summary>
+    private void LogRejected(HttpContext context, int statusCode, string reason)
+    {
+        if (_logger is null || !_rejectLog.TryEnter(_time.GetUtcNow(), out var suppressed))
+            return;
+        using (LogContext.PushProperty("LogTags", "security"))
+            _logger.LogWarning(
+                "API-Anfrage abgewiesen: {RequestMethod} {RequestPath} von {IpAddress} → {StatusCode} ({Reason}); seit der letzten Meldung {SuppressedCount} weitere nicht einzeln gemeldet",
+                context.Request.Method, context.Request.Path.Value,
+                context.Connection.RemoteIpAddress?.ToString() ?? "unbekannt", statusCode, reason, suppressed);
+    }
+
+    /// <summary>Festes Zeitfenster mit Budget; was darueber hinaus abgewiesen wird, zaehlt nur mit.</summary>
+    private sealed class RejectLogThrottle(int budget, TimeSpan window)
+    {
+        private readonly object _gate = new();
+        private DateTimeOffset _windowStart = DateTimeOffset.MinValue;
+        private int _used;
+        private int _suppressed;
+
+        public bool TryEnter(DateTimeOffset now, out int suppressed)
+        {
+            lock (_gate)
+            {
+                if (now - _windowStart >= window)
+                {
+                    _windowStart = now;
+                    _used = 0;
+                }
+                if (_used >= budget)
+                {
+                    _suppressed++;
+                    suppressed = 0;
+                    return false;
+                }
+                _used++;
+                suppressed = _suppressed;
+                _suppressed = 0;
+                return true;
+            }
+        }
     }
 
     private static bool IsOpenPath(string path) =>

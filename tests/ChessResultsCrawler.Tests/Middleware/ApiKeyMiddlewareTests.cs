@@ -1,10 +1,14 @@
+using System.Net;
 using ChessResultsCrawler.Middleware;
+using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.FileProviders;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Moq;
+using Serilog.Events;
 
 namespace ChessResultsCrawler.Tests.Middleware;
 
@@ -404,6 +408,167 @@ public class ApiKeyMiddlewareTests
             It.IsAny<Exception?>(), It.IsAny<Func<It.IsAnyType, Exception?, string>>()), Times.Once);
         logger.Verify(l => l.Log(LogLevel.Error, It.IsAny<EventId>(), It.IsAny<It.IsAnyType>(),
             It.IsAny<Exception?>(), It.IsAny<Func<It.IsAnyType, Exception?, string>>()), Times.Never);
+    }
+
+    // ----- Abgewiesene Anfragen hinterlassen eine gedrosselte Security-Warning (Review W4s S3-012) ----
+
+    private const string RejectTemplatePrefix = "API-Anfrage abgewiesen";
+
+    private sealed class ListSink : Serilog.Core.ILogEventSink
+    {
+        public List<LogEvent> Events { get; } = [];
+        public void Emit(LogEvent logEvent) { lock (Events) Events.Add(logEvent); }
+    }
+
+    private sealed class ManualTime : TimeProvider
+    {
+        public DateTimeOffset Now { get; set; } = new(2026, 9, 30, 12, 0, 0, TimeSpan.Zero);
+        public override DateTimeOffset GetUtcNow() => Now;
+    }
+
+    /// <summary>Echter Serilog-Logger mit LogContext, damit auch die gepushte LogTags-Property pruefbar ist.</summary>
+    private static (ApiKeyMiddleware middleware, ListSink sink) CreateWithSink(string? configApiKey,
+        TimeProvider? time = null, string environment = "Production")
+    {
+        var sink = new ListSink();
+        var serilog = new Serilog.LoggerConfiguration().MinimumLevel.Verbose()
+            .Enrich.FromLogContext().WriteTo.Sink(sink).CreateLogger();
+        var logger = new Serilog.Extensions.Logging.SerilogLoggerFactory(serilog).CreateLogger<ApiKeyMiddleware>();
+        var middleware = new ApiKeyMiddleware(_ => Task.CompletedTask, BuildConfig(configApiKey),
+            new FakeEnv { EnvironmentName = environment }, logger, time);
+        return (middleware, sink);
+    }
+
+    private static DefaultHttpContext NewRequest(string path, params string[] apiKeys)
+    {
+        var context = new DefaultHttpContext();
+        context.Request.Method = "POST";
+        context.Request.Path = path;
+        context.Request.QueryString = new QueryString("?token=query-secret");
+        if (apiKeys.Length > 0)
+            context.Request.Headers["X-Api-Key"] = new Microsoft.Extensions.Primitives.StringValues(apiKeys);
+        context.Connection.RemoteIpAddress = IPAddress.Parse("172.18.0.9");
+        context.Response.Body = new MemoryStream();
+        return context;
+    }
+
+    private static List<LogEvent> Rejections(ListSink sink) =>
+        sink.Events.Where(e => e.MessageTemplate.Text.StartsWith(RejectTemplatePrefix)).ToList();
+
+    private static object? Prop(LogEvent e, string name) =>
+        e.Properties.TryGetValue(name, out var v) && v is ScalarValue s ? s.Value : null;
+
+    [Fact]
+    public async Task WrongKey_Returns401_AndLogsSecurityWarning_WithPathStatusAndIp_NeverTheKey()
+    {
+        // Vorher endete die Anfrage VOR dem Request-Logging ohne jede Logzeile — ein Schluessel-Durchprobieren
+        // im Docker-Netz blieb fuer Elasticsearch/log-watcher unsichtbar.
+        var (middleware, sink) = CreateWithSink("real-secret-key");
+        var context = NewRequest("/api/crawl", "guessed-key-123");
+
+        await middleware.InvokeAsync(context);
+
+        Assert.Equal(401, context.Response.StatusCode);
+        var e = Assert.Single(Rejections(sink));
+        Assert.Equal(LogEventLevel.Warning, e.Level);
+        Assert.Equal("security", Prop(e, "LogTags"));
+        Assert.Equal("POST", Prop(e, "RequestMethod"));
+        Assert.Equal("/api/crawl", Prop(e, "RequestPath"));
+        Assert.Equal(401, Prop(e, "StatusCode"));
+        Assert.Equal("172.18.0.9", Prop(e, "IpAddress"));
+        Assert.Equal("X-Api-Key falsch", Prop(e, "Reason"));
+        var everything = e.RenderMessage() + string.Join("|", e.Properties.Values.Select(v => v.ToString()));
+        Assert.DoesNotContain("guessed-key-123", everything);
+        Assert.DoesNotContain("real-secret-key", everything);
+        Assert.DoesNotContain("query-secret", everything);
+    }
+
+    [Theory]
+    [InlineData(new string[0], "X-Api-Key fehlt")]
+    [InlineData(new[] { "real-secret-key", "real-secret-key" }, "mehrere X-Api-Key-Werte")]
+    public async Task MissingOrRepeatedKey_Returns401_AndLogsReason(string[] apiKeys, string reason)
+    {
+        var (middleware, sink) = CreateWithSink("real-secret-key");
+        var context = NewRequest("/api/tournaments", apiKeys);
+
+        await middleware.InvokeAsync(context);
+
+        Assert.Equal(401, context.Response.StatusCode);
+        var e = Assert.Single(Rejections(sink));
+        Assert.Equal(reason, Prop(e, "Reason"));
+        Assert.DoesNotContain("real-secret-key", e.RenderMessage());
+    }
+
+    [Fact]
+    public async Task NoKeyConfigured_Returns503_AndLogsSecurityWarning()
+    {
+        // Fehlt nach einem Deploy der Key, stand bisher pro Anfrage nichts im Crawler-Log (nur indirekt ueber RookHub).
+        var (middleware, sink) = CreateWithSink(null);
+        var context = NewRequest("/api/tournaments");
+
+        await middleware.InvokeAsync(context);
+
+        Assert.Equal(503, context.Response.StatusCode);
+        var e = Assert.Single(Rejections(sink));
+        Assert.Equal(LogEventLevel.Warning, e.Level);
+        Assert.Equal("security", Prop(e, "LogTags"));
+        Assert.Equal(503, Prop(e, "StatusCode"));
+        Assert.Equal("/api/tournaments", Prop(e, "RequestPath"));
+    }
+
+    [Fact]
+    public async Task AcceptedRequestAndHealthProbe_LogNoRejection()
+    {
+        var (middleware, sink) = CreateWithSink("real-secret-key");
+
+        await middleware.InvokeAsync(NewRequest("/api/tournaments", "real-secret-key"));
+        await middleware.InvokeAsync(NewRequest("/api/health"));
+
+        Assert.Empty(Rejections(sink));
+    }
+
+    [Fact]
+    public async Task RejectLog_IsThrottledPerWindow_AndNextWindowReportsSuppressedCount()
+    {
+        // Ein Scan darf das Log nicht fluten: hoechstens RejectLogBudget Warnings je Fenster, der Rest wird gezaehlt.
+        var time = new ManualTime();
+        var (middleware, sink) = CreateWithSink("real-secret-key", time);
+
+        for (var i = 0; i < ApiKeyMiddleware.RejectLogBudget + 5; i++)
+        {
+            var context = NewRequest($"/api/probe{i}", "wrong");
+            await middleware.InvokeAsync(context);
+            Assert.Equal(401, context.Response.StatusCode); // gedrosselt wird nur das Log, nie die Abweisung
+        }
+        Assert.Equal(ApiKeyMiddleware.RejectLogBudget, Rejections(sink).Count);
+        Assert.All(Rejections(sink), e => Assert.Equal(0, Prop(e, "SuppressedCount")));
+
+        time.Now += ApiKeyMiddleware.RejectLogWindow;
+        await middleware.InvokeAsync(NewRequest("/api/next", "wrong"));
+
+        var rejections = Rejections(sink);
+        Assert.Equal(ApiKeyMiddleware.RejectLogBudget + 1, rejections.Count);
+        Assert.Equal(5, Prop(rejections[^1], "SuppressedCount"));
+        Assert.Equal("/api/next", Prop(rejections[^1], "RequestPath"));
+    }
+
+    [Fact]
+    public async Task UseMiddleware_ActivatesFromDi_WithoutRegisteredTimeProvider()
+    {
+        // Der optionale TimeProvider-Parameter darf die Aktivierung per UseMiddleware (Program.cs) nicht brechen.
+        var services = new ServiceCollection()
+            .AddSingleton(BuildConfig("real-secret-key"))
+            .AddSingleton<IHostEnvironment>(new FakeEnv { EnvironmentName = Environments.Production })
+            .AddLogging()
+            .BuildServiceProvider();
+        var app = new ApplicationBuilder(services);
+        app.UseMiddleware<ApiKeyMiddleware>();
+        app.Run(_ => Task.CompletedTask);
+        var context = NewRequest("/api/crawl", "wrong");
+
+        await app.Build()(context);
+
+        Assert.Equal(401, context.Response.StatusCode);
     }
 
     [Theory]
