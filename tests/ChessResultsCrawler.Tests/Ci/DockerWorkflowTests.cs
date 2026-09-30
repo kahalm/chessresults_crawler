@@ -108,6 +108,54 @@ public class DockerWorkflowTests
         Assert.Contains(job[guard..login], l => l.Trim() == "if: github.ref_type == 'tag'");
     }
 
+    // ----- Lieferkette: Rechte je Job, Actions auf Commit-SHA (Review W4s S3-014) -------------------
+
+    /// <summary>Die Jobs unter <c>jobs:</c> (Einrueckung 2) mit ihren Zeilen.</summary>
+    private static Dictionary<string, string[]> Jobs()
+    {
+        var lines = Workflow().Replace("\r", "").Split('\n');
+        var start = Array.FindIndex(lines, l => l.TrimEnd() == "jobs:");
+        Assert.True(start >= 0, "jobs: fehlt");
+        var heads = Enumerable.Range(start + 1, lines.Length - start - 1)
+            .Where(i => Regex.IsMatch(lines[i], @"^  [A-Za-z0-9_-]+:\s*$"))
+            .ToList();
+        return heads.Select((h, n) => (h, end: n + 1 < heads.Count ? heads[n + 1] : lines.Length))
+            .ToDictionary(x => lines[x.h].Trim().TrimEnd(':'), x => lines[(x.h + 1)..x.end]);
+    }
+
+    /// <summary>
+    /// Ohne eigenen <c>permissions:</c>-Block erbt ein Job den Repo-Default fuer GITHUB_TOKEN (je nach
+    /// Einstellung write auf alles). Jeder Job nennt seine Rechte selbst.
+    /// </summary>
+    [Fact]
+    public void EveryJob_DeclaresItsPermissions()
+    {
+        var jobs = Jobs();
+        Assert.Contains("test", jobs.Keys);
+        Assert.Contains("build-crawler", jobs.Keys);
+        foreach (var (name, lines) in jobs)
+            Assert.True(lines.Any(l => l.TrimEnd() == "    permissions:"), $"Job {name} ohne permissions:");
+
+        Assert.Contains(jobs["test"], l => l.Trim() == "contents: read");
+        Assert.DoesNotContain(jobs["test"], l => l.Contains(": write", StringComparison.Ordinal));
+    }
+
+    /// <summary>
+    /// Ein Tag wie @v4 kann der Herausgeber jederzeit auf anderen Code umhaengen — der Build-Job hat
+    /// packages: write und schiebt das Prod-Image. Jede fremde Action steht auf einem vollen Commit-SHA.
+    /// </summary>
+    [Fact]
+    public void EveryAction_IsPinnedToAFullCommitSha()
+    {
+        var uses = Regex.Matches(Workflow(), @"(?m)^\s*-?\s*uses:\s*(?<ref>\S+)")
+            .Select(m => m.Groups["ref"].Value)
+            .Where(r => !r.StartsWith("./", StringComparison.Ordinal))
+            .ToList();
+        Assert.NotEmpty(uses);
+        var floating = uses.Where(r => !Regex.IsMatch(r, @"^[A-Za-z0-9_.-]+/[A-Za-z0-9_./-]+@[0-9a-f]{40}$")).ToList();
+        Assert.True(floating.Count == 0, "Actions ohne Commit-SHA: " + string.Join(", ", floating));
+    }
+
     // ----- Das Guard-Skript echt ausgefuehrt, in einem Wegwerf-Repo --------------------------------
 
     /// <summary>Der <c>run: |</c>-Block des Schritts <c>id: release</c>, ausgerueckt.</summary>
