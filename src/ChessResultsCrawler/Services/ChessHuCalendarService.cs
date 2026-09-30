@@ -98,6 +98,7 @@ public class ChessHuCalendarService
         using var response = await _http.SendAsync(request, ct);
         var json = await response.Content.ReadAsStringAsync(ct);
         response.EnsureSuccessStatusCode();
+        SourceResponse.EnsureJson("chess.hu", response, json);
 
         var all = Parse(json);
         if (all.Count >= RowCap)

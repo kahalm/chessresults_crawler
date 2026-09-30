@@ -1,5 +1,10 @@
 using ChessResultsCrawler.Middleware;
+using ChessResultsCrawler.Services;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Abstractions;
+using Microsoft.AspNetCore.Routing;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging.Abstractions;
 
 namespace ChessResultsCrawler.Tests.Middleware;
@@ -91,5 +96,56 @@ public class UpstreamErrorMiddlewareTests
         var body = await new StreamReader(ctx.Response.Body).ReadToEndAsync();
         Assert.Contains("Upstream request timed out", body);
         Assert.Equal("application/json", ctx.Response.ContentType?.Split(';')[0]);
+    }
+
+    /// <summary>
+    /// Eine Quelle lieferte statt JSON eine Sperrseite → 502 mit Auszug. Die Antwort ist BYTE-GLEICH
+    /// mit der, die bisher nur der KNSB-Controller selbst schrieb (<c>StatusCode(502, new { … })</c>
+    /// durch MVC) — RookHubs Nachtlauf sieht fuer KNSB nichts Neues, die anderen Quellen bekommen
+    /// dieselbe Form.
+    /// </summary>
+    [Fact]
+    public async Task Invoke_SourceResponseException_Writes502ByteIdenticalToTheFormerKnsbControllerAnswer()
+    {
+        var ex = new SourceResponseException("KNSB", 200, "text/html",
+            "<!DOCTYPE html> <html lang=\"en\"> <title>One moment, please...</title> <script>&amp; ä</script>");
+        var (mw, ctx) = Create(_ => throw ex);
+
+        await mw.InvokeAsync(ctx);
+
+        Assert.Equal(StatusCodes.Status502BadGateway, ctx.Response.StatusCode);
+        ctx.Response.Body.Seek(0, SeekOrigin.Begin);
+        var body = await new StreamReader(ctx.Response.Body).ReadToEndAsync();
+
+        var (expectedBody, expectedContentType) = await FormerKnsbControllerAnswerAsync(ex);
+        Assert.Equal(expectedBody, body);
+        Assert.Equal(expectedContentType, ctx.Response.ContentType);
+        Assert.Contains("One moment, please", body);
+    }
+
+    /// <summary>So antwortete <c>KnsbCalendarController</c> bis zur Zentralisierung.</summary>
+    private static async Task<(string Body, string? ContentType)> FormerKnsbControllerAnswerAsync(SourceResponseException ex)
+    {
+        var services = new ServiceCollection();
+        services.AddLogging();
+        services.AddControllers();
+        await using var provider = services.BuildServiceProvider();
+
+        var http = new DefaultHttpContext { RequestServices = provider };
+        http.Response.Body = new MemoryStream();
+        var result = new ObjectResult(new
+        {
+            source = ex.Source,
+            upstreamStatus = ex.StatusCode,
+            contentType = ex.ContentType,
+            excerpt = ex.Excerpt,
+            message = ex.Message,
+        })
+        { StatusCode = 502 };
+        await result.ExecuteResultAsync(new ActionContext(http, new RouteData(), new ActionDescriptor()));
+
+        Assert.Equal(502, http.Response.StatusCode);
+        http.Response.Body.Seek(0, SeekOrigin.Begin);
+        return (await new StreamReader(http.Response.Body).ReadToEndAsync(), http.Response.ContentType);
     }
 }

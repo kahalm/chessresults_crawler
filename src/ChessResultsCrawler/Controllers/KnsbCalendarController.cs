@@ -33,23 +33,9 @@ public class KnsbCalendarController : ControllerBase
         [FromQuery] DateOnly? from = null, CancellationToken ct = default)
     {
         var start = from ?? DateOnly.FromDateTime(DateTime.UtcNow);
-        try
-        {
-            var events = await _knsb.FetchAsync(start, ct);
-            return Ok(events.Select(KnsbEventResponse.FromParsed).ToList());
-        }
-        catch (SourceResponseException ex)
-        {
-            // 502 statt einer unbehandelten 500: der Crawler funktioniert, die QUELLE hat etwas
-            // anderes geliefert. Der Rumpf reist bis in RookHubs Nachtlauf-Log mit.
-            return StatusCode(502, new
-            {
-                source = ex.Source,
-                upstreamStatus = ex.StatusCode,
-                contentType = ex.ContentType,
-                excerpt = ex.Excerpt,
-                message = ex.Message,
-            });
-        }
+        // Eine Sperrseite statt JSON (SourceResponseException) wird zentral in der
+        // UpstreamErrorMiddleware zur 502 mit Auszug — wie bei jeder anderen JSON-Quelle.
+        var events = await _knsb.FetchAsync(start, ct);
+        return Ok(events.Select(KnsbEventResponse.FromParsed).ToList());
     }
 }

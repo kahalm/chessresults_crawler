@@ -162,7 +162,11 @@ public class EcfCalendarService
 
         using var response = await _http.GetAsync(target, ct);
         var body = await response.Content.ReadAsStringAsync(ct);
-        if (response.IsSuccessStatusCode) return body;
+        if (response.IsSuccessStatusCode)
+        {
+            SourceResponse.EnsureJson("ECF", response, body);
+            return body;
+        }
 
         _log.LogWarning("ECF: {Url} antwortete {Status}", url, (int)response.StatusCode);
         return null;

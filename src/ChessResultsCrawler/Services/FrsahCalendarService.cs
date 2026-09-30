@@ -121,7 +121,11 @@ public class FrsahCalendarService
 
         using var response = await _http.GetAsync(target, ct);
         var body = await response.Content.ReadAsStringAsync(ct);
-        if (response.IsSuccessStatusCode) return body;
+        if (response.IsSuccessStatusCode)
+        {
+            SourceResponse.EnsureJson("FRSah", response, body);
+            return body;
+        }
 
         _log.LogWarning("FRSah: {Url} antwortete {Status}", url, (int)response.StatusCode);
         return null;

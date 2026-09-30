@@ -140,6 +140,7 @@ public class ChessSkCalendarService
         using var response = await _http.GetAsync(target, ct);
         var json = await response.Content.ReadAsStringAsync(ct);
         response.EnsureSuccessStatusCode();
+        SourceResponse.EnsureJson("chess.sk", response, json);
 
         var events = ParseList(json)
             .Where(e => e.EndDate >= from)

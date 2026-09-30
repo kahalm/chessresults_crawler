@@ -10,6 +10,9 @@ namespace ChessResultsCrawler.Services;
 /// (<c>JsonReaderException: '&lt;' is an invalid start of a value</c>) und der Endpunkt antwortete
 /// mit einer unbehandelten 500. Im naechtlichen Log stand damit nur ein Parser-Stacktrace — kein
 /// Hinweis darauf, dass die Quelle eine Sperrseite ausliefert.</para>
+///
+/// <para>Die <c>UpstreamErrorMiddleware</c> bildet sie fuer JEDE Quelle zentral auf 502 mit Auszug
+/// ab — ein Controller braucht dafuer keinen eigenen catch.</para>
 /// </summary>
 public class SourceResponseException : Exception
 {
@@ -45,6 +48,13 @@ public static class SourceResponse
         if (start.Length > 0 && (start[0] == '[' || start[0] == '{')) return;
         throw new SourceResponseException(source, statusCode, contentType, ExcerptOf(body));
     }
+
+    /// <summary>
+    /// <see cref="EnsureJson(string, int, string?, string)"/> mit Status und Content-Type aus der
+    /// Antwort — der Aufruf fuer jede JSON-Quelle vor dem <c>JsonDocument.Parse</c>.
+    /// </summary>
+    public static void EnsureJson(string source, HttpResponseMessage response, string body) =>
+        EnsureJson(source, (int)response.StatusCode, response.Content.Headers.ContentType?.MediaType, body);
 
     internal static string ExcerptOf(string? body)
     {
