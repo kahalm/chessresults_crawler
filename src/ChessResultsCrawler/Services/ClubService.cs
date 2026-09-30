@@ -28,6 +28,14 @@ public class ClubService
     /// <summary>So viele Spieler sucht EIN Knopfdruck höchstens (je zwei Seitenabrufe).</summary>
     public const int MaxLookupsPerRun = 150;
 
+    /// <summary>
+    /// So viele Spieler sucht EIN Auftrag der Hintergrund-Schlange; den Rest des Laufs stellt er als
+    /// neuen Auftrag hinten an. Die Schlange hat einen einzigen Worker: ein Crawl (etwa die neue Runde
+    /// vom Rundenmonitor), der während eines Vereinslaufs kommt, wartet so höchstens ein Häppchen
+    /// (~10 × 2 gedrosselte Abrufe) statt des ganzen Laufs (bis zu 150 Spieler, gut 8 Minuten).
+    /// </summary>
+    public const int LookupsPerChunk = 10;
+
     /// <summary>So lange gilt ein Suchergebnis — auch ein leeres —, bevor derselbe Spieler neu gesucht wird.</summary>
     public static readonly TimeSpan LookupTtl = TimeSpan.FromDays(60);
 
@@ -37,15 +45,22 @@ public class ClubService
     private readonly AppDbContext _db;
     private readonly CrawlerService _crawler;
     private readonly ILogger<ClubService> _logger;
+    private readonly IBackgroundTaskQueue? _queue;
 
-    public ClubService(AppDbContext db, CrawlerService crawler, ILogger<ClubService> logger)
+    /// <param name="queue">Schlange für die Häppchen eines Laufs; ohne sie läuft der Lauf am Stück.</param>
+    public ClubService(AppDbContext db, CrawlerService crawler, ILogger<ClubService> logger,
+        IBackgroundTaskQueue? queue = null)
     {
         _db = db;
         _crawler = crawler;
         _logger = logger;
+        _queue = queue;
     }
 
     public sealed record ResolvedClub(string Club, string? SourceTournamentName);
+
+    /// <summary>Ein Spieler, den ein Lauf noch suchen soll (Name für die Suche, FIDE-ID für den Treffer).</summary>
+    private sealed record Lookup(string Name, string FideId);
 
     /// <summary>
     /// Vereine für die Spieler ohne eigenen (nach Spieler-Id): zuerst der Treffer der Spielersuche,
@@ -109,46 +124,83 @@ public class ClubService
     /// <summary>
     /// Sucht die Spieler ohne Verein über die chess-results-Spielersuche und merkt sich den Verein
     /// aus ihrem jüngsten Turnier, das einen nennt. Läuft im Hintergrund; <see cref="TryBegin"/> muss
-    /// vorher gelungen sein, das Ende gibt den Lauf frei.
+    /// vorher gelungen sein, das Ende gibt den Lauf frei. Mit Schlange sucht dieser Auftrag nur
+    /// <see cref="LookupsPerChunk"/> Spieler und stellt den Rest hinten an (der Lauf bleibt so lange
+    /// belegt); der Rückgabewert zählt dann nur die Treffer dieses Häppchens.
     /// </summary>
-    public async Task<int> FillAsync(string chessResultsId, CancellationToken ct = default)
+    public Task<int> FillAsync(string chessResultsId, CancellationToken ct = default) =>
+        FillAsync(chessResultsId, pending: null, found: 0, searched: 0, ct);
+
+    private async Task<int> FillAsync(string chessResultsId, List<Lookup>? pending, int found, int searched,
+        CancellationToken ct)
     {
+        var handedOn = false;
         try
         {
-            var tournament = await _db.Tournaments.FirstOrDefaultAsync(t => t.ChessResultsId == chessResultsId, ct);
-            if (tournament is null) return 0;
-
-            var candidates = (await CandidatesAsync(tournament.Id, ct)).Take(MaxLookupsPerRun).ToList();
-            var found = 0;
-            foreach (var player in candidates)
+            if (pending is null)
             {
-                ct.ThrowIfCancellationRequested();
-                var (last, first) = SplitName(player.Name);
-                if (last is null) continue;
+                var tournament = await _db.Tournaments.FirstOrDefaultAsync(t => t.ChessResultsId == chessResultsId, ct);
+                if (tournament is null) return 0;
 
-                List<ParsedPlayerTournament> rows;
-                try
-                {
-                    rows = await _crawler.SearchPlayerTournamentsAsync(last, first, ct);
-                }
-                catch (Exception ex) when (ex is not OperationCanceledException)
-                {
-                    // Nichts merken: ein Netzfehler ist keine Auskunft über den Spieler.
-                    _logger.LogWarning(ex, "Vereinssuche {Name} ({Fide}) fehlgeschlagen", player.Name, player.FideId);
-                    continue;
-                }
-
-                var hit = PickClub(rows, Fide(player.FideId)!, chessResultsId);
-                await RememberAsync(Fide(player.FideId)!, hit, ct);
-                if (hit is not null) found++;
+                // Die Liste steht zu Beginn fest: wer im Lauf nicht gemerkt wird (Netzfehler, Name
+                // unbrauchbar), käme sonst in jedem Häppchen wieder dran.
+                pending = (await CandidatesAsync(tournament.Id, ct)).Take(MaxLookupsPerRun)
+                    .Select(p => new Lookup(p.Name, Fide(p.FideId)!))
+                    .ToList();
             }
 
-            _logger.LogInformation("Vereine für {Id}: {Found} von {Searched} Spielern gefunden", chessResultsId, found, candidates.Count);
-            return found;
+            var foundHere = 0;
+            while (pending.Count > 0)
+            {
+                var chunk = pending.Take(LookupsPerChunk).ToList();
+                pending = pending.Skip(LookupsPerChunk).ToList();
+                foreach (var player in chunk)
+                {
+                    ct.ThrowIfCancellationRequested();
+                    var (last, first) = SplitName(player.Name);
+                    if (last is null) continue;
+
+                    List<ParsedPlayerTournament> rows;
+                    try
+                    {
+                        rows = await _crawler.SearchPlayerTournamentsAsync(last, first, ct);
+                    }
+                    catch (Exception ex) when (ex is not OperationCanceledException)
+                    {
+                        // Nichts merken: ein Netzfehler ist keine Auskunft über den Spieler.
+                        _logger.LogWarning(ex, "Vereinssuche {Name} ({Fide}) fehlgeschlagen", player.Name, player.FideId);
+                        continue;
+                    }
+
+                    var hit = PickClub(rows, player.FideId, chessResultsId);
+                    await RememberAsync(player.FideId, hit, ct);
+                    if (hit is not null) foundHere++;
+                }
+                searched += chunk.Count;
+
+                if (pending.Count > 0 && _queue is not null)
+                {
+                    var rest = pending;
+                    var foundSoFar = found + foundHere;
+                    var searchedSoFar = searched;
+                    // Eigener Scope je Auftrag: dieser ClubService (und sein DbContext) ist danach weg.
+                    if (_queue.TryEnqueue((sp, c) => sp.GetRequiredService<ClubService>()
+                            .FillAsync(chessResultsId, rest, foundSoFar, searchedSoFar, c)))
+                    {
+                        handedOn = true;
+                        return foundHere;
+                    }
+                    // Schlange voll: im selben Auftrag weiter, wie vor den Häppchen.
+                }
+            }
+
+            _logger.LogInformation("Vereine für {Id}: {Found} von {Searched} Spielern gefunden",
+                chessResultsId, found + foundHere, searched);
+            return foundHere;
         }
         finally
         {
-            Running.TryRemove(chessResultsId, out _);
+            if (!handedOn) Running.TryRemove(chessResultsId, out _);
         }
     }
 

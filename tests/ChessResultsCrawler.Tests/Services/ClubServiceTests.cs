@@ -5,6 +5,7 @@ using ChessResultsCrawler.Services;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using Moq;
@@ -154,9 +155,15 @@ public class ClubServiceTests : IDisposable
     private sealed class SearchHandler(string resultHtml) : HttpMessageHandler
     {
         public int Posts { get; private set; }
+        /// <summary>Nach jedem Such-POST, mit der laufenden Nummer.</summary>
+        public Action<int>? OnPost { get; init; }
         protected override Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken ct)
         {
-            if (request.Method == HttpMethod.Post) Posts++;
+            if (request.Method == HttpMethod.Post)
+            {
+                Posts++;
+                OnPost?.Invoke(Posts);
+            }
             return Task.FromResult(new HttpResponseMessage(HttpStatusCode.OK)
             {
                 Content = new StringContent(request.Method == HttpMethod.Get ? "<html><form></form></html>" : resultHtml),
@@ -213,5 +220,90 @@ public class ClubServiceTests : IDisposable
         Assert.True(ClubService.TryBegin("1457876"));
         await Service(Crawler(handler)).FillAsync("1457876");
         Assert.Equal(2, handler.Posts);
+    }
+
+    // ----- Häppchen: der Lauf teilt sich die Schlange mit den Crawls (S3-011) ---
+
+    /// <summary>Ein Provider wie der Worker ihn je Auftrag baut: löst den ClubService für das nächste Häppchen auf.</summary>
+    private ServiceProvider Provider(CrawlerService crawler, IBackgroundTaskQueue queue)
+    {
+        var services = new ServiceCollection();
+        services.AddSingleton(_db);
+        services.AddSingleton(crawler);
+        services.AddSingleton(queue);
+        services.AddSingleton<ILogger<ClubService>>(NullLogger<ClubService>.Instance);
+        services.AddTransient<ClubService>();
+        return services.BuildServiceProvider();
+    }
+
+    /// <summary>
+    /// Ein großer Lauf belegt den einzigen Worker nicht am Stück: ein Auftrag sucht ein Häppchen und
+    /// stellt den Rest hinten an. Ein Crawl, der währenddessen kommt (etwa die neue Runde vom
+    /// Rundenmonitor), ist vor dem Rest dran; der Lauf bleibt bis zum letzten Häppchen belegt.
+    /// </summary>
+    [Fact]
+    public async Task Fill_WithQueue_SearchesOneChunkPerJob_SoACrawlQueuedMeanwhileGoesNext()
+    {
+        const string crId = "990231";
+        var open = await TournamentAsync(crId, "Großes Open", "20.07.2026");
+        for (var i = 1; i <= 25; i++)
+            await PlayerAsync(open, i, $"Spieler{i:00}, Max", (990000 + i).ToString());
+        var queue = new BackgroundTaskQueue(capacity: 10);
+        var crawlRan = false;
+        var handler = new SearchHandler(SearchResult)
+        {
+            OnPost = n =>
+            {
+                if (n == 1) queue.TryEnqueue((_, _) => { crawlRan = true; return Task.CompletedTask; });
+            },
+        };
+        var crawler = Crawler(handler);
+        using var provider = Provider(crawler, queue);
+
+        Assert.True(ClubService.TryBegin(crId));
+        await provider.GetRequiredService<ClubService>().FillAsync(crId);
+
+        Assert.Equal(ClubService.LookupsPerChunk, handler.Posts);
+        Assert.Equal((15, true), await Service().StatusAsync(open));
+
+        var next = await queue.DequeueAsync(CancellationToken.None);
+        await next(provider, CancellationToken.None);
+        Assert.True(crawlRan, "Der Crawl muss vor dem Rest des Vereinslaufs drankommen.");
+        Assert.Equal(ClubService.LookupsPerChunk, handler.Posts);
+
+        using var timeout = new CancellationTokenSource(TimeSpan.FromSeconds(10));
+        var jobs = 0;
+        while ((await Service().StatusAsync(open)).Running)
+        {
+            var item = await queue.DequeueAsync(timeout.Token);
+            await item(provider, CancellationToken.None);
+            jobs++;
+        }
+
+        Assert.Equal(2, jobs);   // 10 + 5
+        Assert.Equal(25, handler.Posts);
+        Assert.Equal((0, false), await Service().StatusAsync(open));
+        Assert.True(ClubService.TryBegin(crId));   // freigegeben
+        ClubService.End(crId);
+    }
+
+    /// <summary>Ist die Schlange voll, geht der Lauf im selben Auftrag weiter und gibt sich am Ende frei.</summary>
+    [Fact]
+    public async Task Fill_WhenQueueIsFull_FinishesInTheSameJob()
+    {
+        const string crId = "990232";
+        var open = await TournamentAsync(crId, "Open", "20.07.2026");
+        for (var i = 1; i <= 15; i++)
+            await PlayerAsync(open, i, $"Spieler{i:00}, Max", (990100 + i).ToString());
+        var queue = new BackgroundTaskQueue(capacity: 1);
+        Assert.True(queue.TryEnqueue((_, _) => Task.CompletedTask));
+        var handler = new SearchHandler(SearchResult);
+        var crawler = Crawler(handler);
+
+        Assert.True(ClubService.TryBegin(crId));
+        await new ClubService(_db, crawler, NullLogger<ClubService>.Instance, queue).FillAsync(crId);
+
+        Assert.Equal(15, handler.Posts);
+        Assert.Equal((0, false), await Service().StatusAsync(open));
     }
 }

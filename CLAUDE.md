@@ -151,6 +151,9 @@ tests/ChessResultsCrawler.Tests/
 - **Flexibles Parsing**: Header-Matching toleriert Variationen (z.B. "Nr."/"Snr", "Rtg"/"Elo", "Fed"/"FED")
 - **Score-Formate**: Parst "3,5:0,5", "3.5:0.5", "3:1"
 - **Hintergrund-Jobs**: Async-Ausfuehrung mit eigenem Service-Scope, Status-Tracking in CrawlJobs-Tabelle
+- **Eine Schlange, ein Worker**: Crawls, Spielerdetails und „Vereine nachtragen" laufen nacheinander. Ein Vereinslauf
+  (bis 150 Spieler) sucht deshalb je Auftrag nur `ClubService.LookupsPerChunk` (10) Spieler und stellt den Rest hinten an —
+  ein Crawl, der währenddessen kommt, wartet höchstens ein Häppchen. Der Rate-Limiter bleibt global.
 - **Upsert-Logik**: Re-Crawl ueberschreibt bestehende Paarungen pro Runde
 
 ## EF Core Migrations
