@@ -183,6 +183,10 @@ docker compose -f compose.vpn.yml --env-file .env.vpn up --build
 ```
 Crawler-Swagger: http://localhost:8080/swagger/ui/index.html
 
+**API-Schlüssel**: Ohne `API_KEY` (oder mit dem Platzhalter aus der .env-Vorlage) antwortet der Crawler in JEDER
+Umgebung auf alles außer `/api/health` mit 503 — denselben Wert wie RookHubs `CRAWLER_API_KEY` setzen. Nur für
+lokale Entwicklung ohne Schlüssel: `API_KEY_ALLOW_ANONYMOUS=true` (gilt nicht in Production).
+
 Standalone (nur Crawler + eigene DB, braucht VPN-Config in .env):
 ```bash
 docker compose up --build
