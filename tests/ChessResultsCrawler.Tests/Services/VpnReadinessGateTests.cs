@@ -2,6 +2,7 @@ using System.Net;
 using ChessResultsCrawler.Services;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using Moq;
 
 namespace ChessResultsCrawler.Tests.Services;
@@ -10,6 +11,9 @@ public class VpnReadinessGateTests
 {
     private static IConfiguration Config(Dictionary<string, string?> values) =>
         new ConfigurationBuilder().AddInMemoryCollection(values).Build();
+
+    private static VpnReadinessGate Gate(IHttpClientFactory factory, IConfiguration config) =>
+        new(factory, config, Options.Create(GluetunOptions.From(config)), Mock.Of<ILogger<VpnReadinessGate>>());
 
     private static IHttpClientFactory Factory(Func<HttpRequestMessage, HttpResponseMessage> handler)
     {
@@ -23,10 +27,9 @@ public class VpnReadinessGateTests
         // WaitForReady nicht gesetzt (= false): das Gate darf NICHT probieren/blockieren,
         // auch wenn der Handler werfen würde (kein VPN in Dev).
         var probed = false;
-        var gate = new VpnReadinessGate(
+        var gate = Gate(
             Factory(_ => { probed = true; throw new HttpRequestException("should not be called"); }),
-            Config(new() { ["Gluetun:WaitForReady"] = "false" }),
-            Mock.Of<ILogger<VpnReadinessGate>>());
+            Config(new() { ["Gluetun:WaitForReady"] = "false" }));
 
         await gate.WaitUntilReadyAsync(CancellationToken.None);
 
@@ -36,7 +39,7 @@ public class VpnReadinessGateTests
     [Fact]
     public async Task WaitUntilReadyAsync_TunnelReady_Completes()
     {
-        var gate = new VpnReadinessGate(
+        var gate = Gate(
             Factory(_ => new HttpResponseMessage(HttpStatusCode.OK)
             {
                 Content = new StringContent("""{"public_ip":"141.98.102.179"}""")
@@ -46,8 +49,7 @@ public class VpnReadinessGateTests
                 ["Gluetun:WaitForReady"] = "true",
                 ["Gluetun:ReadyTimeoutSeconds"] = "5",
                 ["Gluetun:ReadyPollSeconds"] = "0"
-            }),
-            Mock.Of<ILogger<VpnReadinessGate>>());
+            }));
 
         // Sollte praktisch sofort zurückkehren (Public-IP beim ersten Versuch da).
         await gate.WaitUntilReadyAsync(CancellationToken.None);
@@ -56,15 +58,14 @@ public class VpnReadinessGateTests
     [Fact]
     public async Task WaitUntilReadyAsync_NeverReady_ProceedsAfterTimeout()
     {
-        var gate = new VpnReadinessGate(
+        var gate = Gate(
             Factory(_ => throw new HttpRequestException("Resource temporarily unavailable")),
             Config(new()
             {
                 ["Gluetun:WaitForReady"] = "true",
                 ["Gluetun:ReadyTimeoutSeconds"] = "1",
                 ["Gluetun:ReadyPollSeconds"] = "0"
-            }),
-            Mock.Of<ILogger<VpnReadinessGate>>());
+            }));
 
         // Darf nicht ewig hängen: nach dem (kurzen) Timeout fortfahren.
         var task = gate.WaitUntilReadyAsync(CancellationToken.None);

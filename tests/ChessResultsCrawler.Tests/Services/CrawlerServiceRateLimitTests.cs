@@ -108,14 +108,14 @@ public class CrawlerServiceRateLimitTests : IDisposable
             var factory = Mock.Of<IHttpClientFactory>(f => f.CreateClient("Gluetun") == gluetun);
             var config = new ConfigurationBuilder().AddInMemoryCollection(new Dictionary<string, string?>
             {
-                ["Gluetun__ApiUrl"] = "http://gluetun.test:8000",
+                ["Gluetun:ApiUrl"] = "http://gluetun.test:8000",
                 ["Crawler:MinDelayMs"] = "0",
                 ["Crawler:RetryDelayMs"] = "0",
                 ["Crawler:VpnRestartPauseMs"] = "0",
                 ["Crawler:RotateAfterRequests"] = "1",   // jeder Riegel-Durchlauf rotiert
             }).Build();
 
-            _service = new CrawlerService(crawl, factory, new HtmlParserService(), db,
+            _service = new CrawlerService(crawl, new HtmlParserService(), db,
                 Mock.Of<ILogger<CrawlerService>>(), config, TestVpnGate.From(factory, config));
         }
 

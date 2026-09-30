@@ -148,7 +148,7 @@ public class RotateOnConnectFailureHandlerTests
         {
             ["Crawler:VpnRestartPauseMs"] = "0",
         }).Build();
-        return new VpnReadinessGate(factory.Object, config, NullLogger<VpnReadinessGate>.Instance);
+        return TestVpnGate.From(factory.Object, config);
     }
 
     private sealed class AlwaysFailsHandler : HttpMessageHandler

@@ -1,6 +1,7 @@
 using ChessResultsCrawler.Services;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging.Abstractions;
+using Microsoft.Extensions.Options;
 using Moq;
 
 namespace ChessResultsCrawler.Tests.Services;
@@ -26,7 +27,8 @@ internal static class TestVpnGate
     /// <summary>Ein Gate auf der uebergebenen Client-Fabrik — fuer die Tests, die den
     /// Tunnel-Neustart selbst beobachten.</summary>
     public static VpnReadinessGate From(IHttpClientFactory factory, IConfiguration configuration) =>
-        new(factory, configuration, NullLogger<VpnReadinessGate>.Instance);
+        new(factory, configuration, Options.Create(GluetunOptions.From(configuration)),
+            NullLogger<VpnReadinessGate>.Instance);
 
     private sealed class ThrowingHandler : HttpMessageHandler
     {

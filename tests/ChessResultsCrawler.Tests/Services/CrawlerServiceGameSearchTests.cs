@@ -42,8 +42,7 @@ public class CrawlerServiceGameSearchTests : IDisposable
             ["Crawler:MinDelayMs"] = "0", ["Crawler:RetryDelayMs"] = "0", ["Crawler:CrawlMaxAttempts"] = "1",
             ["Crawler:CrawlRetryBackoffSeconds"] = "0",
         }).Build();
-        var factory = Mock.Of<IHttpClientFactory>(f => f.CreateClient("Gluetun") == new HttpClient());
-        var svc = new CrawlerService(new HttpClient(handler), factory, new HtmlParserService(), _db,
+        var svc = new CrawlerService(new HttpClient(handler), new HtmlParserService(), _db,
             Mock.Of<ILogger<CrawlerService>>(), config, TestVpnGate.Unused());
         return (svc, () => form);
     }

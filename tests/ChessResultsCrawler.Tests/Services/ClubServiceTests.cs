@@ -176,14 +176,13 @@ public class ClubServiceTests : IDisposable
     {
         var config = new ConfigurationBuilder().AddInMemoryCollection(new Dictionary<string, string?>
         {
-            ["Gluetun__ApiUrl"] = "http://localhost:8000",
+            ["Gluetun:ApiUrl"] = "http://localhost:8000",
             ["Crawler:RetryDelayMs"] = "0",
             ["Crawler:MinDelayMs"] = "0",
             ["Crawler:CrawlMaxAttempts"] = "1",
             ["Crawler:RotateAfterRequests"] = "1000000",
         }).Build();
-        var factory = Mock.Of<IHttpClientFactory>(f => f.CreateClient("Gluetun") == new HttpClient());
-        return new CrawlerService(new HttpClient(handler), factory, new HtmlParserService(),
+        return new CrawlerService(new HttpClient(handler), new HtmlParserService(),
             _db, Mock.Of<ILogger<CrawlerService>>(), config, TestVpnGate.Unused());
     }
 

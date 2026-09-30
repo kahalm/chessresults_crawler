@@ -251,8 +251,7 @@ public class CrawlerServicePostBackTests : IDisposable
                 ["Crawler:RetryDelayMs"] = "0",
                 ["Crawler:RotateAfterRequests"] = "1000000",
             }).Build();
-            var factory = Mock.Of<IHttpClientFactory>(f => f.CreateClient("Gluetun") == new HttpClient());
-            Service = new CrawlerService(crawl, factory, new HtmlParserService(), db,
+            Service = new CrawlerService(crawl, new HtmlParserService(), db,
                 Mock.Of<ILogger<CrawlerService>>(), config, TestVpnGate.Unused());
         }
 

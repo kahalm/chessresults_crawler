@@ -163,8 +163,7 @@ public class PlayerTournamentRoutesTests : IDisposable
             ["Crawler:CrawlRetryBackoffSeconds"] = "0",
         }).Build();
 
-        var factory = Mock.Of<IHttpClientFactory>(f => f.CreateClient("Gluetun") == new HttpClient());
-        return new CrawlerService(new HttpClient(handler), factory, new HtmlParserService(), _db,
+        return new CrawlerService(new HttpClient(handler), new HtmlParserService(), _db,
             Mock.Of<ILogger<CrawlerService>>(), config, TestVpnGate.Unused());
     }
 

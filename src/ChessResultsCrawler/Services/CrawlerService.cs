@@ -14,18 +14,15 @@ namespace ChessResultsCrawler.Services;
 public class CrawlerService
 {
     private readonly HttpClient _httpClient;
-    private readonly HttpClient _gluetunClient;
     private readonly VpnReadinessGate _vpnGate;
     private readonly HtmlParserService _parser;
     private readonly AppDbContext _db;
     private readonly ILogger<CrawlerService> _logger;
-    private readonly string _gluetunApiUrl;
     private readonly int _retryDelayMs;
     private readonly int _crawlMaxAttempts;
     private readonly int _crawlRetryBackoffSeconds;
     private readonly long _maxResponseBytes;
     private readonly int _rotateAfterRequests;
-    private readonly int _vpnRestartPauseMs;
     private readonly int _minDelayMs;
     private static readonly SemaphoreSlim _rateLimiter = new(1, 1);
 
@@ -49,12 +46,8 @@ public class CrawlerService
     /// Test nagelt die Beziehung fest.
     /// </summary>
     internal const int DefaultMinDelayMs = 1500;
-    private const int DefaultVpnRestartPauseMs = 3000;
     private const int DefaultRotateAfterRequests = 20;
     private const int DefaultRetryDelayMs = 5000;
-    // Zeitbudget für die gluetun-Control-Calls einer Rotation (zusätzlich zur Neustart-Pause).
-    // Endlich, aber großzügig: die Rotation darf weder ewig hängen noch vorzeitig abbrechen.
-    private const int VpnControlTimeoutMs = 30000;
     // Re-Queue eines kompletten Crawls bei Verbindungsfehlern (z.B. VPN-Tunnel kurz weg nach
     // Rotation/Deploy): bis zu CrawlMaxAttempts Anläufe mit gestuftem Backoff, statt sofort Failed.
     private const int DefaultCrawlMaxAttempts = 4;
@@ -71,23 +64,20 @@ public class CrawlerService
     // (z.B. "Retry-After: 86400"), die einen Crawl sonst stundenlang schlafen legen würden.
     private static readonly TimeSpan MaxRetryAfter = TimeSpan.FromMinutes(5);
 
-    public CrawlerService(HttpClient httpClient, IHttpClientFactory httpClientFactory, HtmlParserService parser, AppDbContext db,
+    public CrawlerService(HttpClient httpClient, HtmlParserService parser, AppDbContext db,
         ILogger<CrawlerService> logger, IConfiguration configuration, VpnReadinessGate vpnGate)
     {
         _httpClient = httpClient;
         _vpnGate = vpnGate;
-        _gluetunClient = httpClientFactory.CreateClient("Gluetun");
         _parser = parser;
         _db = db;
         _logger = logger;
-        _gluetunApiUrl = configuration["Gluetun:ApiUrl"] ?? configuration["Gluetun__ApiUrl"] ?? "http://localhost:8000";
         _retryDelayMs = configuration.GetValue("Crawler:RetryDelayMs", DefaultRetryDelayMs);
         _crawlMaxAttempts = Math.Max(1, configuration.GetValue("Crawler:CrawlMaxAttempts", DefaultCrawlMaxAttempts));
         // -1 ⇒ gestufte Default-Backoffs; >=0 ⇒ flacher Wert (v.a. für Tests, um schnell zu sein).
         _crawlRetryBackoffSeconds = configuration.GetValue("Crawler:CrawlRetryBackoffSeconds", -1);
         _maxResponseBytes = Math.Max(1024, configuration.GetValue("Crawler:MaxResponseBytes", DefaultMaxResponseBytes));
         _rotateAfterRequests = Math.Max(1, configuration.GetValue("Crawler:RotateAfterRequests", DefaultRotateAfterRequests));
-        _vpnRestartPauseMs = Math.Max(0, configuration.GetValue("Crawler:VpnRestartPauseMs", DefaultVpnRestartPauseMs));
         _minDelayMs = Math.Max(0, configuration.GetValue("Crawler:MinDelayMs", DefaultMinDelayMs));
     }
 

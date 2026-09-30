@@ -27,7 +27,7 @@ public class CrawlerServiceTests : IDisposable
     {
         var dict = new Dictionary<string, string?>
         {
-            ["Gluetun__ApiUrl"] = "http://localhost:8000",
+            ["Gluetun:ApiUrl"] = "http://localhost:8000",
             // Tests: kein interner Fetch-Retry-Delay und (per Default) kein Crawl-Re-Queue,
             // damit die Verhaltens-Tests schnell bleiben. Backoff zwischen Re-Queues = 0 s.
             ["Crawler:RetryDelayMs"] = "0",
@@ -54,9 +54,7 @@ public class CrawlerServiceTests : IDisposable
     {
         var parser = new HtmlParserService();
         var logger = Mock.Of<ILogger<CrawlerService>>();
-        var httpClientFactory = Mock.Of<IHttpClientFactory>(f =>
-            f.CreateClient("Gluetun") == new HttpClient());
-        return new CrawlerService(httpClient, httpClientFactory, parser, _db, logger, BuildConfig(crawlMaxAttempts, maxResponseBytes), TestVpnGate.Unused());
+        return new CrawlerService(httpClient, parser, _db, logger, BuildConfig(crawlMaxAttempts, maxResponseBytes), TestVpnGate.Unused());
     }
 
     [Fact]

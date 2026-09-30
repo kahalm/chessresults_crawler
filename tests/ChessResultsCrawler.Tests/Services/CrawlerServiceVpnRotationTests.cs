@@ -4,6 +4,7 @@ using ChessResultsCrawler.Services;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using Moq;
 
 namespace ChessResultsCrawler.Tests.Services;
@@ -74,14 +75,14 @@ public class CrawlerServiceVpnRotationTests : IDisposable
         var factory = Mock.Of<IHttpClientFactory>(f => f.CreateClient("Gluetun") == gluetun);
         var config = new ConfigurationBuilder().AddInMemoryCollection(new Dictionary<string, string?>
         {
-            ["Gluetun__ApiUrl"] = "http://gluetun.test:8000",
+            ["Gluetun:ApiUrl"] = "http://gluetun.test:8000",
             ["Crawler:RetryDelayMs"] = "0",
             ["Crawler:MinDelayMs"] = "0",           // keine Inter-Request-Wartezeit → Rückkehr im ms-Bereich
             ["Crawler:VpnRestartPauseMs"] = "0",    // kein 3-s-Neustart-Delay im Test
             ["Crawler:RotateAfterRequests"] = "1",  // erste Anfrage rotiert bereits
         }).Build();
 
-        var service = new CrawlerService(crawl, factory, new HtmlParserService(), _db,
+        var service = new CrawlerService(crawl, new HtmlParserService(), _db,
             Mock.Of<ILogger<CrawlerService>>(), config, TestVpnGate.From(factory, config));
 
         // Act: ein Fetch → genau eine Rotation.
@@ -128,14 +129,14 @@ public class CrawlerServiceVpnRotationTests : IDisposable
         var factory = Mock.Of<IHttpClientFactory>(f => f.CreateClient("Gluetun") == gluetun);
         var config = new ConfigurationBuilder().AddInMemoryCollection(new Dictionary<string, string?>
         {
-            ["Gluetun__ApiUrl"] = "http://gluetun.test:8000",
+            ["Gluetun:ApiUrl"] = "http://gluetun.test:8000",
             ["Crawler:RetryDelayMs"] = "0",
             ["Crawler:MinDelayMs"] = "0",
             ["Crawler:VpnRestartPauseMs"] = "20",   // kurze, aber echte Pause zwischen stop und start
             ["Crawler:RotateAfterRequests"] = "1",
         }).Build();
 
-        var service = new CrawlerService(crawl, factory, new HtmlParserService(), _db,
+        var service = new CrawlerService(crawl, new HtmlParserService(), _db,
             Mock.Of<ILogger<CrawlerService>>(), config, TestVpnGate.From(factory, config));
 
         // Der Fetch selbst darf am gecancelten Token scheitern — die Rotation nicht.
@@ -184,14 +185,14 @@ public class CrawlerServiceVpnRotationTests : IDisposable
         var factory = Mock.Of<IHttpClientFactory>(f => f.CreateClient("Gluetun") == gluetun);
         var config = new ConfigurationBuilder().AddInMemoryCollection(new Dictionary<string, string?>
         {
-            ["Gluetun__ApiUrl"] = "http://gluetun.test:8000",
+            ["Gluetun:ApiUrl"] = "http://gluetun.test:8000",
             ["Crawler:RetryDelayMs"] = "0",
             ["Crawler:MinDelayMs"] = "0",
             ["Crawler:VpnRestartPauseMs"] = "20",
             ["Crawler:RotateAfterRequests"] = "1",
         }).Build();
 
-        var service = new CrawlerService(crawl, factory, new HtmlParserService(), _db,
+        var service = new CrawlerService(crawl, new HtmlParserService(), _db,
             Mock.Of<ILogger<CrawlerService>>(), config, TestVpnGate.From(factory, config));
 
         await service.FetchPageAsync("https://chess-results.com/tnr1.aspx?lan=0", "art=0", CancellationToken.None);
@@ -260,7 +261,8 @@ public class CrawlerServiceVpnRotationTests : IDisposable
             Task.FromResult(new HttpResponseMessage(HttpStatusCode.Unauthorized))));
         var factory = Mock.Of<IHttpClientFactory>(f => f.CreateClient("Gluetun") == gluetun);
         var logger = new CapturingLogger<VpnReadinessGate>();
-        var gate = new VpnReadinessGate(factory, RotationConfig(), logger);
+        var config = RotationConfig();
+        var gate = new VpnReadinessGate(factory, config, Options.Create(GluetunOptions.From(config)), logger);
 
         await gate.RotateAsync(CancellationToken.None);
 
@@ -302,7 +304,7 @@ public class CrawlerServiceVpnRotationTests : IDisposable
         var factory = Mock.Of<IHttpClientFactory>(f => f.CreateClient("Gluetun") == gluetun);
         var config = RotationConfig();
         var gate = TestVpnGate.From(factory, config);
-        var service = new CrawlerService(crawl, factory, new HtmlParserService(), _db,
+        var service = new CrawlerService(crawl, new HtmlParserService(), _db,
             Mock.Of<ILogger<CrawlerService>>(), config, gate);
 
         var fetch = service.FetchPageAsync("https://chess-results.com/tnr1.aspx?lan=0", "art=0");
@@ -347,7 +349,7 @@ public class CrawlerServiceVpnRotationTests : IDisposable
         }));
         var config = RotationConfig();
         var gate = TestVpnGate.Unused();
-        var service = new CrawlerService(crawl, Mock.Of<IHttpClientFactory>(), new HtmlParserService(), _db,
+        var service = new CrawlerService(crawl, new HtmlParserService(), _db,
             Mock.Of<ILogger<CrawlerService>>(), config, gate);
 
         await service.FetchPageAsync("https://chess-results.com/tnr1.aspx?lan=0", "art=0");

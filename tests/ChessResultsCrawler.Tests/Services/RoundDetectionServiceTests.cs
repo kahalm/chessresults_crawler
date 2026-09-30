@@ -50,12 +50,11 @@ public class RoundDetectionServiceTests : IDisposable
         var handler = new CountingHandler();
         var config = new ConfigurationBuilder().AddInMemoryCollection(new Dictionary<string, string?>
         {
-            ["Gluetun__ApiUrl"] = "http://localhost:8000",
+            ["Gluetun:ApiUrl"] = "http://localhost:8000",
             ["Crawler:RetryDelayMs"] = "0",
             ["Crawler:MinDelayMs"] = "0",
         }).Build();
-        var factory = Mock.Of<IHttpClientFactory>(f => f.CreateClient("Gluetun") == new HttpClient());
-        var crawler = new CrawlerService(new HttpClient(handler), factory, new HtmlParserService(),
+        var crawler = new CrawlerService(new HttpClient(handler), new HtmlParserService(),
             _db, Mock.Of<ILogger<CrawlerService>>(), config, TestVpnGate.Unused());
         var sut = new RoundDetectionService(crawler, new HtmlParserService(), _db,
             new MemoryCache(new MemoryCacheOptions()));
@@ -75,12 +74,11 @@ public class RoundDetectionServiceTests : IDisposable
         var handler = new CountingHandler();
         var config = new ConfigurationBuilder().AddInMemoryCollection(new Dictionary<string, string?>
         {
-            ["Gluetun__ApiUrl"] = "http://localhost:8000",
+            ["Gluetun:ApiUrl"] = "http://localhost:8000",
             ["Crawler:RetryDelayMs"] = "0",
             ["Crawler:MinDelayMs"] = "0",
         }).Build();
-        var factory = Mock.Of<IHttpClientFactory>(f => f.CreateClient("Gluetun") == new HttpClient());
-        var crawler = new CrawlerService(new HttpClient(handler), factory, new HtmlParserService(),
+        var crawler = new CrawlerService(new HttpClient(handler), new HtmlParserService(),
             _db, Mock.Of<ILogger<CrawlerService>>(), config, TestVpnGate.Unused());
         var sut = new RoundDetectionService(crawler, new HtmlParserService(), _db,
             new MemoryCache(new MemoryCacheOptions()));

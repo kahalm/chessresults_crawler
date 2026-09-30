@@ -31,15 +31,14 @@ public class CrawlerServiceHttpRetryTests : IDisposable
     {
         var config = new ConfigurationBuilder().AddInMemoryCollection(new Dictionary<string, string?>
         {
-            ["Gluetun__ApiUrl"] = "http://localhost:8000",
+            ["Gluetun:ApiUrl"] = "http://localhost:8000",
             ["Crawler:RetryDelayMs"] = retryDelayMs.ToString(),
             ["Crawler:MinDelayMs"] = "0",
             // Statischer Request-Zaehler: keine VPN-Rotation mitten im Test ausloesen.
             ["Crawler:RotateAfterRequests"] = "1000000",
             ["Crawler:VpnRestartPauseMs"] = "0",
         }).Build();
-        var httpClientFactory = Mock.Of<IHttpClientFactory>(f => f.CreateClient("Gluetun") == new HttpClient());
-        return new CrawlerService(new HttpClient(handler), httpClientFactory, new HtmlParserService(),
+        return new CrawlerService(new HttpClient(handler), new HtmlParserService(),
             _db, Mock.Of<ILogger<CrawlerService>>(), config, TestVpnGate.Unused());
     }
 

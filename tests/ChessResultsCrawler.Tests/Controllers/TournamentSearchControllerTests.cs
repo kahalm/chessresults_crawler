@@ -162,8 +162,7 @@ public class TournamentSearchControllerTests : IDisposable
             ["Crawler:CrawlRetryBackoffSeconds"] = "0",
         }).Build();
 
-        var factory = Mock.Of<IHttpClientFactory>(f => f.CreateClient("Gluetun") == new HttpClient());
-        var crawler = new CrawlerService(new HttpClient(handler), factory, new HtmlParserService(), _db,
+        var crawler = new CrawlerService(new HttpClient(handler), new HtmlParserService(), _db,
             Mock.Of<ILogger<CrawlerService>>(), config, TestVpnGate.Unused());
 
         return new TournamentSearchController(crawler);

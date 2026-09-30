@@ -1,4 +1,5 @@
 using System.Text;
+using Microsoft.Extensions.Options;
 using Serilog.Context;
 using ChessResultsCrawler.Models;
 
@@ -34,16 +35,15 @@ public class VpnReadinessGate
     private bool _ready;
 
     public VpnReadinessGate(IHttpClientFactory httpClientFactory, IConfiguration configuration,
-        ILogger<VpnReadinessGate> logger)
+        IOptions<GluetunOptions> gluetunOptions, ILogger<VpnReadinessGate> logger)
     {
         _httpClientFactory = httpClientFactory;
         _logger = logger;
         _enabled = configuration.GetValue("Gluetun:WaitForReady", false);
-        _apiUrl = configuration["Gluetun:ApiUrl"] ?? configuration["Gluetun__ApiUrl"] ?? "http://localhost:8000";
+        _apiUrl = gluetunOptions.Value.ApiUrl;
         _timeout = TimeSpan.FromSeconds(configuration.GetValue("Gluetun:ReadyTimeoutSeconds", 120));
         _pollInterval = TimeSpan.FromSeconds(configuration.GetValue("Gluetun:ReadyPollSeconds", 3));
-        // Dieselbe Einstellung wie im CrawlerService — die Rotation ist von dort hierher gezogen.
-        _restartPauseMs = Math.Max(0, configuration.GetValue("Crawler:VpnRestartPauseMs", 3000));
+        _restartPauseMs = gluetunOptions.Value.RestartPauseMs;
     }
 
     /// <summary>
@@ -123,8 +123,7 @@ public class VpnReadinessGate
     /// <summary>Wartezeit zwischen stop und start; Timeout der Steuer-Aufrufe.</summary>
     private const int VpnControlTimeoutMs = 30000;
 
-    /// <summary>Der gluetun-Steuer-Client — dieselbe Konfiguration wie im CrawlerService
-    /// (<see cref="GluetunClientSetup"/>).</summary>
+    /// <summary>Der gluetun-Steuer-Client — konfiguriert in <see cref="GluetunClientSetup"/>.</summary>
     private HttpClient Gluetun() => _httpClientFactory.CreateClient("Gluetun");
 
     // ----- Laufende Crawl-Anfragen ------------------------------------------

@@ -65,12 +65,11 @@ public class CrawlerServiceTeamPairingsTests : IDisposable
 
         var config = new ConfigurationBuilder().AddInMemoryCollection(new Dictionary<string, string?>
         {
-            ["Gluetun__ApiUrl"] = "http://localhost:8000",
+            ["Gluetun:ApiUrl"] = "http://localhost:8000",
             ["Crawler:RetryDelayMs"] = "0",
             ["Crawler:MinDelayMs"] = "0",
         }).Build();
-        var factory = Mock.Of<IHttpClientFactory>(f => f.CreateClient("Gluetun") == new HttpClient());
-        var svc = new CrawlerService(new HttpClient(new StubHandler(html)), factory, new HtmlParserService(),
+        var svc = new CrawlerService(new HttpClient(new StubHandler(html)), new HtmlParserService(),
             _db, Mock.Of<ILogger<CrawlerService>>(), config, TestVpnGate.Unused());
 
         await svc.CrawlTeamPairingsAsync(tournament, "https://chess-results.com/tnr1.aspx?lan=0",
@@ -100,15 +99,14 @@ public class CrawlerServiceTeamPairingsTests : IDisposable
     {
         var config = new ConfigurationBuilder().AddInMemoryCollection(new Dictionary<string, string?>
         {
-            ["Gluetun__ApiUrl"] = "http://localhost:8000",
+            ["Gluetun:ApiUrl"] = "http://localhost:8000",
             ["Crawler:RetryDelayMs"] = "0",
             ["Crawler:MinDelayMs"] = "0",
             ["Crawler:CrawlMaxAttempts"] = "1",
             // Der Olympiade-Crawl macht 14 Abrufe — ohne das rotierte er ueber TestVpnGate.Unused.
             ["Crawler:RotateAfterRequests"] = "1000000",
         }).Build();
-        var factory = Mock.Of<IHttpClientFactory>(f => f.CreateClient("Gluetun") == new HttpClient());
-        return new CrawlerService(new HttpClient(new RoutingHandler(route)), factory, new HtmlParserService(),
+        return new CrawlerService(new HttpClient(new RoutingHandler(route)), new HtmlParserService(),
             _db, Mock.Of<ILogger<CrawlerService>>(), config, TestVpnGate.Unused());
     }
 

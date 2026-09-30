@@ -68,10 +68,9 @@ try
     // Zeitlimit je Versuch an EINER Stelle — siehe SourceClientSetup.
     builder.Services.AddSourceClients();
 
-    // Timeout + optionaler X-API-Key (Gluetun:ApiKey) für alle Control-Server-Aufrufe —
-    // zentral in GluetunClientSetup, damit CrawlerService und VpnReadinessGate identisch laufen.
-    builder.Services.AddHttpClient("Gluetun",
-        client => GluetunClientSetup.Configure(client, builder.Configuration));
+    // Gluetun-Optionen (ApiUrl, ApiKey, Neustart-Pause) einmal gelesen + der Steuer-Client mit
+    // Timeout und optionalem X-API-Key — zentral in GluetunClientSetup.
+    builder.Services.AddGluetunControl();
     builder.Services.AddScoped<HtmlParserService>();
     builder.Services.AddScoped<TournamentService>();
     builder.Services.AddScoped<ClubService>();
