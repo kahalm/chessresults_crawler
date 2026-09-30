@@ -203,4 +203,177 @@ public class CrawlerServiceVpnRotationTests : IDisposable
             Assert.Contains("running", putBodies[1]);   // Recovery-start trotz geworfenem stop
         }
     }
+
+    // ----- Antwort des Steuer-Servers pruefen, laufende Anfragen abwarten (W4s S3-009) -----
+
+    private static IConfiguration RotationConfig() =>
+        new ConfigurationBuilder().AddInMemoryCollection(new Dictionary<string, string?>
+        {
+            ["Gluetun:ApiUrl"] = "http://gluetun.test:8000",
+            ["Crawler:RetryDelayMs"] = "0",
+            ["Crawler:MinDelayMs"] = "0",
+            ["Crawler:VpnRestartPauseMs"] = "0",
+            // Kein Abruf rotiert von selbst — die Tests loesen den Wechsel gezielt aus.
+            ["Crawler:RotateAfterRequests"] = "1000000",
+        }).Build();
+
+    [Fact]
+    public async Task Rotation_StartAnsweredWithErrorStatus_SendsRecoveryStart()
+    {
+        // stop kam durch (200), das start beantwortet gluetun mit 500. Frueher wertete der Crawler
+        // den Status nicht aus, hielt den Wechsel fuer fertig und schickte kein Recovery-start —
+        // der Tunnel blieb bis zur naechsten Rotation unten.
+        var putBodies = new List<string>();
+        var gluetun = new HttpClient(new RecordingHandler(async req =>
+        {
+            var body = await req.Content!.ReadAsStringAsync();
+            int runningSoFar;
+            lock (putBodies)
+            {
+                putBodies.Add(body);
+                runningSoFar = putBodies.Count(b => b.Contains("running"));
+            }
+            return new HttpResponseMessage(body.Contains("running") && runningSoFar == 1
+                ? HttpStatusCode.InternalServerError
+                : HttpStatusCode.OK);
+        }));
+        var factory = Mock.Of<IHttpClientFactory>(f => f.CreateClient("Gluetun") == gluetun);
+        var gate = TestVpnGate.From(factory, RotationConfig());
+
+        Assert.True(await gate.RotateAsync(CancellationToken.None));
+
+        lock (putBodies)
+        {
+            Assert.Equal(3, putBodies.Count);
+            Assert.Contains("stopped", putBodies[0]);
+            Assert.Contains("running", putBodies[1]);   // abgelehnt
+            Assert.Contains("running", putBodies[2]);   // Recovery-start
+        }
+    }
+
+    [Fact]
+    public async Task Rotation_ControlServerRejects401_IsReportedAsFailed()
+    {
+        // gluetun-Authentifizierung aktiv, Crawler-Key falsch: beide PUTs liefern 401. Frueher flog
+        // keine Exception, der Wechsel galt als gelungen („VPN IP rotated → <alte IP>“), ohne Warnung.
+        var gluetun = new HttpClient(new RecordingHandler(_ =>
+            Task.FromResult(new HttpResponseMessage(HttpStatusCode.Unauthorized))));
+        var factory = Mock.Of<IHttpClientFactory>(f => f.CreateClient("Gluetun") == gluetun);
+        var logger = new CapturingLogger<VpnReadinessGate>();
+        var gate = new VpnReadinessGate(factory, RotationConfig(), logger);
+
+        await gate.RotateAsync(CancellationToken.None);
+
+        Assert.Contains(logger.Entries, e =>
+            e.Level == LogLevel.Warning && e.Message.Contains("VPN rotation failed"));
+        // Der Recovery-start bekommt ebenfalls 401 — er darf sich nicht als gelungen melden.
+        Assert.DoesNotContain(logger.Entries, e => e.Message.Contains("per Recovery-start reaktiviert"));
+        Assert.Contains(logger.Entries, e =>
+            e.Level == LogLevel.Error && e.Message.Contains("VPN recovery start failed"));
+    }
+
+    [Fact]
+    public async Task Rotation_WaitsUntilCrawlRequestInFlightHasFinished()
+    {
+        // Der Riegel galt nur fuer Drosselung und Wechsel, die Anfrage selbst lief danach ohne ihn.
+        // Ein zweiter Aufrufer konnte so den Tunnel unter einer laufenden Anfrage stoppen.
+        var events = new List<string>();
+        void Record(string e) { lock (events) events.Add(e); }
+        var requestStarted = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+        var releaseRequest = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+
+        var gluetun = new HttpClient(new RecordingHandler(async req =>
+        {
+            if (req.Method == HttpMethod.Put)
+                Record((await req.Content!.ReadAsStringAsync()).Contains("stopped") ? "stop" : "start");
+            return new HttpResponseMessage(HttpStatusCode.OK);
+        }));
+        var crawl = new HttpClient(new RecordingHandler(async _ =>
+        {
+            requestStarted.TrySetResult();
+            await releaseRequest.Task;
+            Record("request-done");
+            return new HttpResponseMessage(HttpStatusCode.OK)
+            {
+                Content = new StringContent("<html><body><h2>T</h2></body></html>"),
+                RequestMessage = new HttpRequestMessage(HttpMethod.Get, "https://chess-results.com/tnr1.aspx?lan=0"),
+            };
+        }));
+        var factory = Mock.Of<IHttpClientFactory>(f => f.CreateClient("Gluetun") == gluetun);
+        var config = RotationConfig();
+        var gate = TestVpnGate.From(factory, config);
+        var service = new CrawlerService(crawl, factory, new HtmlParserService(), _db,
+            Mock.Of<ILogger<CrawlerService>>(), config, gate);
+
+        var fetch = service.FetchPageAsync("https://chess-results.com/tnr1.aspx?lan=0", "art=0");
+        await requestStarted.Task.WaitAsync(TimeSpan.FromSeconds(10));
+
+        var rotation = gate.RotateAsync(CancellationToken.None);
+        await Task.WhenAny(rotation, Task.Delay(500));
+        Assert.False(rotation.IsCompleted, "Der Wechsel darf nicht unter einer laufenden Anfrage stattfinden");
+        lock (events) Assert.DoesNotContain("stop", events);
+
+        releaseRequest.SetResult();
+        Assert.Contains("<h2>T</h2>", await fetch.WaitAsync(TimeSpan.FromSeconds(10)));
+        Assert.True(await rotation.WaitAsync(TimeSpan.FromSeconds(10)));
+        lock (events) Assert.Equal(new[] { "request-done", "stop", "start" }, events);
+    }
+
+    [Fact]
+    public async Task FinishedOrFailedRequests_ReleaseTheirInFlightSlot()
+    {
+        // Eine Anmeldung, die nicht zurueckgegeben wird, liesse jeden folgenden Wechsel die volle
+        // Drain-Zeit (25 s) warten. Erfolg, 404, Verbindungsfehler und ein abgelehnter POST.
+        const string formPage =
+            "<html><body><form>" +
+            "<input type=\"hidden\" name=\"__VIEWSTATE\" value=\"VS\" />" +
+            "<input type=\"hidden\" name=\"__VIEWSTATEGENERATOR\" value=\"VSG\" />" +
+            "<input type=\"hidden\" name=\"__EVENTVALIDATION\" value=\"EV\" />" +
+            "</form></body></html>";
+        var crawl = new HttpClient(new RecordingHandler(req =>
+        {
+            var url = req.RequestUri!.ToString();
+            if (url.Contains("tnr404"))
+                return Task.FromResult(new HttpResponseMessage(HttpStatusCode.NotFound) { RequestMessage = req });
+            if (url.Contains("tnrdown"))
+                throw new HttpRequestException("connection refused");
+            return Task.FromResult(new HttpResponseMessage(req.Method == HttpMethod.Post
+                ? HttpStatusCode.InternalServerError
+                : HttpStatusCode.OK)
+            {
+                Content = new StringContent(formPage, System.Text.Encoding.UTF8, "text/html"),
+                RequestMessage = req,
+            });
+        }));
+        var config = RotationConfig();
+        var gate = TestVpnGate.Unused();
+        var service = new CrawlerService(crawl, Mock.Of<IHttpClientFactory>(), new HtmlParserService(), _db,
+            Mock.Of<ILogger<CrawlerService>>(), config, gate);
+
+        await service.FetchPageAsync("https://chess-results.com/tnr1.aspx?lan=0", "art=0");
+        Assert.Equal(0, gate.InFlightRequests);
+
+        await Assert.ThrowsAsync<HttpRequestException>(() =>
+            service.FetchPageAsync("https://chess-results.com/tnr404.aspx?lan=0", "art=0"));
+        Assert.Equal(0, gate.InFlightRequests);
+
+        await Assert.ThrowsAsync<HttpRequestException>(() =>
+            service.FetchPageAsync("https://chess-results.com/tnrdown.aspx?lan=0", "art=0"));
+        Assert.Equal(0, gate.InFlightRequests);
+
+        await Assert.ThrowsAsync<HttpRequestException>(() => service.SearchPlayersAsync("Muster", "Max"));
+        Assert.Equal(0, gate.InFlightRequests);
+    }
+
+    private sealed class CapturingLogger<T> : ILogger<T>
+    {
+        public List<(LogLevel Level, string Message)> Entries { get; } = new();
+        public IDisposable? BeginScope<TState>(TState state) where TState : notnull => null;
+        public bool IsEnabled(LogLevel logLevel) => true;
+        public void Log<TState>(LogLevel logLevel, EventId eventId, TState state, Exception? exception,
+            Func<TState, Exception?, string> formatter)
+        {
+            lock (Entries) Entries.Add((logLevel, formatter(state, exception)));
+        }
+    }
 }

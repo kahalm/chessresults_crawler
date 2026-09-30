@@ -127,6 +127,62 @@ public class VpnReadinessGate
     /// (<see cref="GluetunClientSetup"/>).</summary>
     private HttpClient Gluetun() => _httpClientFactory.CreateClient("Gluetun");
 
+    // ----- Laufende Crawl-Anfragen ------------------------------------------
+    // Der Crawl-Riegel gilt nur fuer Drosselung und Wechsel; die Anfrage selbst laeuft danach ohne
+    // ihn. Ein Wechsel, den ein zweiter Aufrufer ausloest, stoppte den Tunnel deshalb unter einer
+    // laufenden Anfrage (im Mittel 3 s). Jede Crawl-Anfrage meldet sich darum hier an — noch UNTER
+    // dem Riegel, sonst bliebe zwischen Freigabe und Anmeldung ein Fenster — und der Wechsel wartet,
+    // bis keine mehr unterwegs ist (wie DrainInFlightAsync in piratechess).
+
+    /// <summary>Hoechstens so lange wartet ein Wechsel auf laufende Anfragen, dann wechselt er
+    /// trotzdem. Unter 60 s, damit die am Riegel Wartenden (60 s) nicht mit auslaufen.</summary>
+    internal const int DrainTimeoutMs = 25000;
+    private const int DrainPollMs = 25;
+    private int _inFlight;
+
+    /// <summary>Crawl-Anfragen, die gerade unterwegs sind (Diagnose/Tests).</summary>
+    internal int InFlightRequests => Volatile.Read(ref _inFlight);
+
+    /// <summary>
+    /// Meldet eine Crawl-Anfrage als unterwegs; <c>Dispose</c> meldet sie wieder ab. Der Aufrufer
+    /// haelt dabei den Crawl-Riegel (<see cref="CrawlerService.CrawlGate"/>).
+    /// </summary>
+    internal IDisposable BeginRequest()
+    {
+        Interlocked.Increment(ref _inFlight);
+        return new InFlightLease(this);
+    }
+
+    private sealed class InFlightLease(VpnReadinessGate gate) : IDisposable
+    {
+        private int _disposed;
+
+        public void Dispose()
+        {
+            if (Interlocked.Exchange(ref _disposed, 1) == 0)
+                Interlocked.Decrement(ref gate._inFlight);
+        }
+    }
+
+    /// <summary>Wartet, bis keine Crawl-Anfrage mehr unterwegs ist (hoechstens
+    /// <see cref="DrainTimeoutMs"/>). Ohne Aufrufer-Token, aus demselben Grund wie die Rotation.</summary>
+    private async Task DrainInFlightAsync()
+    {
+        var waited = 0;
+        while (Volatile.Read(ref _inFlight) > 0)
+        {
+            if (waited >= DrainTimeoutMs)
+            {
+                _logger.LogWarning(
+                    "Ausgangswechsel: {InFlight} Crawl-Anfrage(n) nach {WaitedMs} ms noch unterwegs — wechsle trotzdem",
+                    Volatile.Read(ref _inFlight), waited);
+                return;
+            }
+            await Task.Delay(DrainPollMs);
+            waited += DrainPollMs;
+        }
+    }
+
     /// <summary>
     /// Wechselt den Ausgang und HAELT dabei den Crawl-Riegel — der Weg fuer Aufrufer, die ihn
     /// nicht schon halten (die Quellen-Abrufe). Waehrend des Wechsels ist der Tunnel unten, es
@@ -158,6 +214,10 @@ public class VpnReadinessGate
     /// </summary>
     internal async Task RotateWhileGateHeldAsync()
     {
+        // Neue Anfragen kommen nicht mehr durch (der Aufrufer haelt den Riegel) — die schon
+        // laufenden erst zu Ende gehen lassen, dann den Tunnel stoppen.
+        await DrainInFlightAsync();
+
         var statusUrl = $"{_apiUrl}/v1/vpn/status";
         // stop→pause→start ist eine ATOMARE Einheit: sobald das stop draußen ist, MUSS ein start
         // folgen. Deshalb läuft die Rotation bewusst NICHT mit dem Aufrufer-Token — bricht der
@@ -179,10 +239,10 @@ public class VpnReadinessGate
             // Fall läuft kein Recovery — der Tunnel bliebe dauerhaft "stopped". Ein überflüssiges
             // Recovery-„running" ist dagegen harmlos (idempotent).
             stopSent = true;
-            await Gluetun().PutAsync(statusUrl, NewVpnStatusContent("stopped"), rotationCts.Token);
+            await PutVpnStatusAsync(statusUrl, "stopped", rotationCts.Token);
             await Task.Delay(_restartPauseMs, rotationCts.Token);
-            await Gluetun().PutAsync(statusUrl, NewVpnStatusContent("running"), rotationCts.Token);
-            stopSent = false;   // start durch → kein Recovery nötig
+            await PutVpnStatusAsync(statusUrl, "running", rotationCts.Token);
+            stopSent = false;   // start bestätigt (2xx) → kein Recovery nötig
             // Nach der Rotation den Rate-Limiter-Zeitstempel zuruecksetzen, damit die
             // erste Anfrage ueber die neue Verbindung den vollen DelayMs-Abstand abwartet.
             CrawlerService.ResetThrottleClock();
@@ -205,6 +265,17 @@ public class VpnReadinessGate
         new($$"""{"status":"{{status}}"}""", Encoding.UTF8, "application/json");
 
     /// <summary>
+    /// Setzt den Tunnel-Status und prueft die Antwort: ein Fehlerstatus (401 bei falschem
+    /// <c>X-API-Key</c>, 5xx) wirft wie ein Transportfehler. Ohne die Pruefung galt ein
+    /// abgelehnter Wechsel als gelungen, und nach einem abgelehnten start blieb das Recovery aus.
+    /// </summary>
+    private async Task PutVpnStatusAsync(string statusUrl, string status, CancellationToken ct)
+    {
+        using var response = await Gluetun().PutAsync(statusUrl, NewVpnStatusContent(status), ct);
+        response.EnsureSuccessStatusCode();
+    }
+
+    /// <summary>
     /// Letzte Rettung nach einer abgebrochenen/fehlgeschlagenen Rotation: das start-PUT wird noch
     /// einmal gefeuert, damit kein gestoppter Tunnel zurückbleibt. Bewusst ohne jeden Aufrufer-
     /// Token und mit eigenem kurzen Timeout — genau der Abbruch war ja die Ursache.
@@ -214,7 +285,7 @@ public class VpnReadinessGate
         try
         {
             using var cts = new CancellationTokenSource(TimeSpan.FromMilliseconds(VpnControlTimeoutMs));
-            await Gluetun().PutAsync(statusUrl, NewVpnStatusContent("running"), cts.Token);
+            await PutVpnStatusAsync(statusUrl, "running", cts.Token);
             _logger.LogWarning("VPN rotation abgebrochen — Tunnel per Recovery-start reaktiviert");
         }
         catch (Exception ex)

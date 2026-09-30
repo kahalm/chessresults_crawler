@@ -819,7 +819,7 @@ public class CrawlerService
         for (int attempt = 1; ; attempt++)
         {
             var isRetry = attempt > 1;
-            await RateLimitAsync(ct);
+            var inFlight = await RateLimitAsync(ct);
             _logger.LogDebug(isRetry ? "Retrying {Url}" : "Fetching {Url}", url);
             TimeSpan? retryAfter = null;
             var sw = Stopwatch.StartNew();
@@ -851,6 +851,12 @@ public class CrawlerService
                     throw;
                 _logger.LogWarning(ex, "Fetch failed for {Url} (Versuch {Attempt}/{Max})",
                     url, attempt, FetchMaxAttempts);
+            }
+            finally
+            {
+                // Anfrage zu Ende (gelesen oder gescheitert) — VOR der Wartezeit abmelden, sonst
+                // wartete ein Ausgangswechsel die ganze Pause bis zum naechsten Versuch mit ab.
+                inFlight.Dispose();
             }
 
             var delay = retryAfter ?? FetchBackoff(attempt);
@@ -1193,7 +1199,7 @@ public class CrawlerService
 
         var formData = buildForm(ExtractFormState(formHtml));
 
-        await RateLimitAsync(ct);
+        using var inFlight = await RateLimitAsync(ct);
         using var response = await SendFollowingRedirectsAsync(
             HttpMethod.Post, new Uri(resolvedUrl), () => new FormUrlEncodedContent(formData), ct);
 
@@ -1290,8 +1296,12 @@ public class CrawlerService
     /// durch den Riegel (je Versuch), der POST in <see cref="PostBackAsync"/> ruft ihn direkt davor.
     /// Ein zusaetzlicher Aufruf vor <see cref="FetchPageAsync"/> und Co. zaehlt doppelt: +1,5 s
     /// Wartezeit und die Rotation „alle N Abrufe" laeuft schon nach N/2.
+    /// <para>Gibt die Anmeldung der Anfrage beim Ausgangswechsel zurueck: der Aufrufer gibt sie
+    /// frei, sobald seine Anfrage fertig ist (Antwort gelesen oder gescheitert). Bis dahin wartet
+    /// ein Wechsel (<see cref="VpnReadinessGate.RotateWhileGateHeldAsync"/>), statt den Tunnel
+    /// unter der Anfrage zu stoppen.</para>
     /// </summary>
-    private async Task RateLimitAsync(CancellationToken ct = default)
+    private async Task<IDisposable> RateLimitAsync(CancellationToken ct = default)
     {
         if (!await _rateLimiter.WaitAsync(TimeSpan.FromSeconds(60), ct))
             throw new TimeoutException("Rate limiter acquisition timed out after 60 seconds.");
@@ -1318,6 +1328,9 @@ public class CrawlerService
                 await Task.Delay(_minDelayMs - (int)elapsed, ct);
             }
             _lastRequest = DateTime.UtcNow;
+            // Noch UNTER dem Riegel anmelden: danach koennte sonst ein anderer Aufrufer den Riegel
+            // nehmen und den Tunnel stoppen, bevor diese Anfrage als laufend zaehlt.
+            return _vpnGate.BeginRequest();
         }
         finally
         {
