@@ -105,19 +105,14 @@ public class TournamentSearchController : ControllerBase
     /// anbietet. Die Zeilen tragen Ident-Nummer und Fide-ID mit, damit der Aufrufer bei
     /// Namensgleichheit die richtige Person auswaehlen kann — und weil bei Auslandsturnieren die
     /// Ident-Nummer „0" ist und nur die Fide-ID die Identitaet traegt.</para>
+    ///
+    /// <para><c>GET /api/players/tournaments</c> ist ein Alias mit derselben Pruefung (Namen getrimmt, auf 100
+    /// Zeichen gekuerzt) — beide laufen durch <see cref="PlayerNameQuery.TournamentsAsync"/>.</para>
     /// </summary>
     [HttpGet("player-history")]
-    public async Task<ActionResult<List<PlayerTournamentResponse>>> PlayerHistory(
+    public Task<ActionResult<List<PlayerTournamentResponse>>> PlayerHistory(
         [FromQuery] string lastName, [FromQuery] string? firstName = null, CancellationToken ct = default)
-    {
-        if (string.IsNullOrWhiteSpace(lastName) || lastName.Trim().Length < 2)
-            return BadRequest(new { message = "lastName must have at least 2 characters." });
-
-        var results = await _crawlerService.SearchPlayerTournamentsAsync(
-            lastName.Trim(), firstName?.Trim(), ct);
-
-        return Ok(results.Select(PlayerTournamentResponse.FromParsed).ToList());
-    }
+        => PlayerNameQuery.TournamentsAsync(_crawlerService, lastName, firstName, ct);
 
     /// <summary>
     /// Kopfdaten EINES Turniers, ohne es zu importieren: Termin, Ort, Rundenzahl — und die

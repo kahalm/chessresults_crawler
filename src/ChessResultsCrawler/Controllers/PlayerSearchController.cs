@@ -19,27 +19,20 @@ public class PlayerSearchController : ControllerBase
     public async Task<ActionResult<List<PlayerSearchResponse>>> Search(
         [FromQuery] string lastName, [FromQuery] string? firstName, CancellationToken ct)
     {
-        if (string.IsNullOrWhiteSpace(lastName) || lastName.Trim().Length < 2)
-            return BadRequest(new { message = "lastName must be at least 2 characters." });
+        if (!PlayerNameQuery.TryNormalize(lastName, firstName, out var last, out var first))
+            return BadRequest(new { message = PlayerNameQuery.LastNameTooShortMessage });
 
-        if (lastName.Length > 100) lastName = lastName[..100];
-        if (firstName?.Length > 100) firstName = firstName[..100];
-
-        var results = await _crawlerService.SearchPlayersAsync(lastName.Trim(), firstName?.Trim(), ct);
+        var results = await _crawlerService.SearchPlayersAsync(last, first, ct);
         return Ok(results.Select(PlayerSearchResponse.FromParsed).ToList());
     }
 
+    /// <summary>
+    /// ALIAS von <c>GET /api/tournament-search/player-history</c>: dieselbe Pruefung (inkl. Kuerzung auf 100
+    /// Zeichen), derselbe Abruf, dieselbe Antwort (<see cref="PlayerNameQuery.TournamentsAsync"/>). Bleibt, solange
+    /// RookHubs AutoSubscriptionService ihn aufruft; neue Aufrufer nehmen player-history.
+    /// </summary>
     [HttpGet("tournaments")]
-    public async Task<ActionResult<List<PlayerTournamentResponse>>> SearchTournaments(
+    public Task<ActionResult<List<PlayerTournamentResponse>>> SearchTournaments(
         [FromQuery] string lastName, [FromQuery] string? firstName, CancellationToken ct)
-    {
-        if (string.IsNullOrWhiteSpace(lastName) || lastName.Trim().Length < 2)
-            return BadRequest(new { message = "lastName must be at least 2 characters." });
-
-        if (lastName.Length > 100) lastName = lastName[..100];
-        if (firstName?.Length > 100) firstName = firstName[..100];
-
-        var results = await _crawlerService.SearchPlayerTournamentsAsync(lastName.Trim(), firstName?.Trim(), ct);
-        return Ok(results.Select(PlayerTournamentResponse.FromParsed).ToList());
-    }
+        => PlayerNameQuery.TournamentsAsync(_crawlerService, lastName, firstName, ct);
 }

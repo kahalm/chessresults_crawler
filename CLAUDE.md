@@ -100,6 +100,8 @@ RookHub API (.NET :5001)  -- proxy -->  Crawler API (.NET :8080)  -- crawl -->  
 | GET | `/api/tournaments/{id}/rounds` | Alle Runden |
 | GET | `/api/tournaments/{id}/rounds/check` | Neue Runden erkennen (`{ knownRounds, availableRounds, hasNewRound, newRoundNumbers }`) |
 | GET | `/api/tournament-search?fed=&from=&to=&maxRows=` | Turnierverzeichnis: Trefferliste der chess-results-Turniersuche fuer eine Foederation + Zeitfenster (zustandslos, nichts wird gespeichert). Datumsfilter greift auf das END-Datum. |
+| GET | `/api/tournament-search/player-history?lastName=&firstName=` | Turnierhistorie eines Spielers per Name (alle Teilnahmen mit Startnummer, Ident-Nr., Fide-ID). Namen werden getrimmt und auf 100 Zeichen gekuerzt, Nachname mind. 2 Zeichen. |
+| GET | `/api/players/tournaments?lastName=&firstName=` | **Alias** von `player-history` — dieselbe Pruefung und Antwort (`Controllers/PlayerNameQuery.cs`). Bleibt, solange RookHubs `AutoSubscriptionService` ihn ruft; neue Aufrufer nehmen `player-history`. |
 | GET | `/api/health` | Health Check |
 | GET | `/api/health/ip` | Aktuelle IP (VPN-Verifizierung) |
 
