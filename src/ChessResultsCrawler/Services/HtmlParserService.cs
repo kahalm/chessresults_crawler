@@ -193,8 +193,37 @@ public class HtmlParserService
         var colon = names.IndexOf(":");
 
         if (teamCols.Count < 2 || colon < 1 || colon + 1 >= names.Count) return null;
-        var home = teamCols[0];
-        var away = teamCols[1];
+
+        // Welche der Team-Spalten ist das HEIM-, welche das GASTteam? Nicht „die ersten zwei": die
+        // 22. Mannschafts-EM 2019 (tnr434677) nennt VIER Spalten „Team" — Kennung UND Name je Seite,
+        // um das „:" gespiegelt (Nr. | Snr | Flagge | RUS | Russia | MP | Erg. | : | Erg. | MP |
+        // Denmark | DEN | Flagge | Snr). Die ersten zwei waren damit Kennung und Name DERSELBEN
+        // Mannschaft: „Team not found: RUS vs Russia", 20 Warnungen je Runde, 180 je Crawl, und
+        // keine einzige gespeicherte Paarung (gemessen 01.10.2026 auf dev).
+        //
+        // Steht links UND rechts des „:" eine Team-Spalte, gilt die dem „:" NAECHSTE je Seite: diese
+        // Tabellen sind um das Ergebnis gespiegelt aufgebaut, innen der NAME, aussen Kennung, Flagge
+        // und Setznummer — und der Name ist es, den der Bestand kennt (die Teams entstehen im
+        // Spieler-Crawl). Das deckt auch die Olympiade ab (dort heisst die Kennungs-Spalte „FED",
+        // es gibt also nur je eine Team-Spalte). Nur wenn alle Team-Spalten LINKS des „:" stehen,
+        // gelten die ersten zwei — das schlichte Layout „Nr. | Team | Team | Erg. | : | Erg.".
+        var leftOfColon = teamCols.Where(i => i < colon).ToList();
+        var rightOfColon = teamCols.Where(i => i > colon).ToList();
+        int home, away;
+        if (leftOfColon.Count > 0 && rightOfColon.Count > 0)
+        {
+            home = leftOfColon[^1];
+            away = rightOfColon[0];
+        }
+        else if (leftOfColon.Count >= 2)
+        {
+            home = leftOfColon[0];
+            away = leftOfColon[1];
+        }
+        else
+        {
+            return null;
+        }
         return (home, away, colon, Math.Max(away, colon + 1));
     }
 

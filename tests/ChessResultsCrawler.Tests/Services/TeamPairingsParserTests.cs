@@ -20,6 +20,33 @@ public class TeamPairingsParserTests
         File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "Fixtures", name));
 
     [Fact]
+    public async Task ParseTeamPairingsAsync_FourTeamColumns_TakesTheNamesNotTheFederationCodes()
+    {
+        // 22. Mannschafts-EM 2019 (tnr434677): VIER Spalten heissen „Team" — Kennung UND Name je
+        // Seite, um das „:" gespiegelt. Mit „die ersten zwei Team-Spalten" waren Heim und Gast
+        // dieselbe Mannschaft („Team not found: RUS vs Russia", 180 Warnungen je Crawl auf dev am
+        // 01.10.2026, null gespeicherte Paarungen).
+        var pairings = await _parser.ParseTeamPairingsAsync(Fixture("team-pairings-teameuro-tnr434677.html"));
+
+        Assert.Equal(4, pairings.Count);
+        Assert.Equal([1, 4, 9, 17], pairings.Select(p => p.MatchNumber));
+
+        Assert.Equal("Russia", pairings[0].HomeTeamName);           // NICHT „RUS"
+        Assert.Equal("Denmark", pairings[0].AwayTeamName);           // NICHT „DEN"
+        Assert.Equal(2m, pairings[0].HomeScore);
+        Assert.Equal(2m, pairings[0].AwayScore);
+
+        // Halbe Brettpunkte stehen links und rechts des „:", nicht in den MP-Spalten daneben.
+        Assert.Equal(("Serbia", "Azerbaijan"), (pairings[1].HomeTeamName, pairings[1].AwayTeamName));
+        Assert.Equal(0.5m, pairings[1].HomeScore);
+        Assert.Equal(3.5m, pairings[1].AwayScore);
+
+        // Ein langer Name und einer mit Ziffer: beide wuerden als Kennung unkenntlich.
+        Assert.Equal("Republic of North Macedonia", pairings[2].AwayTeamName);
+        Assert.Equal(("Turkey", "Georgia 2"), (pairings[3].HomeTeamName, pairings[3].AwayTeamName));
+    }
+
+    [Fact]
     public async Task ParseTeamPairingsAsync_OlympiadLayout_ReadsTeamsAndScores()
     {
         var pairings = await _parser.ParseTeamPairingsAsync(Fixture("team-pairings-olympiad-tnr1469895.html"));
