@@ -41,11 +41,8 @@ public class CrawlController : ControllerBase
             return BadRequest(new { error = "Invalid ChessResultsId. Only numeric IDs (1-10 digits) are allowed." });
 
         // M-13: Prevent duplicate crawl jobs for the same tournament
-        var existingJob = await _db.CrawlJobs.AnyAsync(j =>
-            j.ChessResultsId == chessResultsId &&
-            (j.Status == CrawlJobStatus.Queued || j.Status == CrawlJobStatus.Running));
-        if (existingJob)
-            return Conflict(new { error = $"A crawl job for '{chessResultsId}' is already running." });
+        if (await ActiveJobIdAsync(chessResultsId) is int runningJobId)
+            return AlreadyRunning(chessResultsId, runningJobId);
 
         var job = new CrawlJob
         {
@@ -62,7 +59,9 @@ public class CrawlController : ControllerBase
         {
             // Race: zwischen AnyAsync-Check und Insert hat ein paralleler Request bereits
             // einen aktiven Job angelegt (Unique-Index auf der ActiveKey-Computed-Column).
-            return Conflict(new { error = $"A crawl job for '{chessResultsId}' is already running." });
+            // Den abgelehnten Eintrag loesen, sonst versucht der naechste SaveChanges ihn erneut.
+            _db.Entry(job).State = EntityState.Detached;
+            return AlreadyRunning(chessResultsId, await ActiveJobIdAsync(chessResultsId));
         }
 
         var jobId = job.Id;
@@ -84,6 +83,23 @@ public class CrawlController : ControllerBase
 
         return Accepted(CrawlJobResponse.FromEntity(job));
     }
+
+    /// <summary>Id des eingereihten oder laufenden Auftrags fuer dieses Turnier (hoechstens einer, ActiveKey-Index).</summary>
+    private Task<int?> ActiveJobIdAsync(string chessResultsId) => _db.CrawlJobs
+        .Where(j => j.ChessResultsId == chessResultsId
+            && (j.Status == CrawlJobStatus.Queued || j.Status == CrawlJobStatus.Running))
+        .OrderByDescending(j => j.Id)
+        .Select(j => (int?)j.Id)
+        .FirstOrDefaultAsync();
+
+    /// <summary>
+    /// 409 „laeuft schon" in der Form, die RookHub auswertet (I2-009): <c>{ message, jobId }</c>. Mit <c>jobId</c>
+    /// verfolgt die Turnierseite den laufenden Auftrag (GET /api/crawl/{jobId}) statt nur einen Hinweis zu zeigen;
+    /// <c>jobId</c> ist nur dann <c>null</c>, wenn der konkurrierende Auftrag zwischen Insert-Fehler und Nachschlagen
+    /// schon fertig wurde. Frueher <c>{ error }</c> — das Feld las niemand (RookHub prueft nur Status und jobId).
+    /// </summary>
+    private ConflictObjectResult AlreadyRunning(string chessResultsId, int? jobId) =>
+        Conflict(new { message = $"A crawl job for '{chessResultsId}' is already running.", jobId });
 
     /// <summary>
     /// Crawl player detail pages (art=9) for specific player SNRs.

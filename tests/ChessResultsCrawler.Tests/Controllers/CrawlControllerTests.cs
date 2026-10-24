@@ -1,7 +1,12 @@
+using System.Text.Json;
+using ChessResultsCrawler.Controllers;
 using ChessResultsCrawler.Data;
 using ChessResultsCrawler.DTOs;
 using ChessResultsCrawler.Models;
+using ChessResultsCrawler.Services;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging.Abstractions;
 
 namespace ChessResultsCrawler.Tests.Controllers;
 
@@ -121,6 +126,54 @@ public class CrawlControllerTests : IDisposable
             (j.Status == CrawlJobStatus.Queued || j.Status == CrawlJobStatus.Running));
 
         Assert.False(existingJob);
+    }
+
+    /// <summary>
+    /// I2-009: RookHub (Turnierseite „Aktualisieren") verfolgt bei 409 den laufenden Auftrag, wenn der Rumpf eine
+    /// numerische <c>jobId</c> traegt — die Form ist <c>{ message, jobId }</c>, nicht mehr <c>{ error }</c>.
+    /// </summary>
+    [Fact]
+    public async Task StartCrawl_AlreadyRunning_Returns409WithMessageAndJobId()
+    {
+        _db.CrawlJobs.Add(new CrawlJob { ChessResultsId = "345678", JobType = CrawlJobType.Full, Status = CrawlJobStatus.Completed });
+        var running = new CrawlJob { ChessResultsId = "345678", JobType = CrawlJobType.Full, Status = CrawlJobStatus.Running };
+        _db.CrawlJobs.Add(running);
+        await _db.SaveChangesAsync();
+        var queue = new RecordingQueue();
+        var controller = new CrawlController(_db, queue, NullLogger<CrawlController>.Instance);
+
+        var result = await controller.StartCrawl(new CrawlRequest { ChessResultsId = "tnr345678.aspx", JobType = "Full" });
+
+        var conflict = Assert.IsType<ConflictObjectResult>(result);
+        using var body = JsonDocument.Parse(JsonSerializer.Serialize(conflict.Value));
+        Assert.Equal(running.Id, body.RootElement.GetProperty("jobId").GetInt32());
+        Assert.Contains("already running", body.RootElement.GetProperty("message").GetString());
+        Assert.False(body.RootElement.TryGetProperty("error", out _));
+        Assert.Equal(0, queue.Enqueued);
+        Assert.Equal(2, await _db.CrawlJobs.CountAsync());
+    }
+
+    [Fact]
+    public async Task StartCrawl_OnlyFinishedJobs_StartsNewJob()
+    {
+        _db.CrawlJobs.Add(new CrawlJob { ChessResultsId = "456789", JobType = CrawlJobType.Full, Status = CrawlJobStatus.Failed });
+        await _db.SaveChangesAsync();
+        var queue = new RecordingQueue();
+        var controller = new CrawlController(_db, queue, NullLogger<CrawlController>.Instance);
+
+        var result = await controller.StartCrawl(new CrawlRequest { ChessResultsId = "456789", JobType = "Full" });
+
+        Assert.IsType<AcceptedResult>(result);
+        Assert.Equal(1, queue.Enqueued);
+    }
+
+    private sealed class RecordingQueue : IBackgroundTaskQueue
+    {
+        public int Enqueued { get; private set; }
+        public ValueTask EnqueueAsync(Func<IServiceProvider, CancellationToken, Task> workItem) { Enqueued++; return ValueTask.CompletedTask; }
+        public bool TryEnqueue(Func<IServiceProvider, CancellationToken, Task> workItem) { Enqueued++; return true; }
+        public ValueTask<Func<IServiceProvider, CancellationToken, Task>> DequeueAsync(CancellationToken cancellationToken) =>
+            throw new NotSupportedException();
     }
 
     #endregion
