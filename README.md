@@ -193,7 +193,7 @@ chessresults_crawler/
   src/ChessResultsCrawler/
     Controllers/              CrawlController, HealthController, TournamentsController
     Services/
-      CrawlerService          HTTP-Requests + Rate Limiting
+      CrawlerService          HTTP-Requests + Rate Limiting (Fassade, Transport/Crawl-Ablauf/Abfragen daneben)
       HtmlParserService       AngleSharp HTML-Parsing (Fassade, Bereichs-Parser daneben)
       TournamentService       DB-Queries
       RoundDetectionService   Neue-Runden-Erkennung

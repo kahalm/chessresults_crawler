@@ -132,7 +132,9 @@ Spieler bleiben (RookHub verweist per `CrawlerTournamentId` darauf). Die Crawler
 ```
 src/ChessResultsCrawler/
   Controllers/             CrawlController, HealthController, TournamentsController
-  Services/                CrawlerService (Rate Limiting, HTTP), HtmlParserService (AngleSharp, Fassade
+  Services/                CrawlerService (Fassade ueber ChessResultsTransport = HTTP + Rate Limiting +
+                           Postback, TournamentCrawlJob = Crawl-Ablauf, ChessResultsQueries = zustandslose
+                           Abfragen), HtmlParserService (AngleSharp, Fassade
                            ueber TournamentPagesParser, PairingsParser, PlayerPagesParser, DirectoryParser,
                            HtmlTable; Ergebnistypen in ParsedModels.cs),
                            TournamentService (DB-Queries), RoundDetectionService

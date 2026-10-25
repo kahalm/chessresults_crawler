@@ -10,7 +10,7 @@ public class CrawlerServiceSsrfTests
 {
     private static void Invoke(string url)
     {
-        var m = typeof(CrawlerService).GetMethod("EnsureChessResultsHost",
+        var m = typeof(ChessResultsTransport).GetMethod("EnsureChessResultsHost",
             BindingFlags.NonPublic | BindingFlags.Static)
             ?? throw new InvalidOperationException("EnsureChessResultsHost nicht gefunden");
         try

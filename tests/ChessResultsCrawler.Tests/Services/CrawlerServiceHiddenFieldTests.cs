@@ -75,6 +75,6 @@ public class CrawlerServiceHiddenFieldTests
         Assert.Equal("a&b", state.ViewState);
         Assert.Equal("viaId", state.ViewStateGenerator);
         Assert.Equal("", state.EventValidation);
-        Assert.Equal(new CrawlerService.AspNetFormState("", "", ""), CrawlerService.ExtractFormState("<p>kein Formular</p>"));
+        Assert.Equal(new AspNetFormState("", "", ""), CrawlerService.ExtractFormState("<p>kein Formular</p>"));
     }
 }
