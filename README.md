@@ -194,7 +194,7 @@ chessresults_crawler/
     Controllers/              CrawlController, HealthController, TournamentsController
     Services/
       CrawlerService          HTTP-Requests + Rate Limiting
-      HtmlParserService       AngleSharp HTML-Parsing
+      HtmlParserService       AngleSharp HTML-Parsing (Fassade, Bereichs-Parser daneben)
       TournamentService       DB-Queries
       RoundDetectionService   Neue-Runden-Erkennung
     Models/                   Tournament, Team, Player, Round, TeamPairing, PlayerResult, CrawlJob
