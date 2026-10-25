@@ -1,0 +1,265 @@
+{
+  "ParsePlayerListAsync": [],
+  "ParseTeamPairingsAsync": [],
+  "ParseIndividualPairingsAsync": [
+    {
+      "BoardNumber": 6,
+      "WhiteName": "1634",
+      "BlackName": "",
+      "WhiteSnr": 0,
+      "BlackSnr": 1,
+      "Result": "1"
+    },
+    {
+      "BoardNumber": 9,
+      "WhiteName": "1576",
+      "BlackName": "",
+      "WhiteSnr": 0,
+      "BlackSnr": 1,
+      "Result": "1"
+    },
+    {
+      "BoardNumber": 18,
+      "WhiteName": "0",
+      "BlackName": "",
+      "WhiteSnr": 0,
+      "BlackSnr": 1,
+      "Result": "1"
+    },
+    {
+      "BoardNumber": 20,
+      "WhiteName": "0",
+      "BlackName": "",
+      "WhiteSnr": 0,
+      "BlackSnr": 0,
+      "Result": "0"
+    },
+    {
+      "BoardNumber": 1,
+      "WhiteName": "1910",
+      "BlackName": "",
+      "WhiteSnr": 0,
+      "BlackSnr": 1,
+      "Result": "1"
+    },
+    {
+      "BoardNumber": 2,
+      "WhiteName": "1801",
+      "BlackName": "",
+      "WhiteSnr": 0,
+      "BlackSnr": 1,
+      "Result": "1"
+    },
+    {
+      "BoardNumber": 6,
+      "WhiteName": "1596",
+      "BlackName": "",
+      "WhiteSnr": 0,
+      "BlackSnr": 0,
+      "Result": "0"
+    },
+    {
+      "BoardNumber": 7,
+      "WhiteName": "1529",
+      "BlackName": "",
+      "WhiteSnr": 0,
+      "BlackSnr": 0,
+      "Result": "½"
+    },
+    {
+      "BoardNumber": 6,
+      "WhiteName": "1406",
+      "BlackName": "",
+      "WhiteSnr": 0,
+      "BlackSnr": 0,
+      "Result": "0"
+    },
+    {
+      "BoardNumber": 9,
+      "WhiteName": "1399",
+      "BlackName": "",
+      "WhiteSnr": 0,
+      "BlackSnr": 1,
+      "Result": "1"
+    },
+    {
+      "BoardNumber": 12,
+      "WhiteName": "1211",
+      "BlackName": "",
+      "WhiteSnr": 0,
+      "BlackSnr": 0,
+      "Result": "0"
+    },
+    {
+      "BoardNumber": 19,
+      "WhiteName": "0",
+      "BlackName": "",
+      "WhiteSnr": 0,
+      "BlackSnr": 1,
+      "Result": "1"
+    },
+    {
+      "BoardNumber": 5,
+      "WhiteName": "1673",
+      "BlackName": "",
+      "WhiteSnr": 0,
+      "BlackSnr": 1,
+      "Result": "1"
+    },
+    {
+      "BoardNumber": 6,
+      "WhiteName": "1582",
+      "BlackName": "",
+      "WhiteSnr": 0,
+      "BlackSnr": 0,
+      "Result": "0"
+    },
+    {
+      "BoardNumber": 7,
+      "WhiteName": "1514",
+      "BlackName": "",
+      "WhiteSnr": 0,
+      "BlackSnr": 1,
+      "Result": "1"
+    },
+    {
+      "BoardNumber": 10,
+      "WhiteName": "1374",
+      "BlackName": "",
+      "WhiteSnr": 0,
+      "BlackSnr": 0,
+      "Result": "0"
+    },
+    {
+      "BoardNumber": 5,
+      "WhiteName": "1715",
+      "BlackName": "",
+      "WhiteSnr": 0,
+      "BlackSnr": 0,
+      "Result": "0"
+    },
+    {
+      "BoardNumber": 8,
+      "WhiteName": "1600",
+      "BlackName": "",
+      "WhiteSnr": 0,
+      "BlackSnr": 0,
+      "Result": "0"
+    },
+    {
+      "BoardNumber": 9,
+      "WhiteName": "1433",
+      "BlackName": "",
+      "WhiteSnr": 0,
+      "BlackSnr": 1,
+      "Result": "1"
+    },
+    {
+      "BoardNumber": 12,
+      "WhiteName": "1448",
+      "BlackName": "",
+      "WhiteSnr": 0,
+      "BlackSnr": 0,
+      "Result": "½"
+    },
+    {
+      "BoardNumber": 4,
+      "WhiteName": "1625",
+      "BlackName": "",
+      "WhiteSnr": 0,
+      "BlackSnr": 0,
+      "Result": "0"
+    },
+    {
+      "BoardNumber": 9,
+      "WhiteName": "1487",
+      "BlackName": "",
+      "WhiteSnr": 0,
+      "BlackSnr": 0,
+      "Result": "0"
+    },
+    {
+      "BoardNumber": 10,
+      "WhiteName": "0",
+      "BlackName": "",
+      "WhiteSnr": 0,
+      "BlackSnr": 0,
+      "Result": "0"
+    },
+    {
+      "BoardNumber": 11,
+      "WhiteName": "0",
+      "BlackName": "",
+      "WhiteSnr": 0,
+      "BlackSnr": 1,
+      "Result": "1"
+    }
+  ],
+  "IsTeamPairingsPageAsync": true,
+  "HasPairingsTableAsync": true,
+  "ParseTotalRoundsAsync": 5,
+  "ParseAvailableRoundsAsync": [
+    1
+  ],
+  "ParseAvailableRoundsAsync(max=5)": [
+    1
+  ],
+  "ParseTournamentNameAsync": "TMM Gebietsklasse West 2026/2027",
+  "ParseTournamentDetailsAsync": {
+    "DateText": null,
+    "Location": "Tirol",
+    "TimeControl": "90min/40 Züge + 30min + 30s/Zug",
+    "TimeControlKind": "Standard",
+    "Groups": [
+      {
+        "ChessResultsId": "1479345",
+        "Label": "Landesliga",
+        "IsCurrent": false
+      },
+      {
+        "ChessResultsId": "1479344",
+        "Label": "1. Klasse",
+        "IsCurrent": false
+      },
+      {
+        "ChessResultsId": "1479343",
+        "Label": "2. Klasse",
+        "IsCurrent": false
+      },
+      {
+        "ChessResultsId": "1479342",
+        "Label": "Gebietsklasse Ost",
+        "IsCurrent": false
+      },
+      {
+        "ChessResultsId": null,
+        "Label": "Gebietsklasse West",
+        "IsCurrent": true
+      }
+    ]
+  },
+  "ParsePlayerSearchAsync": [],
+  "ParsePlayerTournamentsAsync": [],
+  "ParsePlayerDetailPageAsync": [],
+  "ParseRoundPlanAsync": [],
+  "ParsePlayerCardAsync": {
+    "GamesPlayed": 48,
+    "Name": null,
+    "Federation": null,
+    "Club": null,
+    "IdentNumber": null,
+    "FideId": null,
+    "StartingRank": null,
+    "RatingNational": null,
+    "RatingInternational": null,
+    "PerformanceRating": null,
+    "Rank": null,
+    "YearOfBirth": null,
+    "Points": null,
+    "RatingChange": null,
+    "HasResult": false
+  },
+  "ParseTeamNamesAsync": [],
+  "ParseCalendarAsync": [],
+  "ParseTournamentSearchAsync": []
+}

@@ -1,0 +1,194 @@
+{
+  "ParsePlayerListAsync": [
+    {
+      "Snr": 118,
+      "Name": "Oberschmid, Patrik",
+      "Title": null,
+      "FideId": "1693034",
+      "Elo": null,
+      "Country": "AUT",
+      "TeamName": "Schwaz",
+      "BoardNumber": null
+    },
+    {
+      "Snr": 9,
+      "Name": "Oberschmid, Patrik",
+      "Title": null,
+      "FideId": "1693034",
+      "Elo": null,
+      "Country": "AUT",
+      "TeamName": "Schwaz",
+      "BoardNumber": null
+    },
+    {
+      "Snr": 44,
+      "Name": "Oberschmid, Patrik",
+      "Title": null,
+      "FideId": "1693034",
+      "Elo": null,
+      "Country": "AUT",
+      "TeamName": "Schwaz",
+      "BoardNumber": null
+    },
+    {
+      "Snr": 58,
+      "Name": "Oberschmid, Patrik",
+      "Title": null,
+      "FideId": "1693034",
+      "Elo": null,
+      "Country": "AUT",
+      "TeamName": "Schwaz",
+      "BoardNumber": null
+    }
+  ],
+  "ParseTeamPairingsAsync": [],
+  "ParseIndividualPairingsAsync": [],
+  "IsTeamPairingsPageAsync": false,
+  "HasPairingsTableAsync": true,
+  "ParseTotalRoundsAsync": null,
+  "ParseAvailableRoundsAsync": [],
+  "ParseAvailableRoundsAsync(max=5)": [],
+  "ParseTournamentNameAsync": null,
+  "ParseTournamentDetailsAsync": {
+    "DateText": null,
+    "Location": null,
+    "TimeControl": null,
+    "TimeControlKind": null,
+    "Groups": []
+  },
+  "ParsePlayerSearchAsync": [
+    {
+      "Name": "Oberschmid, Patrik",
+      "FideId": "1693034",
+      "ChessResultsId": null,
+      "Elo": null,
+      "Country": "AUT",
+      "Title": null
+    },
+    {
+      "Name": "Oberschmid, Patrik",
+      "FideId": "1693034",
+      "ChessResultsId": null,
+      "Elo": null,
+      "Country": "AUT",
+      "Title": null
+    },
+    {
+      "Name": "Oberschmid, Patrik",
+      "FideId": "1693034",
+      "ChessResultsId": null,
+      "Elo": null,
+      "Country": "AUT",
+      "Title": null
+    },
+    {
+      "Name": "Oberschmid, Patrik",
+      "FideId": "1693034",
+      "ChessResultsId": null,
+      "Elo": null,
+      "Country": "AUT",
+      "Title": null
+    }
+  ],
+  "ParsePlayerTournamentsAsync": [
+    {
+      "TournamentId": "1479344",
+      "TournamentName": "TMM 1.Klasse 2026/2027",
+      "EndDate": "2027/04/17",
+      "Snr": 118,
+      "PlayerName": "Oberschmid, Patrik",
+      "IdentNumber": "144749",
+      "FideId": "1693034",
+      "Club": "Schwaz",
+      "Federation": "AUT",
+      "Rank": null,
+      "Rounds": 11,
+      "PlayerCount": 226
+    },
+    {
+      "TournamentId": "1277303",
+      "TournamentName": "60. Schwazer Stadtmeisterschaf",
+      "EndDate": "2025/12/05",
+      "Snr": 9,
+      "PlayerName": "Oberschmid, Patrik",
+      "IdentNumber": "144749",
+      "FideId": "1693034",
+      "Club": "Schwaz",
+      "Federation": "AUT",
+      "Rank": 5,
+      "Rounds": 5,
+      "PlayerCount": 28
+    },
+    {
+      "TournamentId": "1107064",
+      "TournamentName": "Schach Tirol Open 2025 Open A",
+      "EndDate": "2025/08/30",
+      "Snr": 44,
+      "PlayerName": "Oberschmid, Patrik",
+      "IdentNumber": "144749",
+      "FideId": "1693034",
+      "Club": "Schwaz",
+      "Federation": "AUT",
+      "Rank": 56,
+      "Rounds": 9,
+      "PlayerCount": 56
+    },
+    {
+      "TournamentId": "1049709",
+      "TournamentName": "4.Tegernsee Open 2025",
+      "EndDate": "2025/04/15",
+      "Snr": 58,
+      "PlayerName": "Oberschmid, Patrik",
+      "IdentNumber": "0",
+      "FideId": "1693034",
+      "Club": "Schwaz",
+      "Federation": "AUT",
+      "Rank": 30,
+      "Rounds": 7,
+      "PlayerCount": 165
+    }
+  ],
+  "ParsePlayerDetailPageAsync": [
+    {
+      "RoundNumber": 11,
+      "BoardNumber": 0,
+      "OpponentSnr": null,
+      "OpponentName": "Oberschmid, Patrik",
+      "OpponentElo": null,
+      "Points": null,
+      "Result": null
+    },
+    {
+      "RoundNumber": 5,
+      "BoardNumber": 0,
+      "OpponentSnr": null,
+      "OpponentName": "Oberschmid, Patrik",
+      "OpponentElo": null,
+      "Points": null,
+      "Result": null
+    },
+    {
+      "RoundNumber": 9,
+      "BoardNumber": 0,
+      "OpponentSnr": null,
+      "OpponentName": "Oberschmid, Patrik",
+      "OpponentElo": null,
+      "Points": null,
+      "Result": null
+    },
+    {
+      "RoundNumber": 7,
+      "BoardNumber": 0,
+      "OpponentSnr": null,
+      "OpponentName": "Oberschmid, Patrik",
+      "OpponentElo": null,
+      "Points": null,
+      "Result": null
+    }
+  ],
+  "ParseRoundPlanAsync": [],
+  "ParsePlayerCardAsync": null,
+  "ParseTeamNamesAsync": [],
+  "ParseCalendarAsync": [],
+  "ParseTournamentSearchAsync": []
+}

@@ -1,0 +1,178 @@
+{
+  "ParsePlayerListAsync": [],
+  "ParseTeamPairingsAsync": [
+    {
+      "MatchNumber": 1,
+      "HomeTeamName": "Absam",
+      "AwayTeamName": "Sportverein Innsbruck",
+      "HomeScore": 1.5,
+      "AwayScore": 2.5
+    },
+    {
+      "MatchNumber": 2,
+      "HomeTeamName": "Spg Rum/Hall/Mils",
+      "AwayTeamName": "Sk Telfs",
+      "HomeScore": 2,
+      "AwayScore": 2
+    },
+    {
+      "MatchNumber": 3,
+      "HomeTeamName": "Raiffeisen Wattens",
+      "AwayTeamName": "Völs & Hak Ibk",
+      "HomeScore": 1,
+      "AwayScore": 3
+    },
+    {
+      "MatchNumber": 1,
+      "HomeTeamName": "Sportverein Innsbruck",
+      "AwayTeamName": "Raiffeisen Wattens",
+      "HomeScore": null,
+      "AwayScore": null
+    },
+    {
+      "MatchNumber": 2,
+      "HomeTeamName": "Sk Telfs",
+      "AwayTeamName": "Absam",
+      "HomeScore": null,
+      "AwayScore": null
+    },
+    {
+      "MatchNumber": 3,
+      "HomeTeamName": "Völs & Hak Ibk",
+      "AwayTeamName": "Spg Rum/Hall/Mils",
+      "HomeScore": null,
+      "AwayScore": null
+    },
+    {
+      "MatchNumber": 1,
+      "HomeTeamName": "Raiffeisen Wattens",
+      "AwayTeamName": "Spg Rum/Hall/Mils",
+      "HomeScore": null,
+      "AwayScore": null
+    },
+    {
+      "MatchNumber": 2,
+      "HomeTeamName": "Absam",
+      "AwayTeamName": "Völs & Hak Ibk",
+      "HomeScore": null,
+      "AwayScore": null
+    },
+    {
+      "MatchNumber": 3,
+      "HomeTeamName": "Sportverein Innsbruck",
+      "AwayTeamName": "Sk Telfs",
+      "HomeScore": null,
+      "AwayScore": null
+    },
+    {
+      "MatchNumber": 1,
+      "HomeTeamName": "Sk Telfs",
+      "AwayTeamName": "Raiffeisen Wattens",
+      "HomeScore": null,
+      "AwayScore": null
+    },
+    {
+      "MatchNumber": 2,
+      "HomeTeamName": "Völs & Hak Ibk",
+      "AwayTeamName": "Sportverein Innsbruck",
+      "HomeScore": null,
+      "AwayScore": null
+    },
+    {
+      "MatchNumber": 3,
+      "HomeTeamName": "Spg Rum/Hall/Mils",
+      "AwayTeamName": "Absam",
+      "HomeScore": null,
+      "AwayScore": null
+    },
+    {
+      "MatchNumber": 1,
+      "HomeTeamName": "Absam",
+      "AwayTeamName": "Raiffeisen Wattens",
+      "HomeScore": null,
+      "AwayScore": null
+    },
+    {
+      "MatchNumber": 2,
+      "HomeTeamName": "Sportverein Innsbruck",
+      "AwayTeamName": "Spg Rum/Hall/Mils",
+      "HomeScore": null,
+      "AwayScore": null
+    },
+    {
+      "MatchNumber": 3,
+      "HomeTeamName": "Sk Telfs",
+      "AwayTeamName": "Völs & Hak Ibk",
+      "HomeScore": null,
+      "AwayScore": null
+    }
+  ],
+  "ParseIndividualPairingsAsync": [],
+  "IsTeamPairingsPageAsync": true,
+  "HasPairingsTableAsync": true,
+  "ParseTotalRoundsAsync": 5,
+  "ParseAvailableRoundsAsync": [
+    1
+  ],
+  "ParseAvailableRoundsAsync(max=5)": [
+    1
+  ],
+  "ParseTournamentNameAsync": "TMM Gebietsklasse West 2026/2027",
+  "ParseTournamentDetailsAsync": {
+    "DateText": null,
+    "Location": "Tirol",
+    "TimeControl": "90min/40 Züge + 30min + 30s/Zug",
+    "TimeControlKind": "Standard",
+    "Groups": [
+      {
+        "ChessResultsId": "1479345",
+        "Label": "Landesliga",
+        "IsCurrent": false
+      },
+      {
+        "ChessResultsId": "1479344",
+        "Label": "1. Klasse",
+        "IsCurrent": false
+      },
+      {
+        "ChessResultsId": "1479343",
+        "Label": "2. Klasse",
+        "IsCurrent": false
+      },
+      {
+        "ChessResultsId": "1479342",
+        "Label": "Gebietsklasse Ost",
+        "IsCurrent": false
+      },
+      {
+        "ChessResultsId": null,
+        "Label": "Gebietsklasse West",
+        "IsCurrent": true
+      }
+    ]
+  },
+  "ParsePlayerSearchAsync": [],
+  "ParsePlayerTournamentsAsync": [],
+  "ParsePlayerDetailPageAsync": [],
+  "ParseRoundPlanAsync": [],
+  "ParsePlayerCardAsync": {
+    "GamesPlayed": null,
+    "Name": null,
+    "Federation": null,
+    "Club": null,
+    "IdentNumber": null,
+    "FideId": null,
+    "StartingRank": null,
+    "RatingNational": null,
+    "RatingInternational": null,
+    "PerformanceRating": null,
+    "Rank": null,
+    "YearOfBirth": null,
+    "Points": null,
+    "RatingChange": null,
+    "HasResult": false
+  },
+  "ParseTeamNamesAsync": [],
+  "ParseCalendarAsync": [],
+  "ParseTournamentSearchAsync": []
+}

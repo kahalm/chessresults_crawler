@@ -1,0 +1,42 @@
+{
+  "ParsePlayerListAsync": [],
+  "ParseTeamPairingsAsync": [],
+  "ParseIndividualPairingsAsync": [],
+  "IsTeamPairingsPageAsync": false,
+  "HasPairingsTableAsync": false,
+  "ParseTotalRoundsAsync": null,
+  "ParseAvailableRoundsAsync": [],
+  "ParseAvailableRoundsAsync(max=5)": [],
+  "ParseTournamentNameAsync": "Eliminacje Strefowe PL-LU do Finału OOM do lat 12  w 2027 roku - d11",
+  "ParseTournamentDetailsAsync": {
+    "DateText": null,
+    "Location": null,
+    "TimeControl": null,
+    "TimeControlKind": null,
+    "Groups": []
+  },
+  "ParsePlayerSearchAsync": [],
+  "ParsePlayerTournamentsAsync": [],
+  "ParsePlayerDetailPageAsync": [],
+  "ParseRoundPlanAsync": [],
+  "ParsePlayerCardAsync": {
+    "GamesPlayed": null,
+    "Name": null,
+    "Federation": null,
+    "Club": null,
+    "IdentNumber": null,
+    "FideId": null,
+    "StartingRank": null,
+    "RatingNational": null,
+    "RatingInternational": null,
+    "PerformanceRating": null,
+    "Rank": null,
+    "YearOfBirth": null,
+    "Points": null,
+    "RatingChange": null,
+    "HasResult": false
+  },
+  "ParseTeamNamesAsync": [],
+  "ParseCalendarAsync": [],
+  "ParseTournamentSearchAsync": []
+}

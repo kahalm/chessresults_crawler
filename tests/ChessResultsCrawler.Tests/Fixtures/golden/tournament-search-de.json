@@ -1,0 +1,251 @@
+{
+  "ParsePlayerListAsync": [],
+  "ParseTeamPairingsAsync": [
+    {
+      "MatchNumber": 1,
+      "HomeTeamName": "U18 Halloween Champion + U18 Schachmatt Meister 20",
+      "AwayTeamName": "AUT",
+      "HomeScore": null,
+      "AwayScore": null
+    },
+    {
+      "MatchNumber": 2,
+      "HomeTeamName": "# IM Alexander Turnier 202625. Oktober Schnellschs",
+      "AwayTeamName": "AUT",
+      "HomeScore": null,
+      "AwayScore": null
+    },
+    {
+      "MatchNumber": 3,
+      "HomeTeamName": "Offenes Schnellschachturnier für Vierermannschafte",
+      "AwayTeamName": "AUT",
+      "HomeScore": null,
+      "AwayScore": null
+    },
+    {
+      "MatchNumber": 4,
+      "HomeTeamName": "Offene Burgenländische Landesmeisterschaften 2026",
+      "AwayTeamName": "AUT",
+      "HomeScore": null,
+      "AwayScore": null
+    }
+  ],
+  "ParseIndividualPairingsAsync": [
+    {
+      "BoardNumber": 1,
+      "WhiteName": "",
+      "BlackName": "Alexander Schriebl",
+      "WhiteSnr": 0,
+      "BlackSnr": 0,
+      "Result": "31.10.2026"
+    },
+    {
+      "BoardNumber": 2,
+      "WhiteName": "",
+      "BlackName": "Joh. Petz-Ortner",
+      "WhiteSnr": 0,
+      "BlackSnr": 0,
+      "Result": "25.10.2026"
+    },
+    {
+      "BoardNumber": 3,
+      "WhiteName": "",
+      "BlackName": "ÖS René Scheuch",
+      "WhiteSnr": 0,
+      "BlackSnr": 0,
+      "Result": "24.10.2026"
+    },
+    {
+      "BoardNumber": 4,
+      "WhiteName": "",
+      "BlackName": "RS Andreas Meissl",
+      "WhiteSnr": 0,
+      "BlackSnr": 0,
+      "Result": "26.10.2026"
+    }
+  ],
+  "IsTeamPairingsPageAsync": false,
+  "HasPairingsTableAsync": true,
+  "ParseTotalRoundsAsync": null,
+  "ParseAvailableRoundsAsync": [],
+  "ParseAvailableRoundsAsync(max=5)": [],
+  "ParseTournamentNameAsync": "Turnierdatenbank von Chess Results",
+  "ParseTournamentDetailsAsync": {
+    "DateText": null,
+    "Location": null,
+    "TimeControl": null,
+    "TimeControlKind": null,
+    "Groups": []
+  },
+  "ParsePlayerSearchAsync": [],
+  "ParsePlayerTournamentsAsync": [
+    {
+      "TournamentId": "1480313",
+      "TournamentName": "U18 Halloween Champion + U18 Schachmatt Meister 20",
+      "EndDate": null,
+      "Snr": null,
+      "PlayerName": null,
+      "IdentNumber": null,
+      "FideId": null,
+      "Club": null,
+      "Federation": "AUT",
+      "Rank": null,
+      "Rounds": 0,
+      "PlayerCount": 6
+    },
+    {
+      "TournamentId": "1456622",
+      "TournamentName": "# IM Alexander Turnier 202625. Oktober Schnellschs",
+      "EndDate": null,
+      "Snr": null,
+      "PlayerName": null,
+      "IdentNumber": null,
+      "FideId": null,
+      "Club": null,
+      "Federation": "AUT",
+      "Rank": null,
+      "Rounds": 0,
+      "PlayerCount": 15
+    },
+    {
+      "TournamentId": "1432293",
+      "TournamentName": "Offenes Schnellschachturnier für Vierermannschafte",
+      "EndDate": null,
+      "Snr": null,
+      "PlayerName": null,
+      "IdentNumber": null,
+      "FideId": null,
+      "Club": null,
+      "Federation": "AUT",
+      "Rank": null,
+      "Rounds": 0,
+      "PlayerCount": 0
+    },
+    {
+      "TournamentId": "1406388",
+      "TournamentName": "Offene Burgenländische Landesmeisterschaften 2026",
+      "EndDate": null,
+      "Snr": null,
+      "PlayerName": null,
+      "IdentNumber": null,
+      "FideId": null,
+      "Club": null,
+      "Federation": "AUT",
+      "Rank": null,
+      "Rounds": 0,
+      "PlayerCount": 13
+    }
+  ],
+  "ParsePlayerDetailPageAsync": [
+    {
+      "RoundNumber": 0,
+      "BoardNumber": 0,
+      "OpponentSnr": null,
+      "OpponentName": null,
+      "OpponentElo": null,
+      "Points": null,
+      "Result": null
+    },
+    {
+      "RoundNumber": 0,
+      "BoardNumber": 0,
+      "OpponentSnr": null,
+      "OpponentName": null,
+      "OpponentElo": null,
+      "Points": null,
+      "Result": null
+    },
+    {
+      "RoundNumber": 0,
+      "BoardNumber": 0,
+      "OpponentSnr": null,
+      "OpponentName": null,
+      "OpponentElo": null,
+      "Points": null,
+      "Result": null
+    },
+    {
+      "RoundNumber": 0,
+      "BoardNumber": 0,
+      "OpponentSnr": null,
+      "OpponentName": null,
+      "OpponentElo": null,
+      "Points": null,
+      "Result": null
+    }
+  ],
+  "ParseRoundPlanAsync": [],
+  "ParsePlayerCardAsync": null,
+  "ParseTeamNamesAsync": [],
+  "ParseCalendarAsync": [],
+  "ParseTournamentSearchAsync": [
+    {
+      "ChessResultsId": "1480313",
+      "Name": "U18 Halloween Champion + U18 Schachmatt Meister 20",
+      "Federation": "AUT",
+      "State": "Steiermark",
+      "StartDate": "2026-10-31",
+      "EndDate": "2026-10-31",
+      "LocationText": "Seminarraum Freiwillige Feuerwehr Tillmitsch, Dorfstraße 84, 8434 Tillmitsch",
+      "TimeControlText": "15 min. + 5 sec.",
+      "Director": "Alexander Schriebl + Thomas Matosec",
+      "Organizer": "Schachverein Schachakademie Tillmitsch",
+      "ChiefArbiter": "Alexander Schriebl",
+      "Rounds": 0,
+      "PlayerCount": 6,
+      "LastUpdateText": "8 Tage 23 Std.",
+      "LastUpdateAge": "8.23:00:00"
+    },
+    {
+      "ChessResultsId": "1456622",
+      "Name": "# IM Alexander Turnier 202625. Oktober Schnellschs",
+      "Federation": "AUT",
+      "State": "Steiermark",
+      "StartDate": "2026-10-25",
+      "EndDate": "2026-10-25",
+      "LocationText": "Bad Schwanberg  im Heilmoorbad",
+      "TimeControlText": "10 Min. ohne Zeit zu gabe.",
+      "Director": "Iris Enthaler & Weber Christoph",
+      "Organizer": "Schachverein Frauental Campus 02 / SV. Schwanberg",
+      "ChiefArbiter": "Joh. Petz-Ortner",
+      "Rounds": 0,
+      "PlayerCount": 15,
+      "LastUpdateText": "1 Tage 2 Std.",
+      "LastUpdateAge": "1.02:00:00"
+    },
+    {
+      "ChessResultsId": "1432293",
+      "Name": "Offenes Schnellschachturnier für Vierermannschafte",
+      "Federation": "AUT",
+      "State": "Niederösterreich",
+      "StartDate": "2026-10-24",
+      "EndDate": "2026-10-24",
+      "LocationText": "Gasthof Veigl, 3382 Loosdorf, Linzerstraße 2",
+      "TimeControlText": "15 Minuten pro Person",
+      "Director": "Franz Holzapfel 1693433",
+      "Organizer": "SK Loosdorf",
+      "ChiefArbiter": "ÖS René Scheuch",
+      "Rounds": 0,
+      "PlayerCount": 0,
+      "LastUpdateText": "25 Tage 7 Std.",
+      "LastUpdateAge": "25.07:00:00"
+    },
+    {
+      "ChessResultsId": "1406388",
+      "Name": "Offene Burgenländische Landesmeisterschaften 2026",
+      "Federation": "AUT",
+      "State": "Burgenland",
+      "StartDate": "2026-10-23",
+      "EndDate": "2026-10-26",
+      "LocationText": "Pfarrheim, Dr. Paul Iby Platz 1, 7321 Raiding",
+      "TimeControlText": "90 Minuten für 40 Züge + 30 Minuten für den Rest der Partie + 30 Sekunden Inkrement ab dem 1. Zug",
+      "Director": "Stefan Schekolin",
+      "Organizer": "SV Union Raiding",
+      "ChiefArbiter": "RS Andreas Meissl",
+      "Rounds": 0,
+      "PlayerCount": 13,
+      "LastUpdateText": "32 Tage 6 Std.",
+      "LastUpdateAge": "32.06:00:00"
+    }
+  ]
+}

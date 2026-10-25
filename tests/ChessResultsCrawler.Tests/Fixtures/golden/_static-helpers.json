@@ -1,0 +1,92 @@
+{
+  "ParseSearchDate": [
+    {
+      "In": "2026/12/18",
+      "Out": "2026-12-18"
+    },
+    {
+      "In": "18.12.2026",
+      "Out": "2026-12-18"
+    },
+    {
+      "In": "2026-12-18",
+      "Out": "2026-12-18"
+    },
+    {
+      "In": "18.12.26",
+      "Out": null
+    },
+    {
+      "In": "",
+      "Out": null
+    },
+    {
+      "In": null,
+      "Out": null
+    },
+    {
+      "In": " 2026/01/02 ",
+      "Out": "2026-01-02"
+    }
+  ],
+  "ParseRelativeAge": [
+    {
+      "In": "16 Days",
+      "Out": "16.00:00:00"
+    },
+    {
+      "In": "1 Days 2 Hours",
+      "Out": "1.02:00:00"
+    },
+    {
+      "In": "8 Tage 23 Std.",
+      "Out": "8.23:00:00"
+    },
+    {
+      "In": "3 Hours 36 Min.",
+      "Out": "03:36:00"
+    },
+    {
+      "In": "7 Minutes",
+      "Out": "00:07:00"
+    },
+    {
+      "In": "12 Sekunden",
+      "Out": "00:00:12"
+    },
+    {
+      "In": "5 Wochen",
+      "Out": null
+    },
+    {
+      "In": "",
+      "Out": null
+    },
+    {
+      "In": null,
+      "Out": null
+    },
+    {
+      "In": "kein Alter",
+      "Out": null
+    }
+  ],
+  "ExtractSNode": [
+    {
+      "In": "https://chess-results.com/s2/tnr1.aspx",
+      "Out": "s2"
+    },
+    {
+      "In": "https://s3.chess-results.com/tnr1.aspx",
+      "Out": null
+    },
+    {
+      "In": "http://chess-results.com/s12/x",
+      "Out": "s12"
+    },
+    {
+      "In": "https://example.org/s1/",
+      "Out": null
+    }
+  ]
+}

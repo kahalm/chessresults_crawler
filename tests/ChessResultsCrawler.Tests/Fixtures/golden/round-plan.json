@@ -1,0 +1,82 @@
+{
+  "ParsePlayerListAsync": [],
+  "ParseTeamPairingsAsync": [],
+  "ParseIndividualPairingsAsync": [],
+  "IsTeamPairingsPageAsync": false,
+  "HasPairingsTableAsync": true,
+  "ParseTotalRoundsAsync": null,
+  "ParseAvailableRoundsAsync": [],
+  "ParseAvailableRoundsAsync(max=5)": [],
+  "ParseTournamentNameAsync": "Round-Dates",
+  "ParseTournamentDetailsAsync": {
+    "DateText": null,
+    "Location": null,
+    "TimeControl": null,
+    "TimeControlKind": null,
+    "Groups": []
+  },
+  "ParsePlayerSearchAsync": [],
+  "ParsePlayerTournamentsAsync": [],
+  "ParsePlayerDetailPageAsync": [],
+  "ParseRoundPlanAsync": [
+    {
+      "Number": 1,
+      "Date": "2026-09-26",
+      "TimeText": "14:00 Uhr"
+    },
+    {
+      "Number": 2,
+      "Date": "2026-10-10",
+      "TimeText": "14:00 Uhr"
+    },
+    {
+      "Number": 3,
+      "Date": "2026-10-24",
+      "TimeText": "14:00 Uhr"
+    },
+    {
+      "Number": 4,
+      "Date": "2026-11-14",
+      "TimeText": "14:00 Uhr"
+    },
+    {
+      "Number": 5,
+      "Date": "2026-11-28",
+      "TimeText": "14:00 Uhr"
+    },
+    {
+      "Number": 6,
+      "Date": "2026-12-12",
+      "TimeText": "14:00 Uhr"
+    },
+    {
+      "Number": 7,
+      "Date": "2027-01-16",
+      "TimeText": "14:00 Uhr"
+    },
+    {
+      "Number": 8,
+      "Date": "2027-01-30",
+      "TimeText": "14:00 Uhr"
+    },
+    {
+      "Number": 9,
+      "Date": "2027-02-27",
+      "TimeText": "14:00 Uhr"
+    },
+    {
+      "Number": 10,
+      "Date": "2027-03-13",
+      "TimeText": "14:00 Uhr"
+    },
+    {
+      "Number": 11,
+      "Date": "2027-04-17",
+      "TimeText": "14:00 Uhr"
+    }
+  ],
+  "ParsePlayerCardAsync": null,
+  "ParseTeamNamesAsync": [],
+  "ParseCalendarAsync": [],
+  "ParseTournamentSearchAsync": []
+}

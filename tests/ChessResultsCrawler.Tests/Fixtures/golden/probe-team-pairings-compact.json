@@ -1,0 +1,55 @@
+{
+  "ParsePlayerListAsync": [],
+  "ParseTeamPairingsAsync": [
+    {
+      "MatchNumber": 1,
+      "HomeTeamName": "Alpha",
+      "AwayTeamName": "Beta",
+      "HomeScore": 3.5,
+      "AwayScore": 0.5
+    },
+    {
+      "MatchNumber": 2,
+      "HomeTeamName": "Gamma",
+      "AwayTeamName": "Delta",
+      "HomeScore": 2.5,
+      "AwayScore": 1.5
+    },
+    {
+      "MatchNumber": 3,
+      "HomeTeamName": "Epsilon",
+      "AwayTeamName": "Zeta",
+      "HomeScore": null,
+      "AwayScore": 3
+    },
+    {
+      "MatchNumber": 4,
+      "HomeTeamName": "Eta",
+      "AwayTeamName": "Theta",
+      "HomeScore": 2,
+      "AwayScore": 2
+    }
+  ],
+  "ParseIndividualPairingsAsync": [],
+  "IsTeamPairingsPageAsync": false,
+  "HasPairingsTableAsync": true,
+  "ParseTotalRoundsAsync": null,
+  "ParseAvailableRoundsAsync": [],
+  "ParseAvailableRoundsAsync(max=5)": [],
+  "ParseTournamentNameAsync": null,
+  "ParseTournamentDetailsAsync": {
+    "DateText": null,
+    "Location": null,
+    "TimeControl": null,
+    "TimeControlKind": null,
+    "Groups": []
+  },
+  "ParsePlayerSearchAsync": [],
+  "ParsePlayerTournamentsAsync": [],
+  "ParsePlayerDetailPageAsync": [],
+  "ParseRoundPlanAsync": [],
+  "ParsePlayerCardAsync": null,
+  "ParseTeamNamesAsync": [],
+  "ParseCalendarAsync": [],
+  "ParseTournamentSearchAsync": []
+}

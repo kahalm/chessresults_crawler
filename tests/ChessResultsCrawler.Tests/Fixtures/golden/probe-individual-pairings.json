@@ -1,0 +1,76 @@
+{
+  "ParsePlayerListAsync": [],
+  "ParseTeamPairingsAsync": [
+    {
+      "MatchNumber": 1,
+      "HomeTeamName": "1",
+      "AwayTeamName": "GM",
+      "HomeScore": null,
+      "AwayScore": 2
+    }
+  ],
+  "ParseIndividualPairingsAsync": [
+    {
+      "BoardNumber": 1,
+      "WhiteName": "Alpha, Anton",
+      "BlackName": "Beta, Berta",
+      "WhiteSnr": 1,
+      "BlackSnr": 8,
+      "Result": "1-0"
+    },
+    {
+      "BoardNumber": 2,
+      "WhiteName": "Gamma, Gustav",
+      "BlackName": "Delta, Dora",
+      "WhiteSnr": 2,
+      "BlackSnr": 7,
+      "Result": "½-½"
+    },
+    {
+      "BoardNumber": 3,
+      "WhiteName": "Epsilon, Emil",
+      "BlackName": "Zeta, Zora",
+      "WhiteSnr": 3,
+      "BlackSnr": 0,
+      "Result": "½-½"
+    },
+    {
+      "BoardNumber": 4,
+      "WhiteName": "Eta, Egon",
+      "BlackName": "spielfrei",
+      "WhiteSnr": 4,
+      "BlackSnr": 0,
+      "Result": "+--"
+    }
+  ],
+  "IsTeamPairingsPageAsync": false,
+  "HasPairingsTableAsync": true,
+  "ParseTotalRoundsAsync": 2,
+  "ParseAvailableRoundsAsync": [
+    1,
+    2,
+    3,
+    77
+  ],
+  "ParseAvailableRoundsAsync(max=5)": [
+    1,
+    2,
+    3
+  ],
+  "ParseTournamentNameAsync": "Probe Open 2026",
+  "ParseTournamentDetailsAsync": {
+    "DateText": null,
+    "Location": null,
+    "TimeControl": null,
+    "TimeControlKind": null,
+    "Groups": []
+  },
+  "ParsePlayerSearchAsync": [],
+  "ParsePlayerTournamentsAsync": [],
+  "ParsePlayerDetailPageAsync": [],
+  "ParseRoundPlanAsync": [],
+  "ParsePlayerCardAsync": null,
+  "ParseTeamNamesAsync": [],
+  "ParseCalendarAsync": [],
+  "ParseTournamentSearchAsync": []
+}

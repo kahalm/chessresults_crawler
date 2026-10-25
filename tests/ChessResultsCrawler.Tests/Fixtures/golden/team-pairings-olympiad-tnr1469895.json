@@ -1,0 +1,152 @@
+{
+  "ParsePlayerListAsync": [],
+  "ParseTeamPairingsAsync": [
+    {
+      "MatchNumber": 1,
+      "HomeTeamName": "Jamaica",
+      "AwayTeamName": "Uzbekistan *)",
+      "HomeScore": 0,
+      "AwayScore": 4
+    },
+    {
+      "MatchNumber": 2,
+      "HomeTeamName": "Iraq",
+      "AwayTeamName": "United States of America",
+      "HomeScore": 0.5,
+      "AwayScore": 3.5
+    },
+    {
+      "MatchNumber": 3,
+      "HomeTeamName": "India",
+      "AwayTeamName": "Thailand",
+      "HomeScore": 3,
+      "AwayScore": 1
+    },
+    {
+      "MatchNumber": 6,
+      "HomeTeamName": "Netherlands",
+      "AwayTeamName": "Hong Kong, China",
+      "HomeScore": 3,
+      "AwayScore": 1
+    },
+    {
+      "MatchNumber": 102,
+      "HomeTeamName": "Angola",
+      "AwayTeamName": "nicht ausgelost",
+      "HomeScore": null,
+      "AwayScore": null
+    },
+    {
+      "MatchNumber": 103,
+      "HomeTeamName": "Cote d’Ivoire",
+      "AwayTeamName": "nicht ausgelost",
+      "HomeScore": null,
+      "AwayScore": null
+    }
+  ],
+  "ParseIndividualPairingsAsync": [
+    {
+      "BoardNumber": 1,
+      "WhiteName": "JAM",
+      "BlackName": "4",
+      "WhiteSnr": 105,
+      "BlackSnr": 0,
+      "Result": "0"
+    },
+    {
+      "BoardNumber": 2,
+      "WhiteName": "IRQ",
+      "BlackName": "3½",
+      "WhiteSnr": 103,
+      "BlackSnr": 0,
+      "Result": "0"
+    },
+    {
+      "BoardNumber": 3,
+      "WhiteName": "IND",
+      "BlackName": "1",
+      "WhiteSnr": 2,
+      "BlackSnr": 0,
+      "Result": "0"
+    },
+    {
+      "BoardNumber": 6,
+      "WhiteName": "NED",
+      "BlackName": "1",
+      "WhiteSnr": 6,
+      "BlackSnr": 0,
+      "Result": "0"
+    },
+    {
+      "BoardNumber": 102,
+      "WhiteName": "ANG",
+      "BlackName": "",
+      "WhiteSnr": 91,
+      "BlackSnr": 0,
+      "Result": "0"
+    },
+    {
+      "BoardNumber": 103,
+      "WhiteName": "CIV",
+      "BlackName": "",
+      "WhiteSnr": 134,
+      "BlackSnr": 0,
+      "Result": "0"
+    }
+  ],
+  "IsTeamPairingsPageAsync": true,
+  "HasPairingsTableAsync": true,
+  "ParseTotalRoundsAsync": 11,
+  "ParseAvailableRoundsAsync": [
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7,
+    8,
+    9,
+    10,
+    11
+  ],
+  "ParseAvailableRoundsAsync(max=5)": [
+    1,
+    2,
+    3,
+    4,
+    5
+  ],
+  "ParseTournamentNameAsync": "46th Chess Olympiad Samarkand 2026 Open",
+  "ParseTournamentDetailsAsync": {
+    "DateText": null,
+    "Location": "Samarkand",
+    "TimeControl": "40 moves in 90 minutes, plus 30 minutes, plus 30 seconds per move from move 1",
+    "TimeControlKind": "Standard",
+    "Groups": []
+  },
+  "ParsePlayerSearchAsync": [],
+  "ParsePlayerTournamentsAsync": [],
+  "ParsePlayerDetailPageAsync": [],
+  "ParseRoundPlanAsync": [],
+  "ParsePlayerCardAsync": {
+    "GamesPlayed": null,
+    "Name": null,
+    "Federation": null,
+    "Club": null,
+    "IdentNumber": null,
+    "FideId": null,
+    "StartingRank": null,
+    "RatingNational": null,
+    "RatingInternational": null,
+    "PerformanceRating": null,
+    "Rank": null,
+    "YearOfBirth": null,
+    "Points": null,
+    "RatingChange": null,
+    "HasResult": false
+  },
+  "ParseTeamNamesAsync": [],
+  "ParseCalendarAsync": [],
+  "ParseTournamentSearchAsync": []
+}

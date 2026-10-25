@@ -1,0 +1,129 @@
+{
+  "ParsePlayerListAsync": [],
+  "ParseTeamPairingsAsync": [],
+  "ParseIndividualPairingsAsync": [],
+  "IsTeamPairingsPageAsync": false,
+  "HasPairingsTableAsync": true,
+  "ParseTotalRoundsAsync": null,
+  "ParseAvailableRoundsAsync": [],
+  "ParseAvailableRoundsAsync(max=5)": [],
+  "ParseTournamentNameAsync": "2. Klasse Ost Kärnten 2026/2027",
+  "ParseTournamentDetailsAsync": {
+    "DateText": null,
+    "Location": null,
+    "TimeControl": null,
+    "TimeControlKind": null,
+    "Groups": [
+      {
+        "ChessResultsId": "1488752",
+        "Label": "Kärntner Liga",
+        "IsCurrent": false
+      },
+      {
+        "ChessResultsId": "1488753",
+        "Label": "Unterliga",
+        "IsCurrent": false
+      },
+      {
+        "ChessResultsId": "1489809",
+        "Label": "BZL OST",
+        "IsCurrent": false
+      },
+      {
+        "ChessResultsId": "1489808",
+        "Label": "BZL WEST",
+        "IsCurrent": false
+      },
+      {
+        "ChessResultsId": "1489811",
+        "Label": "1. Klasse",
+        "IsCurrent": false
+      },
+      {
+        "ChessResultsId": null,
+        "Label": "2. Klasse Ost",
+        "IsCurrent": true
+      },
+      {
+        "ChessResultsId": "1488756",
+        "Label": "2. Klasse West",
+        "IsCurrent": false
+      }
+    ]
+  },
+  "ParsePlayerSearchAsync": [],
+  "ParsePlayerTournamentsAsync": [],
+  "ParsePlayerDetailPageAsync": [],
+  "ParseRoundPlanAsync": [
+    {
+      "Number": 1,
+      "Date": "2026-09-26",
+      "TimeText": "15:00 Uhr"
+    },
+    {
+      "Number": 2,
+      "Date": "2026-10-17",
+      "TimeText": "15:00 Uhr"
+    },
+    {
+      "Number": 3,
+      "Date": "2026-11-07",
+      "TimeText": "15:00 Uhr"
+    },
+    {
+      "Number": 4,
+      "Date": "2026-11-21",
+      "TimeText": "15:00 Uhr"
+    },
+    {
+      "Number": 5,
+      "Date": "2026-12-05",
+      "TimeText": "15:00 Uhr"
+    },
+    {
+      "Number": 6,
+      "Date": "2027-01-16",
+      "TimeText": "15:00 Uhr"
+    },
+    {
+      "Number": 7,
+      "Date": "2027-01-30",
+      "TimeText": "15:00 Uhr"
+    },
+    {
+      "Number": 8,
+      "Date": "2027-02-27",
+      "TimeText": "15:00 Uhr"
+    },
+    {
+      "Number": 9,
+      "Date": "2027-03-20",
+      "TimeText": "15:00 Uhr"
+    },
+    {
+      "Number": 10,
+      "Date": "2027-04-10",
+      "TimeText": "15:00 Uhr"
+    }
+  ],
+  "ParsePlayerCardAsync": {
+    "GamesPlayed": null,
+    "Name": null,
+    "Federation": null,
+    "Club": null,
+    "IdentNumber": null,
+    "FideId": null,
+    "StartingRank": null,
+    "RatingNational": null,
+    "RatingInternational": null,
+    "PerformanceRating": null,
+    "Rank": null,
+    "YearOfBirth": null,
+    "Points": null,
+    "RatingChange": null,
+    "HasResult": false
+  },
+  "ParseTeamNamesAsync": [],
+  "ParseCalendarAsync": [],
+  "ParseTournamentSearchAsync": []
+}

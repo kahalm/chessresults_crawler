@@ -1,0 +1,37 @@
+{
+  "ParsePlayerListAsync": [],
+  "ParseTeamPairingsAsync": [],
+  "ParseIndividualPairingsAsync": [],
+  "IsTeamPairingsPageAsync": false,
+  "HasPairingsTableAsync": true,
+  "ParseTotalRoundsAsync": null,
+  "ParseAvailableRoundsAsync": [],
+  "ParseAvailableRoundsAsync(max=5)": [],
+  "ParseTournamentNameAsync": "Team-Starting rank",
+  "ParseTournamentDetailsAsync": {
+    "DateText": null,
+    "Location": null,
+    "TimeControl": null,
+    "TimeControlKind": null,
+    "Groups": []
+  },
+  "ParsePlayerSearchAsync": [],
+  "ParsePlayerTournamentsAsync": [],
+  "ParsePlayerDetailPageAsync": [],
+  "ParseRoundPlanAsync": [],
+  "ParsePlayerCardAsync": null,
+  "ParseTeamNamesAsync": [
+    "ASVÖ Pamhagen",
+    "Grazer Schachgesellschaft",
+    "SC Victoria Linz",
+    "Schach ohne Grenzen",
+    "SK DolomitenBank Lienz",
+    "SK Dornbirn",
+    "Steinitz Schach Akademie",
+    "SV - Das Wien - St.Veit/Glan",
+    "SV Raika Rapid Feffernitz",
+    "SV Wulkaprodersdorf"
+  ],
+  "ParseCalendarAsync": [],
+  "ParseTournamentSearchAsync": []
+}

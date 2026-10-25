@@ -1,0 +1,93 @@
+{
+  "ParsePlayerListAsync": [],
+  "ParseTeamPairingsAsync": [
+    {
+      "MatchNumber": 1,
+      "HomeTeamName": "Russia",
+      "AwayTeamName": "Denmark",
+      "HomeScore": 2,
+      "AwayScore": 2
+    },
+    {
+      "MatchNumber": 4,
+      "HomeTeamName": "Serbia",
+      "AwayTeamName": "Azerbaijan",
+      "HomeScore": 0.5,
+      "AwayScore": 3.5
+    },
+    {
+      "MatchNumber": 9,
+      "HomeTeamName": "Germany",
+      "AwayTeamName": "Republic of North Macedonia",
+      "HomeScore": 2,
+      "AwayScore": 2
+    },
+    {
+      "MatchNumber": 17,
+      "HomeTeamName": "Turkey",
+      "AwayTeamName": "Georgia 2",
+      "HomeScore": 2,
+      "AwayScore": 2
+    }
+  ],
+  "ParseIndividualPairingsAsync": [
+    {
+      "BoardNumber": 1,
+      "WhiteName": "RUS",
+      "BlackName": "0",
+      "WhiteSnr": 1,
+      "BlackSnr": 0,
+      "Result": "2"
+    },
+    {
+      "BoardNumber": 4,
+      "WhiteName": "SRB",
+      "BlackName": "0",
+      "WhiteSnr": 24,
+      "BlackSnr": 0,
+      "Result": "½"
+    },
+    {
+      "BoardNumber": 9,
+      "WhiteName": "GER",
+      "BlackName": "0",
+      "WhiteSnr": 9,
+      "BlackSnr": 0,
+      "Result": "2"
+    },
+    {
+      "BoardNumber": 17,
+      "WhiteName": "TUR",
+      "BlackName": "0",
+      "WhiteSnr": 17,
+      "BlackSnr": 0,
+      "Result": "2"
+    }
+  ],
+  "IsTeamPairingsPageAsync": true,
+  "HasPairingsTableAsync": true,
+  "ParseTotalRoundsAsync": null,
+  "ParseAvailableRoundsAsync": [],
+  "ParseAvailableRoundsAsync(max=5)": [],
+  "ParseTournamentNameAsync": null,
+  "ParseTournamentDetailsAsync": {
+    "DateText": null,
+    "Location": null,
+    "TimeControl": null,
+    "TimeControlKind": null,
+    "Groups": []
+  },
+  "ParsePlayerSearchAsync": [],
+  "ParsePlayerTournamentsAsync": [],
+  "ParsePlayerDetailPageAsync": [],
+  "ParseRoundPlanAsync": [],
+  "ParsePlayerCardAsync": null,
+  "ParseTeamNamesAsync": [
+    "RUS",
+    "SRB",
+    "GER",
+    "TUR"
+  ],
+  "ParseCalendarAsync": [],
+  "ParseTournamentSearchAsync": []
+}

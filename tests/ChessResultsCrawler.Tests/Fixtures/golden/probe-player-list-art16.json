@@ -1,0 +1,117 @@
+{
+  "ParsePlayerListAsync": [
+    {
+      "Snr": 12,
+      "Name": "Carlsen, Magnus",
+      "Title": "GM",
+      "FideId": "1503014",
+      "Elo": 2830,
+      "Country": "NOR",
+      "TeamName": "Norway",
+      "BoardNumber": 1
+    },
+    {
+      "Snr": 3,
+      "Name": "Doe, John",
+      "Title": "IM",
+      "FideId": "1234567",
+      "Elo": 2450,
+      "Country": "GER",
+      "TeamName": "- Germany -",
+      "BoardNumber": 2
+    },
+    {
+      "Snr": 4,
+      "Name": "Vierer, Ohne Link",
+      "Title": null,
+      "FideId": null,
+      "Elo": null,
+      "Country": "AUT",
+      "TeamName": "Austria",
+      "BoardNumber": null
+    }
+  ],
+  "ParseTeamPairingsAsync": [
+    {
+      "MatchNumber": 1,
+      "HomeTeamName": "GM",
+      "AwayTeamName": "Carlsen, Magnus",
+      "HomeScore": 1503014,
+      "AwayScore": 2830
+    },
+    {
+      "MatchNumber": 2,
+      "HomeTeamName": "IM",
+      "AwayTeamName": "Doe, John",
+      "HomeScore": 1234567,
+      "AwayScore": 2450
+    }
+  ],
+  "ParseIndividualPairingsAsync": [],
+  "IsTeamPairingsPageAsync": false,
+  "HasPairingsTableAsync": true,
+  "ParseTotalRoundsAsync": null,
+  "ParseAvailableRoundsAsync": [],
+  "ParseAvailableRoundsAsync(max=5)": [],
+  "ParseTournamentNameAsync": "Probe Mannschaftsturnier 2026",
+  "ParseTournamentDetailsAsync": {
+    "DateText": null,
+    "Location": null,
+    "TimeControl": null,
+    "TimeControlKind": null,
+    "Groups": []
+  },
+  "ParsePlayerSearchAsync": [
+    {
+      "Name": "Carlsen, Magnus",
+      "FideId": "1503014",
+      "ChessResultsId": null,
+      "Elo": 2830,
+      "Country": "NOR",
+      "Title": "GM"
+    },
+    {
+      "Name": "Doe, John",
+      "FideId": "1234567",
+      "ChessResultsId": null,
+      "Elo": 2450,
+      "Country": "GER",
+      "Title": "IM"
+    },
+    {
+      "Name": "Rueckfall, Ohne Link",
+      "FideId": null,
+      "ChessResultsId": null,
+      "Elo": 1800,
+      "Country": "AUT",
+      "Title": null
+    },
+    {
+      "Name": "Vierer, Ohne Link",
+      "FideId": null,
+      "ChessResultsId": null,
+      "Elo": null,
+      "Country": "AUT",
+      "Title": null
+    },
+    {
+      "Name": "Keine Nummer",
+      "FideId": null,
+      "ChessResultsId": null,
+      "Elo": 1700,
+      "Country": "AUT",
+      "Title": null
+    }
+  ],
+  "ParsePlayerTournamentsAsync": [],
+  "ParsePlayerDetailPageAsync": [],
+  "ParseRoundPlanAsync": [],
+  "ParsePlayerCardAsync": null,
+  "ParseTeamNamesAsync": [
+    "Norway",
+    "Germany",
+    "Austria"
+  ],
+  "ParseCalendarAsync": [],
+  "ParseTournamentSearchAsync": []
+}

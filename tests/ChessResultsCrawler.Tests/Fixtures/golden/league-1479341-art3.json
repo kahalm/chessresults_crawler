@@ -1,0 +1,72 @@
+{
+  "ParsePlayerListAsync": [],
+  "ParseTeamPairingsAsync": [],
+  "ParseIndividualPairingsAsync": [],
+  "IsTeamPairingsPageAsync": true,
+  "HasPairingsTableAsync": true,
+  "ParseTotalRoundsAsync": 5,
+  "ParseAvailableRoundsAsync": [
+    1
+  ],
+  "ParseAvailableRoundsAsync(max=5)": [
+    1
+  ],
+  "ParseTournamentNameAsync": "TMM Gebietsklasse West 2026/2027",
+  "ParseTournamentDetailsAsync": {
+    "DateText": null,
+    "Location": "Tirol",
+    "TimeControl": "90min/40 Züge + 30min + 30s/Zug",
+    "TimeControlKind": "Standard",
+    "Groups": [
+      {
+        "ChessResultsId": "1479345",
+        "Label": "Landesliga",
+        "IsCurrent": false
+      },
+      {
+        "ChessResultsId": "1479344",
+        "Label": "1. Klasse",
+        "IsCurrent": false
+      },
+      {
+        "ChessResultsId": "1479343",
+        "Label": "2. Klasse",
+        "IsCurrent": false
+      },
+      {
+        "ChessResultsId": "1479342",
+        "Label": "Gebietsklasse Ost",
+        "IsCurrent": false
+      },
+      {
+        "ChessResultsId": null,
+        "Label": "Gebietsklasse West",
+        "IsCurrent": true
+      }
+    ]
+  },
+  "ParsePlayerSearchAsync": [],
+  "ParsePlayerTournamentsAsync": [],
+  "ParsePlayerDetailPageAsync": [],
+  "ParseRoundPlanAsync": [],
+  "ParsePlayerCardAsync": {
+    "GamesPlayed": null,
+    "Name": null,
+    "Federation": null,
+    "Club": null,
+    "IdentNumber": null,
+    "FideId": null,
+    "StartingRank": null,
+    "RatingNational": null,
+    "RatingInternational": null,
+    "PerformanceRating": null,
+    "Rank": null,
+    "YearOfBirth": null,
+    "Points": null,
+    "RatingChange": null,
+    "HasResult": false
+  },
+  "ParseTeamNamesAsync": [],
+  "ParseCalendarAsync": [],
+  "ParseTournamentSearchAsync": []
+}

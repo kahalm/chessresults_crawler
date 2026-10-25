@@ -1,0 +1,44 @@
+{
+  "ParsePlayerListAsync": [],
+  "ParseTeamPairingsAsync": [
+    {
+      "MatchNumber": 1,
+      "HomeTeamName": "SK Schwaz",
+      "AwayTeamName": "SV Wörgl",
+      "HomeScore": 3.5,
+      "AwayScore": 0.5
+    },
+    {
+      "MatchNumber": 2,
+      "HomeTeamName": "SC Kufstein",
+      "AwayTeamName": "SK Absam",
+      "HomeScore": 2,
+      "AwayScore": 2
+    }
+  ],
+  "ParseIndividualPairingsAsync": [],
+  "IsTeamPairingsPageAsync": true,
+  "HasPairingsTableAsync": true,
+  "ParseTotalRoundsAsync": null,
+  "ParseAvailableRoundsAsync": [],
+  "ParseAvailableRoundsAsync(max=5)": [],
+  "ParseTournamentNameAsync": null,
+  "ParseTournamentDetailsAsync": {
+    "DateText": null,
+    "Location": null,
+    "TimeControl": null,
+    "TimeControlKind": null,
+    "Groups": []
+  },
+  "ParsePlayerSearchAsync": [],
+  "ParsePlayerTournamentsAsync": [],
+  "ParsePlayerDetailPageAsync": [],
+  "ParseRoundPlanAsync": [],
+  "ParsePlayerCardAsync": null,
+  "ParseTeamNamesAsync": [
+    "SK Schwaz",
+    "SV Wörgl"
+  ],
+  "ParseCalendarAsync": [],
+  "ParseTournamentSearchAsync": []
+}

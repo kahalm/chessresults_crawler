@@ -1,0 +1,361 @@
+{
+  "ParsePlayerListAsync": [],
+  "ParseTeamPairingsAsync": [
+    {
+      "MatchNumber": 1,
+      "HomeTeamName": "Open Braunau 2026 A",
+      "AwayTeamName": "AUT",
+      "HomeScore": null,
+      "AwayScore": null
+    },
+    {
+      "MatchNumber": 2,
+      "HomeTeamName": "Open Braunau 2026 B",
+      "AwayTeamName": "AUT",
+      "HomeScore": null,
+      "AwayScore": null
+    },
+    {
+      "MatchNumber": 3,
+      "HomeTeamName": "Open Braunau 2026 C",
+      "AwayTeamName": "AUT",
+      "HomeScore": null,
+      "AwayScore": null
+    },
+    {
+      "MatchNumber": 4,
+      "HomeTeamName": "Open Braunau 2026 Jugend",
+      "AwayTeamName": "AUT",
+      "HomeScore": null,
+      "AwayScore": null
+    },
+    {
+      "MatchNumber": 5,
+      "HomeTeamName": "5. Halleiner Kreativ Schach Event 2026",
+      "AwayTeamName": "AUT",
+      "HomeScore": null,
+      "AwayScore": null
+    },
+    {
+      "MatchNumber": 6,
+      "HomeTeamName": "5. Halleiner Kreativ Schach Event 2026",
+      "AwayTeamName": "AUT",
+      "HomeScore": null,
+      "AwayScore": null
+    }
+  ],
+  "ParseIndividualPairingsAsync": [
+    {
+      "BoardNumber": 1,
+      "WhiteName": "",
+      "BlackName": "NA Norbert Fruehauf (ID 1605259)",
+      "WhiteSnr": 0,
+      "BlackSnr": 0,
+      "Result": "2026/12/20"
+    },
+    {
+      "BoardNumber": 2,
+      "WhiteName": "",
+      "BlackName": "NA Norbert Fruehauf (ID 1605259)",
+      "WhiteSnr": 0,
+      "BlackSnr": 0,
+      "Result": "2026/12/20"
+    },
+    {
+      "BoardNumber": 3,
+      "WhiteName": "",
+      "BlackName": "NA Norbert Fruehauf (ID 1605259)",
+      "WhiteSnr": 0,
+      "BlackSnr": 0,
+      "Result": "2026/12/20"
+    },
+    {
+      "BoardNumber": 4,
+      "WhiteName": "",
+      "BlackName": "NA Norbert Fruehauf (ID 1605259)",
+      "WhiteSnr": 0,
+      "BlackSnr": 0,
+      "Result": "2026/12/20"
+    },
+    {
+      "BoardNumber": 5,
+      "WhiteName": "",
+      "BlackName": "Rosenlechner Gerhard",
+      "WhiteSnr": 0,
+      "BlackSnr": 0,
+      "Result": "2026/12/08"
+    },
+    {
+      "BoardNumber": 6,
+      "WhiteName": "",
+      "BlackName": "RS Kipman Felix",
+      "WhiteSnr": 0,
+      "BlackSnr": 0,
+      "Result": "2026/12/08"
+    }
+  ],
+  "IsTeamPairingsPageAsync": false,
+  "HasPairingsTableAsync": true,
+  "ParseTotalRoundsAsync": null,
+  "ParseAvailableRoundsAsync": [],
+  "ParseAvailableRoundsAsync(max=5)": [],
+  "ParseTournamentNameAsync": "Tournament Database of Chess Results",
+  "ParseTournamentDetailsAsync": {
+    "DateText": null,
+    "Location": null,
+    "TimeControl": null,
+    "TimeControlKind": null,
+    "Groups": []
+  },
+  "ParsePlayerSearchAsync": [],
+  "ParsePlayerTournamentsAsync": [
+    {
+      "TournamentId": "1457129",
+      "TournamentName": "Open Braunau 2026 A",
+      "EndDate": null,
+      "Snr": null,
+      "PlayerName": null,
+      "IdentNumber": null,
+      "FideId": null,
+      "Club": null,
+      "Federation": "AUT",
+      "Rank": null,
+      "Rounds": 0,
+      "PlayerCount": 2
+    },
+    {
+      "TournamentId": "1457130",
+      "TournamentName": "Open Braunau 2026 B",
+      "EndDate": null,
+      "Snr": null,
+      "PlayerName": null,
+      "IdentNumber": null,
+      "FideId": null,
+      "Club": null,
+      "Federation": "AUT",
+      "Rank": null,
+      "Rounds": 0,
+      "PlayerCount": 3
+    },
+    {
+      "TournamentId": "1457131",
+      "TournamentName": "Open Braunau 2026 C",
+      "EndDate": null,
+      "Snr": null,
+      "PlayerName": null,
+      "IdentNumber": null,
+      "FideId": null,
+      "Club": null,
+      "Federation": "AUT",
+      "Rank": null,
+      "Rounds": 0,
+      "PlayerCount": 0
+    },
+    {
+      "TournamentId": "1457132",
+      "TournamentName": "Open Braunau 2026 Jugend",
+      "EndDate": null,
+      "Snr": null,
+      "PlayerName": null,
+      "IdentNumber": null,
+      "FideId": null,
+      "Club": null,
+      "Federation": "AUT",
+      "Rank": null,
+      "Rounds": 0,
+      "PlayerCount": 0
+    },
+    {
+      "TournamentId": "1313040",
+      "TournamentName": "5. Halleiner Kreativ Schach Event 2026",
+      "EndDate": null,
+      "Snr": null,
+      "PlayerName": null,
+      "IdentNumber": null,
+      "FideId": null,
+      "Club": null,
+      "Federation": "AUT",
+      "Rank": null,
+      "Rounds": 0,
+      "PlayerCount": 0
+    },
+    {
+      "TournamentId": "1325360",
+      "TournamentName": "5. Halleiner Kreativ Schach Event 2026",
+      "EndDate": null,
+      "Snr": null,
+      "PlayerName": null,
+      "IdentNumber": null,
+      "FideId": null,
+      "Club": null,
+      "Federation": "AUT",
+      "Rank": null,
+      "Rounds": 0,
+      "PlayerCount": 1
+    }
+  ],
+  "ParsePlayerDetailPageAsync": [
+    {
+      "RoundNumber": 0,
+      "BoardNumber": 0,
+      "OpponentSnr": null,
+      "OpponentName": null,
+      "OpponentElo": null,
+      "Points": null,
+      "Result": null
+    },
+    {
+      "RoundNumber": 0,
+      "BoardNumber": 0,
+      "OpponentSnr": null,
+      "OpponentName": null,
+      "OpponentElo": null,
+      "Points": null,
+      "Result": null
+    },
+    {
+      "RoundNumber": 0,
+      "BoardNumber": 0,
+      "OpponentSnr": null,
+      "OpponentName": null,
+      "OpponentElo": null,
+      "Points": null,
+      "Result": null
+    },
+    {
+      "RoundNumber": 0,
+      "BoardNumber": 0,
+      "OpponentSnr": null,
+      "OpponentName": null,
+      "OpponentElo": null,
+      "Points": null,
+      "Result": null
+    },
+    {
+      "RoundNumber": 0,
+      "BoardNumber": 0,
+      "OpponentSnr": null,
+      "OpponentName": null,
+      "OpponentElo": null,
+      "Points": null,
+      "Result": null
+    },
+    {
+      "RoundNumber": 0,
+      "BoardNumber": 0,
+      "OpponentSnr": null,
+      "OpponentName": null,
+      "OpponentElo": null,
+      "Points": null,
+      "Result": null
+    }
+  ],
+  "ParseRoundPlanAsync": [],
+  "ParsePlayerCardAsync": null,
+  "ParseTeamNamesAsync": [],
+  "ParseCalendarAsync": [],
+  "ParseTournamentSearchAsync": [
+    {
+      "ChessResultsId": "1457129",
+      "Name": "Open Braunau 2026 A",
+      "Federation": "AUT",
+      "State": "Salzburg",
+      "StartDate": "2026-12-18",
+      "EndDate": "2026-12-20",
+      "LocationText": "Ranshofen",
+      "TimeControlText": "90 min/40 moves + 15 min rest + 30 sec/move",
+      "Director": "Martin Schneeweis",
+      "Organizer": "WSV ATSV Ranshofen Schach",
+      "ChiefArbiter": "NA Norbert Fruehauf (ID 1605259)",
+      "Rounds": 0,
+      "PlayerCount": 2,
+      "LastUpdateText": "16 Days",
+      "LastUpdateAge": "16.00:00:00"
+    },
+    {
+      "ChessResultsId": "1457130",
+      "Name": "Open Braunau 2026 B",
+      "Federation": "AUT",
+      "State": "Salzburg",
+      "StartDate": "2026-12-18",
+      "EndDate": "2026-12-20",
+      "LocationText": "Ranshofen",
+      "TimeControlText": "90 min/40 moves + 15 min rest + 30 sec/move",
+      "Director": "Martin Schneeweis",
+      "Organizer": "WSV ATSV Ranshofen Schach",
+      "ChiefArbiter": "NA Norbert Fruehauf (ID 1605259)",
+      "Rounds": 0,
+      "PlayerCount": 3,
+      "LastUpdateText": "3 Days",
+      "LastUpdateAge": "3.00:00:00"
+    },
+    {
+      "ChessResultsId": "1457131",
+      "Name": "Open Braunau 2026 C",
+      "Federation": "AUT",
+      "State": "Salzburg",
+      "StartDate": "2026-12-18",
+      "EndDate": "2026-12-20",
+      "LocationText": "Ranshofen",
+      "TimeControlText": "90 min/40 moves + 15 min rest + 30 sec/move",
+      "Director": "Martin Schneeweis",
+      "Organizer": "WSV ATSV Ranshofen Schach",
+      "ChiefArbiter": "NA Norbert Fruehauf (ID 1605259)",
+      "Rounds": 0,
+      "PlayerCount": 0,
+      "LastUpdateText": "53 Days",
+      "LastUpdateAge": "53.00:00:00"
+    },
+    {
+      "ChessResultsId": "1457132",
+      "Name": "Open Braunau 2026 Jugend",
+      "Federation": "AUT",
+      "State": "Salzburg",
+      "StartDate": "2026-12-18",
+      "EndDate": "2026-12-20",
+      "LocationText": "Ranshofen",
+      "TimeControlText": "1 Std.",
+      "Director": "Martin Schneeweis",
+      "Organizer": "WSV ATSV Ranshofen Schach",
+      "ChiefArbiter": "NA Norbert Fruehauf (ID 1605259)",
+      "Rounds": 0,
+      "PlayerCount": 0,
+      "LastUpdateText": "53 Days",
+      "LastUpdateAge": "53.00:00:00"
+    },
+    {
+      "ChessResultsId": "1313040",
+      "Name": "5. Halleiner Kreativ Schach Event 2026",
+      "Federation": "AUT",
+      "State": "Salzburg",
+      "StartDate": "2026-12-08",
+      "EndDate": "2026-12-08",
+      "LocationText": "Rifer Hauptstraße 37 5400 Hallein (RIF)",
+      "TimeControlText": "Kreative 7 Runden von 3 Min bis 30 Minuten! gemäß Ausschreibung siehe Termine auf Chess-Results",
+      "Director": "Rudolf Berti MAS",
+      "Organizer": "1. Halleiner Schachklub",
+      "ChiefArbiter": "Rosenlechner Gerhard",
+      "Rounds": 0,
+      "PlayerCount": 0,
+      "LastUpdateText": "270 Days 18 Hours",
+      "LastUpdateAge": "270.18:00:00"
+    },
+    {
+      "ChessResultsId": "1325360",
+      "Name": "5. Halleiner Kreativ Schach Event 2026",
+      "Federation": "AUT",
+      "State": "Salzburg",
+      "StartDate": "2026-12-08",
+      "EndDate": "2026-12-08",
+      "LocationText": "Rifer Hauptstraße 37 5400 Hallein (RIF)",
+      "TimeControlText": "Kreative 7 Runden von 3 Min bis 30 Minuten! gemäß Ausschreibung siehe Termine auf Chess-Results",
+      "Director": "Rudolf Berti MAS",
+      "Organizer": "1. Halleiner Schachklub",
+      "ChiefArbiter": "RS Kipman Felix",
+      "Rounds": 0,
+      "PlayerCount": 1,
+      "LastUpdateText": "42 Days 17 Hours",
+      "LastUpdateAge": "42.17:00:00"
+    }
+  ]
+}

@@ -1,0 +1,2232 @@
+{
+  "ParsePlayerListAsync": [],
+  "ParseTeamPairingsAsync": [],
+  "ParseIndividualPairingsAsync": [],
+  "IsTeamPairingsPageAsync": false,
+  "HasPairingsTableAsync": true,
+  "ParseTotalRoundsAsync": null,
+  "ParseAvailableRoundsAsync": [],
+  "ParseAvailableRoundsAsync(max=5)": [],
+  "ParseTournamentNameAsync": "Tournament-Calendar of Chess Results",
+  "ParseTournamentDetailsAsync": {
+    "DateText": null,
+    "Location": null,
+    "TimeControl": null,
+    "TimeControlKind": null,
+    "Groups": []
+  },
+  "ParsePlayerSearchAsync": [],
+  "ParsePlayerTournamentsAsync": [],
+  "ParsePlayerDetailPageAsync": [],
+  "ParseRoundPlanAsync": [],
+  "ParsePlayerCardAsync": null,
+  "ParseTeamNamesAsync": [],
+  "ParseCalendarAsync": [
+    {
+      "Name": "58. Meisterschaft des SCD 2026",
+      "Federation": "AUT",
+      "StartDate": "2026-02-13",
+      "EndDate": "2026-11-27",
+      "CalendarId": "10814",
+      "Url": "http://s-c-d.at",
+      "ChessResultsId": null
+    },
+    {
+      "Name": "Kärntner LM (Einzel) 2026 :: *ON TOUR* :: Allgemein, Frauen, S50/S65",
+      "Federation": "AUT",
+      "StartDate": "2026-02-22",
+      "EndDate": "2026-10-24",
+      "CalendarId": "10864",
+      "Url": "https://www.schachportal.at/",
+      "ChessResultsId": null
+    },
+    {
+      "Name": "MOKE Rapid Rally copy",
+      "Federation": "AUT",
+      "StartDate": "2026-07-01",
+      "EndDate": "2027-06-30",
+      "CalendarId": null,
+      "Url": "https://www.chess.at/schachsport/events.html",
+      "ChessResultsId": null
+    },
+    {
+      "Name": "23. RLP-Senioren-Open Altenkirchen/Ww. 2026",
+      "Federation": "GER",
+      "StartDate": "2026-08-18",
+      "EndDate": "2026-08-26",
+      "CalendarId": "11290",
+      "Url": "https://sbrp.de/?page_id=2515",
+      "ChessResultsId": null
+    },
+    {
+      "Name": "Schach Tirol Open 2026",
+      "Federation": "AUT",
+      "StartDate": "2026-08-22",
+      "EndDate": "2026-08-29",
+      "CalendarId": "10759",
+      "Url": "https://tirol.chess.at/schach-tirol-open-26/",
+      "ChessResultsId": null
+    },
+    {
+      "Name": "Offene Blitz-Klubmeisterschaft SK Baden 3+2",
+      "Federation": "AUT",
+      "StartDate": "2026-08-24",
+      "EndDate": "2026-08-24",
+      "CalendarId": "10544",
+      "Url": "https://www.schachklub-baden.at",
+      "ChessResultsId": null
+    },
+    {
+      "Name": "11. Int. Sparkasse Baden Chess Open",
+      "Federation": "AUT",
+      "StartDate": "2026-08-25",
+      "EndDate": "2026-08-30",
+      "CalendarId": "10541",
+      "Url": "https://www.schachklub-baden.at",
+      "ChessResultsId": null
+    },
+    {
+      "Name": "Blitzturnier am Donnerstag 2026, 6.Turnier",
+      "Federation": "AUT",
+      "StartDate": "2026-08-27",
+      "EndDate": "2026-08-27",
+      "CalendarId": "11186",
+      "Url": "http://www.schach-nettingsdorf.at",
+      "ChessResultsId": null
+    },
+    {
+      "Name": "WOHLEN AMATEUR OPEN",
+      "Federation": "SUI",
+      "StartDate": "2026-08-28",
+      "EndDate": "2026-08-30",
+      "CalendarId": null,
+      "Url": "http://www.swisschesstour.com",
+      "ChessResultsId": null
+    },
+    {
+      "Name": "14. Chessence Open",
+      "Federation": "GER",
+      "StartDate": "2026-08-28",
+      "EndDate": "2026-08-30",
+      "CalendarId": null,
+      "Url": "https://kurse.chessence.de/turnier-anmeldung-4/",
+      "ChessResultsId": null
+    },
+    {
+      "Name": "Innviertler Meisterschaft",
+      "Federation": "AUT",
+      "StartDate": "2026-08-28",
+      "EndDate": "2026-08-30",
+      "CalendarId": "10818",
+      "Url": "https://www.taufkirchenschach.at/",
+      "ChessResultsId": null
+    },
+    {
+      "Name": "SK Loosdorf Klubmeisterschaften",
+      "Federation": "AUT",
+      "StartDate": "2026-08-29",
+      "EndDate": "2026-08-29",
+      "CalendarId": "11301",
+      "Url": null,
+      "ChessResultsId": null
+    },
+    {
+      "Name": "Schachimedes-Jugendferiencamp in Großschönau/Waldviertel",
+      "Federation": "AUT",
+      "StartDate": "2026-08-29",
+      "EndDate": "2026-09-04",
+      "CalendarId": "10919",
+      "Url": "http://www.schachimedes.at/",
+      "ChessResultsId": null
+    },
+    {
+      "Name": "260801_Arber_Boma_2026",
+      "Federation": "GER",
+      "StartDate": "2026-08-29",
+      "EndDate": "2026-09-06",
+      "CalendarId": "11200",
+      "Url": "https://bad-soden-salmuenster-2026.hosting209415.ae95a.netcup.net/",
+      "ChessResultsId": null
+    },
+    {
+      "Name": "260801_Arber_Boma_SEN_2026",
+      "Federation": "GER",
+      "StartDate": "2026-08-29",
+      "EndDate": "2026-09-06",
+      "CalendarId": "11205",
+      "Url": "https://arber-boma-2026.schachwofi.de/",
+      "ChessResultsId": null
+    },
+    {
+      "Name": "Grazer Sommerblitzcup 2026 - Termin 9 (Flann OBrien)",
+      "Federation": "AUT",
+      "StartDate": "2026-08-30",
+      "EndDate": "2026-08-30",
+      "CalendarId": "11149",
+      "Url": "https://styria.chess.at",
+      "ChessResultsId": null
+    },
+    {
+      "Name": "RAPIDO AL ITALIANO - Schnellschach beim Italiener",
+      "Federation": "AUT",
+      "StartDate": "2026-08-30",
+      "EndDate": "2026-08-30",
+      "CalendarId": "11268",
+      "Url": "https://www.pizzeria-zum-italiener.at/",
+      "ChessResultsId": null
+    },
+    {
+      "Name": "42. Activity-Cup U8-U14",
+      "Federation": "AUT",
+      "StartDate": "2026-08-31",
+      "EndDate": "2026-09-03",
+      "CalendarId": "10953",
+      "Url": "https://www.activity4u.at/62/sommercamps",
+      "ChessResultsId": null
+    },
+    {
+      "Name": "8. Offene BAD Haller Kurbezirksmeisterschaft 2026",
+      "Federation": "AUT",
+      "StartDate": "2026-09-04",
+      "EndDate": "2026-09-04",
+      "CalendarId": "11166",
+      "Url": null,
+      "ChessResultsId": null
+    },
+    {
+      "Name": "Ochsenkopf Blitz-Open 2026",
+      "Federation": "GER",
+      "StartDate": "2026-09-04",
+      "EndDate": "2026-09-04",
+      "CalendarId": "11202",
+      "Url": "https://bad-soden-salmuenster-2026.hosting209415.ae95a.netcup.net/",
+      "ChessResultsId": null
+    },
+    {
+      "Name": "Royal Rapid September 2026",
+      "Federation": "AUT",
+      "StartDate": "2026-09-04",
+      "EndDate": "2026-09-04",
+      "CalendarId": "11329",
+      "Url": null,
+      "ChessResultsId": "1488351"
+    },
+    {
+      "Name": "MENDRISIO OPEN & BLITZ",
+      "Federation": "SUI",
+      "StartDate": "2026-09-04",
+      "EndDate": "2026-09-06",
+      "CalendarId": null,
+      "Url": "http://www.swisschesstour.com",
+      "ChessResultsId": null
+    },
+    {
+      "Name": "Burgenländische Jugendschachrallye 2026 - Pamhagen",
+      "Federation": "AUT",
+      "StartDate": "2026-09-05",
+      "EndDate": "2026-09-05",
+      "CalendarId": "10703",
+      "Url": "https://bsbschach.club/jugendschachrallye/",
+      "ChessResultsId": null
+    },
+    {
+      "Name": "5. Bad Ischler Schnellschachcup 2026 (AUT/FIDE-Schnellschachwertung)",
+      "Federation": "AUT",
+      "StartDate": "2026-09-05",
+      "EndDate": "2026-09-05",
+      "CalendarId": "10997",
+      "Url": "http://www.salzkammergutopen.gnx.at",
+      "ChessResultsId": null
+    },
+    {
+      "Name": "33. Rhein-Ahr-Mosel Jugend-Open",
+      "Federation": "GER",
+      "StartDate": "2026-09-05",
+      "EndDate": "2026-09-05",
+      "CalendarId": "11104",
+      "Url": "https://schachtreff-nickenich.de",
+      "ChessResultsId": null
+    },
+    {
+      "Name": "Ochsenkopf Active Chess - Open 2026",
+      "Federation": "GER",
+      "StartDate": "2026-09-05",
+      "EndDate": "2026-09-05",
+      "CalendarId": "11203",
+      "Url": "https://bad-soden-salmuenster-2026.hosting209415.ae95a.netcup.net/",
+      "ChessResultsId": null
+    },
+    {
+      "Name": "Shizo",
+      "Federation": "BUL",
+      "StartDate": "2026-09-05",
+      "EndDate": "2026-09-06",
+      "CalendarId": "11342",
+      "Url": null,
+      "ChessResultsId": null
+    },
+    {
+      "Name": "Bad Ischler Jugendturnier U8-18 mit AUT-Turnierschachelowertung",
+      "Federation": "AUT",
+      "StartDate": "2026-09-06",
+      "EndDate": "2026-09-06",
+      "CalendarId": "10996",
+      "Url": "http://www.salzkammergutopen.gnx.at",
+      "ChessResultsId": null
+    },
+    {
+      "Name": "Grazer Sommerblitzcup 2026 - Termin 10 (Flann OBrien)",
+      "Federation": "AUT",
+      "StartDate": "2026-09-06",
+      "EndDate": "2026-09-06",
+      "CalendarId": "11075",
+      "Url": "https://styria.chess.at",
+      "ChessResultsId": null
+    },
+    {
+      "Name": "13. Mödlinger Aktivschachturnier für Kinder bis 12 Jahre",
+      "Federation": "AUT",
+      "StartDate": "2026-09-06",
+      "EndDate": "2026-09-06",
+      "CalendarId": "11083",
+      "Url": "https://www.schachverein-moedling.net/",
+      "ChessResultsId": null
+    },
+    {
+      "Name": "27. Pellenz-Cup für 4er Teams",
+      "Federation": "GER",
+      "StartDate": "2026-09-06",
+      "EndDate": "2026-09-06",
+      "CalendarId": "11105",
+      "Url": "https://schachtreff-nickenich.de",
+      "ChessResultsId": null
+    },
+    {
+      "Name": "Kärntner Sparkasse Schach Jugendcup Sommer/Herbst 2026 (Feistritz/Drau, 15+0)",
+      "Federation": "AUT",
+      "StartDate": "2026-09-06",
+      "EndDate": "2026-09-06",
+      "CalendarId": "11126",
+      "Url": "https://www.schachportal.at/",
+      "ChessResultsId": null
+    },
+    {
+      "Name": "GAMBELO OPEN 2026",
+      "Federation": "GER",
+      "StartDate": "2026-09-06",
+      "EndDate": "2026-09-06",
+      "CalendarId": "11238",
+      "Url": "https://www.svktkarbo2020.com/",
+      "ChessResultsId": null
+    },
+    {
+      "Name": "Genius Test Contest for professionals",
+      "Federation": "POL",
+      "StartDate": "2026-09-06",
+      "EndDate": "2026-09-06",
+      "CalendarId": null,
+      "Url": "https://www.goldchess.com/en/other/geniustest.html",
+      "ChessResultsId": null
+    },
+    {
+      "Name": "4. Blankeneser Rapid-Open 2026",
+      "Federation": "GER",
+      "StartDate": "2026-09-06",
+      "EndDate": "2026-09-06",
+      "CalendarId": "11282",
+      "Url": null,
+      "ChessResultsId": null
+    },
+    {
+      "Name": "Genius Test Contest for professionals",
+      "Federation": "POL",
+      "StartDate": "2026-09-06",
+      "EndDate": "2026-09-06",
+      "CalendarId": null,
+      "Url": "https://www.goldchess.com/en/other/geniustest.html",
+      "ChessResultsId": null
+    },
+    {
+      "Name": "32.Linzer Stadtmeisterschaft",
+      "Federation": "AUT",
+      "StartDate": "2026-09-07",
+      "EndDate": "2026-09-12",
+      "CalendarId": "10936",
+      "Url": "http://www.schachurfahr.at",
+      "ChessResultsId": null
+    },
+    {
+      "Name": "32 Festival Internazionale Grand Hotel Adriatico",
+      "Federation": "ITA",
+      "StartDate": "2026-09-07",
+      "EndDate": "2026-09-14",
+      "CalendarId": "11177",
+      "Url": null,
+      "ChessResultsId": "1449817"
+    },
+    {
+      "Name": "Dekron Cup 2026",
+      "Federation": "AUT",
+      "StartDate": "2026-09-07",
+      "EndDate": "2026-09-28",
+      "CalendarId": "11209",
+      "Url": null,
+      "ChessResultsId": null
+    },
+    {
+      "Name": "Bullet am Brett (1+2sec) Walserberg (bei Salzburg)",
+      "Federation": "AUT",
+      "StartDate": "2026-09-11",
+      "EndDate": "2026-09-11",
+      "CalendarId": "11119",
+      "Url": "https://www.chesssport.eu/",
+      "ChessResultsId": null
+    },
+    {
+      "Name": "Offene Wiener Landesmeisterschaft: Blitz",
+      "Federation": "AUT",
+      "StartDate": "2026-09-11",
+      "EndDate": "2026-09-11",
+      "CalendarId": "11224",
+      "Url": null,
+      "ChessResultsId": null
+    },
+    {
+      "Name": "20. Werner-Obermeyer-Open Ortenburg",
+      "Federation": "GER",
+      "StartDate": "2026-09-11",
+      "EndDate": "2026-09-13",
+      "CalendarId": "10937",
+      "Url": "https://www.schachclub-ortenburg.com/open",
+      "ChessResultsId": null
+    },
+    {
+      "Name": "Hans-Wild-Triathlon Werder Bremen",
+      "Federation": "GER",
+      "StartDate": "2026-09-11",
+      "EndDate": "2026-09-13",
+      "CalendarId": "11334",
+      "Url": "https://www.werder.de/schach/turniere/hans-wild-turnier/hans-wild-turnier-2026",
+      "ChessResultsId": null
+    },
+    {
+      "Name": "Trainerfortbildung am Walserberg (bei Salzburg)",
+      "Federation": "AUT",
+      "StartDate": "2026-09-12",
+      "EndDate": "2026-09-12",
+      "CalendarId": "10897",
+      "Url": "https://www.chess.at/",
+      "ChessResultsId": null
+    },
+    {
+      "Name": "32. Feldbacher Int. Süd-Ost Blitzturnier",
+      "Federation": "AUT",
+      "StartDate": "2026-09-12",
+      "EndDate": "2026-09-12",
+      "CalendarId": "11048",
+      "Url": "http://www.schachklub-feldbach-kirchberg.at",
+      "ChessResultsId": null
+    },
+    {
+      "Name": "Steirische Vereins-Mannschaftsmeisterschaft (U14/U20)",
+      "Federation": "AUT",
+      "StartDate": "2026-09-12",
+      "EndDate": "2026-09-12",
+      "CalendarId": "11061",
+      "Url": "https://www.jugendschach.at",
+      "ChessResultsId": null
+    },
+    {
+      "Name": "Top-vs computer. Brilliant games for brilliant players. Prize $250",
+      "Federation": "POL",
+      "StartDate": "2026-09-12",
+      "EndDate": "2026-09-12",
+      "CalendarId": null,
+      "Url": "https://www.goldchess.com/en/other/gcdailypaid.html",
+      "ChessResultsId": null
+    },
+    {
+      "Name": "Immortal games i titles. $100 prize",
+      "Federation": "POL",
+      "StartDate": "2026-09-12",
+      "EndDate": "2026-09-12",
+      "CalendarId": null,
+      "Url": "https://www.goldchess.com/en/other/gcimmortal.html",
+      "ChessResultsId": null
+    },
+    {
+      "Name": "21. Bibliotheksopen Kaiserslautern",
+      "Federation": "GER",
+      "StartDate": "2026-09-12",
+      "EndDate": "2026-09-12",
+      "CalendarId": "11262",
+      "Url": null,
+      "ChessResultsId": null
+    },
+    {
+      "Name": "MmF Sommerschachturnier",
+      "Federation": "AUT",
+      "StartDate": "2026-09-12",
+      "EndDate": "2026-09-12",
+      "CalendarId": "11279",
+      "Url": "https://mmf.univie.ac.at/schachturniere/",
+      "ChessResultsId": null
+    },
+    {
+      "Name": "4. Jenbacher Schnellschach mit Tiroler Meisterschaft",
+      "Federation": "AUT",
+      "StartDate": "2026-09-12",
+      "EndDate": "2026-09-12",
+      "CalendarId": "11311",
+      "Url": "https://schachklub-sparkasse-jenbach.at/",
+      "ChessResultsId": null
+    },
+    {
+      "Name": "33. Sparkassenturnier Hoyerswerda 2026",
+      "Federation": "GER",
+      "StartDate": "2026-09-12",
+      "EndDate": "2026-09-13",
+      "CalendarId": "11018",
+      "Url": null,
+      "ChessResultsId": "1389416"
+    },
+    {
+      "Name": "Offene Wiener Landesmeisterschaft",
+      "Federation": "AUT",
+      "StartDate": "2026-09-12",
+      "EndDate": "2026-09-20",
+      "CalendarId": "11225",
+      "Url": null,
+      "ChessResultsId": null
+    },
+    {
+      "Name": "Grazer Sommerblitzcup 2026 - Termin 11 (Postsportverein/Herrgottwiesgasse)",
+      "Federation": "AUT",
+      "StartDate": "2026-09-13",
+      "EndDate": "2026-09-13",
+      "CalendarId": "11076",
+      "Url": "https://styria.chess.at",
+      "ChessResultsId": null
+    },
+    {
+      "Name": "Schnellschach in der Kabane 21 (Therme Bad Vöslau)",
+      "Federation": "AUT",
+      "StartDate": "2026-09-19",
+      "EndDate": "2026-09-19",
+      "CalendarId": "10822",
+      "Url": "https://www.chesssport.eu/",
+      "ChessResultsId": null
+    },
+    {
+      "Name": "LUGANO-PARADISO 1DAY OPEN IV",
+      "Federation": "SUI",
+      "StartDate": "2026-09-19",
+      "EndDate": "2026-09-19",
+      "CalendarId": null,
+      "Url": "http://www.swisschesstour.com",
+      "ChessResultsId": null
+    },
+    {
+      "Name": "Chess Battle 09.2026",
+      "Federation": "BUL",
+      "StartDate": "2026-09-19",
+      "EndDate": "2026-09-19",
+      "CalendarId": "11269",
+      "Url": null,
+      "ChessResultsId": null
+    },
+    {
+      "Name": "Schwarzwasser Matt (Ruhlander Schachtage)",
+      "Federation": "GER",
+      "StartDate": "2026-09-19",
+      "EndDate": "2026-09-20",
+      "CalendarId": null,
+      "Url": "https://schachinter.net/turnierkalender_schnell_09_september.htm",
+      "ChessResultsId": null
+    },
+    {
+      "Name": "Trainingsturnier: Schach Sparring Graz - Termin 1",
+      "Federation": "AUT",
+      "StartDate": "2026-09-20",
+      "EndDate": "2026-09-20",
+      "CalendarId": "11085",
+      "Url": null,
+      "ChessResultsId": null
+    },
+    {
+      "Name": "ASKÖ Bundesmeisterschaft U-18 Schnellschach",
+      "Federation": "AUT",
+      "StartDate": "2026-09-20",
+      "EndDate": "2026-09-20",
+      "CalendarId": "11090",
+      "Url": "https://www.sc-dieklagenfurter.at/",
+      "ChessResultsId": null
+    },
+    {
+      "Name": "Kärntner Aktiv-Cup 2026 in Villach",
+      "Federation": "AUT",
+      "StartDate": "2026-09-20",
+      "EndDate": "2026-09-20",
+      "CalendarId": "11235",
+      "Url": "https://www.schachportal.at/",
+      "ChessResultsId": null
+    },
+    {
+      "Name": "Halleiner Schnellschachturnier 2026",
+      "Federation": "AUT",
+      "StartDate": "2026-09-20",
+      "EndDate": "2026-09-20",
+      "CalendarId": "11271",
+      "Url": "https://www.schachklub-hallein.at/2026/07/24/halleiner-schnellschachturnier-2/",
+      "ChessResultsId": null
+    },
+    {
+      "Name": "Grandmaster Corner Contest. Polgar-Kasparov game",
+      "Federation": "POL",
+      "StartDate": "2026-09-20",
+      "EndDate": "2026-09-20",
+      "CalendarId": null,
+      "Url": "https://www.goldchess.com/en/other/grandmaster.html",
+      "ChessResultsId": null
+    },
+    {
+      "Name": "ÜbungsleiterInnenausbildung Schach 2026",
+      "Federation": "AUT",
+      "StartDate": "2026-09-26",
+      "EndDate": "2026-10-18",
+      "CalendarId": "11293",
+      "Url": "https://www.schachkurse.at/turniere.php",
+      "ChessResultsId": null
+    },
+    {
+      "Name": "Steirische Jugendschachrallye 2026 - Bärnbach",
+      "Federation": "AUT",
+      "StartDate": "2026-09-27",
+      "EndDate": "2026-09-27",
+      "CalendarId": "10969",
+      "Url": "https://www.jugendschach.at",
+      "ChessResultsId": null
+    },
+    {
+      "Name": "Kärntner Sparkasse Schach Jugendcup Sommer/Herbst 2026 (Wolfsberg, 40+30)",
+      "Federation": "AUT",
+      "StartDate": "2026-09-27",
+      "EndDate": "2026-09-27",
+      "CalendarId": "11127",
+      "Url": "https://www.schachportal.at/",
+      "ChessResultsId": null
+    },
+    {
+      "Name": "Rupertiturnier offen Rapid Elo-Wertung Start 14:00 Uhr",
+      "Federation": "AUT",
+      "StartDate": "2026-09-27",
+      "EndDate": "2026-09-27",
+      "CalendarId": "11330",
+      "Url": "https://schach-royal.at",
+      "ChessResultsId": null
+    },
+    {
+      "Name": "Steirische Senioren LM. 2026",
+      "Federation": "AUT",
+      "StartDate": "2026-09-29",
+      "EndDate": "2026-11-24",
+      "CalendarId": "11288",
+      "Url": null,
+      "ChessResultsId": null
+    },
+    {
+      "Name": "ACO World Senior (50+) Chess Championship",
+      "Federation": "GRE",
+      "StartDate": "2026-10-01",
+      "EndDate": "2026-10-10",
+      "CalendarId": null,
+      "Url": "https://www.amateurchess.com",
+      "ChessResultsId": null
+    },
+    {
+      "Name": "ZÜRICHSee Festival II",
+      "Federation": "SUI",
+      "StartDate": "2026-10-02",
+      "EndDate": "2026-10-04",
+      "CalendarId": null,
+      "Url": "http://www.swisschesstour.com",
+      "ChessResultsId": null
+    },
+    {
+      "Name": "Burgenländische Jugendschachrallye 2026 - Antau",
+      "Federation": "AUT",
+      "StartDate": "2026-10-03",
+      "EndDate": "2026-10-03",
+      "CalendarId": "10738",
+      "Url": "https://bsbschach.club/jugendschachrallye/",
+      "ChessResultsId": null
+    },
+    {
+      "Name": "Dolnácká bleskovka 2026",
+      "Federation": "CZE",
+      "StartDate": "2026-10-03",
+      "EndDate": "2026-10-03",
+      "CalendarId": "11107",
+      "Url": null,
+      "ChessResultsId": null
+    },
+    {
+      "Name": "offene Wuppertaler Blitz-Stadtmeisterschaft 2026",
+      "Federation": "GER",
+      "StartDate": "2026-10-03",
+      "EndDate": "2026-10-03",
+      "CalendarId": null,
+      "Url": "https://esg1851.de/termine/offene-wuppertaler-stadt-blitz-meisterschaft/",
+      "ChessResultsId": null
+    },
+    {
+      "Name": "49. Österreichische Blindenschach Meisterschaft des ÖBSB",
+      "Federation": "AUT",
+      "StartDate": "2026-10-03",
+      "EndDate": "2026-10-10",
+      "CalendarId": "11218",
+      "Url": null,
+      "ChessResultsId": "1457613"
+    },
+    {
+      "Name": "Steirische Landesmeisterschaft im Schnellschach 2026",
+      "Federation": "AUT",
+      "StartDate": "2026-10-04",
+      "EndDate": "2026-10-04",
+      "CalendarId": null,
+      "Url": "https://styria.chess.at/",
+      "ChessResultsId": null
+    },
+    {
+      "Name": "tschaturanga Herbst-Cup 2026 - Rundenturniere mit FIDE-Wertung",
+      "Federation": "AUT",
+      "StartDate": "2026-10-05",
+      "EndDate": "2026-11-23",
+      "CalendarId": "11204",
+      "Url": null,
+      "ChessResultsId": null
+    },
+    {
+      "Name": "Wormser Nibelungenopen 2026",
+      "Federation": "GER",
+      "StartDate": "2026-10-08",
+      "EndDate": "2026-10-11",
+      "CalendarId": "10977",
+      "Url": null,
+      "ChessResultsId": null
+    },
+    {
+      "Name": "11. Rudolf Hamersky Gedenkturnier in Sieghartskirchen",
+      "Federation": "AUT",
+      "StartDate": "2026-10-10",
+      "EndDate": "2026-10-10",
+      "CalendarId": "11175",
+      "Url": null,
+      "ChessResultsId": null
+    },
+    {
+      "Name": "2. Frauenbundesliga Mitte AUT Runde 1 in Leoben",
+      "Federation": "AUT",
+      "StartDate": "2026-10-10",
+      "EndDate": "2026-10-10",
+      "CalendarId": "11244",
+      "Url": "https://www.chess.at/spielbetrieb/bundesliga/2-frauenbundesliga-mitte.html",
+      "ChessResultsId": null
+    },
+    {
+      "Name": "NÖ Jugend Schnellschach LM 2026 + Semifinale NÖ Jugend LM2027",
+      "Federation": "AUT",
+      "StartDate": "2026-10-10",
+      "EndDate": "2026-10-10",
+      "CalendarId": "11261",
+      "Url": null,
+      "ChessResultsId": "1468898"
+    },
+    {
+      "Name": "2. Bundesliga Mitte AUT Runden 1-2 in Fürstenfeld",
+      "Federation": "AUT",
+      "StartDate": "2026-10-10",
+      "EndDate": "2026-10-11",
+      "CalendarId": "11231",
+      "Url": "https://www.chess.at/spielbetrieb/bundesliga/2-bundesliga-mitte.html",
+      "ChessResultsId": null
+    },
+    {
+      "Name": "Trainingsturnier: Schach Sparring Graz - Termin 2",
+      "Federation": "AUT",
+      "StartDate": "2026-10-11",
+      "EndDate": "2026-10-11",
+      "CalendarId": "11086",
+      "Url": null,
+      "ChessResultsId": null
+    },
+    {
+      "Name": "NÖ Jugend Blitzschach LM 2026",
+      "Federation": "AUT",
+      "StartDate": "2026-10-11",
+      "EndDate": "2026-10-11",
+      "CalendarId": "11260",
+      "Url": null,
+      "ChessResultsId": "1468897"
+    },
+    {
+      "Name": "2. Frauenbundesliga Ost AUT Runden 1-2 in Wien",
+      "Federation": "AUT",
+      "StartDate": "2026-10-11",
+      "EndDate": "2026-10-11",
+      "CalendarId": "11335",
+      "Url": "https://www.chess.at/spielbetrieb/bundesliga/2-frauenbundesliga-ost.html",
+      "ChessResultsId": null
+    },
+    {
+      "Name": "Offene NÖ Schach-Seniorenmeisterschaft",
+      "Federation": "AUT",
+      "StartDate": "2026-10-12",
+      "EndDate": "2026-10-18",
+      "CalendarId": "10751",
+      "Url": "https://noe-schach.at/",
+      "ChessResultsId": null
+    },
+    {
+      "Name": "Schachkreuzfahrt Panamakanal, 7 Rd.",
+      "Federation": "USA",
+      "StartDate": "2026-10-13",
+      "EndDate": "2026-11-01",
+      "CalendarId": null,
+      "Url": "https://www.schachturnier-auf-see.de/",
+      "ChessResultsId": null
+    },
+    {
+      "Name": "Marburger Schachtage 2026 A",
+      "Federation": "GER",
+      "StartDate": "2026-10-15",
+      "EndDate": "2026-10-18",
+      "CalendarId": "11007",
+      "Url": "https://marburger-schachtage.de/",
+      "ChessResultsId": null
+    },
+    {
+      "Name": "Marburger Schachtage 2026 B",
+      "Federation": "GER",
+      "StartDate": "2026-10-15",
+      "EndDate": "2026-10-18",
+      "CalendarId": "11008",
+      "Url": "https://marburger-schachtage.de/",
+      "ChessResultsId": null
+    },
+    {
+      "Name": "LENZERHEIDE AMATEUR OPEN",
+      "Federation": "SUI",
+      "StartDate": "2026-10-16",
+      "EndDate": "2026-10-18",
+      "CalendarId": null,
+      "Url": "http://www.swisschesstour.com",
+      "ChessResultsId": null
+    },
+    {
+      "Name": "9.Oberländische Meisterschaft",
+      "Federation": "SUI",
+      "StartDate": "2026-10-16",
+      "EndDate": "2026-10-18",
+      "CalendarId": "10678",
+      "Url": "https://www.schachinthun.ch/",
+      "ChessResultsId": null
+    },
+    {
+      "Name": "9. Kaltern-Trophy 2026 - Kaltern am See / Südtirol",
+      "Federation": "ITA",
+      "StartDate": "2026-10-16",
+      "EndDate": "2026-10-18",
+      "CalendarId": "10758",
+      "Url": "http://www.chess.bertagnolli.com/Kaltern-Trophy",
+      "ChessResultsId": null
+    },
+    {
+      "Name": "Herbst-Open Würselen 2026",
+      "Federation": "GER",
+      "StartDate": "2026-10-16",
+      "EndDate": "2026-10-18",
+      "CalendarId": "10923",
+      "Url": "https://schachverein-wuerselen.de/",
+      "ChessResultsId": null
+    },
+    {
+      "Name": "2. Bundesliga West AUT Runden 1-3 im Hotel Servus Europa Walserberg",
+      "Federation": "AUT",
+      "StartDate": "2026-10-16",
+      "EndDate": "2026-10-18",
+      "CalendarId": "11227",
+      "Url": "https://www.chess.at/spielbetrieb/bundesliga/2-bundesliga-west.html",
+      "ChessResultsId": null
+    },
+    {
+      "Name": "XXVI International Tournament Città di Vicenza",
+      "Federation": "ITA",
+      "StartDate": "2026-10-16",
+      "EndDate": "2026-10-18",
+      "CalendarId": "11292",
+      "Url": "https://vesus.org/event/D1nEgh2X",
+      "ChessResultsId": null
+    },
+    {
+      "Name": "Offene Spittaler Stadtmeisterschaft 2026",
+      "Federation": "AUT",
+      "StartDate": "2026-10-16",
+      "EndDate": "2026-11-27",
+      "CalendarId": "11333",
+      "Url": null,
+      "ChessResultsId": null
+    },
+    {
+      "Name": "Swiss Manager for Power Users",
+      "Federation": "PHI",
+      "StartDate": "2026-10-17",
+      "EndDate": "2026-10-18",
+      "CalendarId": "11190",
+      "Url": null,
+      "ChessResultsId": "1453618"
+    },
+    {
+      "Name": "Steirische Jugendschachrallye 2026 - St. Martin/Sulmtal",
+      "Federation": "AUT",
+      "StartDate": "2026-10-18",
+      "EndDate": "2026-10-18",
+      "CalendarId": "11040",
+      "Url": "https://www.jugendschach.at",
+      "ChessResultsId": null
+    },
+    {
+      "Name": "Kärntner Sparkasse Schach Jugendcup Sommer/Herbst 2026 (Villach, 15+0)",
+      "Federation": "AUT",
+      "StartDate": "2026-10-18",
+      "EndDate": "2026-10-18",
+      "CalendarId": "11128",
+      "Url": "https://www.schachportal.at/",
+      "ChessResultsId": null
+    },
+    {
+      "Name": "FLIMS VIP OPEN",
+      "Federation": "SUI",
+      "StartDate": "2026-10-23",
+      "EndDate": "2026-10-25",
+      "CalendarId": null,
+      "Url": "http://www.swisschesstour.com",
+      "ChessResultsId": null
+    },
+    {
+      "Name": "Offene Burgenländische Landesmeisterschaften 2026",
+      "Federation": "AUT",
+      "StartDate": "2026-10-23",
+      "EndDate": "2026-10-26",
+      "CalendarId": "11055",
+      "Url": "http://bchess.at",
+      "ChessResultsId": null
+    },
+    {
+      "Name": "Vierermannschaftsturnier Loosdorf 2026",
+      "Federation": "AUT",
+      "StartDate": "2026-10-24",
+      "EndDate": "2026-10-24",
+      "CalendarId": "11112",
+      "Url": null,
+      "ChessResultsId": null
+    },
+    {
+      "Name": "3ème édition WAPICHESS",
+      "Federation": "BEL",
+      "StartDate": "2026-10-24",
+      "EndDate": "2026-10-31",
+      "CalendarId": null,
+      "Url": "https://echiquierleuzois541.be/",
+      "ChessResultsId": null
+    },
+    {
+      "Name": "Österreichische Jugendmeisterschaften 2026, JBLTM",
+      "Federation": "AUT",
+      "StartDate": "2026-10-25",
+      "EndDate": "2026-10-25",
+      "CalendarId": null,
+      "Url": "https://www.chess.at/",
+      "ChessResultsId": null
+    },
+    {
+      "Name": "2. Klopfer - Der Blitzmarathon - 21 Runden Blitzen in Bad Vöslau",
+      "Federation": "AUT",
+      "StartDate": "2026-10-25",
+      "EndDate": "2026-10-25",
+      "CalendarId": "11299",
+      "Url": "https://www.schachclub.at",
+      "ChessResultsId": null
+    },
+    {
+      "Name": "IM Alexander Gedenk Turnier",
+      "Federation": "AUT",
+      "StartDate": "2026-10-25",
+      "EndDate": "2026-10-26",
+      "CalendarId": null,
+      "Url": "http:// IM Alexander Gedenk Turnier 2026",
+      "ChessResultsId": null
+    },
+    {
+      "Name": "09 NL Pandiyar Memorial Lakecity Int. Open Fide Rating Chess Tournament-2026",
+      "Federation": "IND",
+      "StartDate": "2026-10-25",
+      "EndDate": "2026-10-29",
+      "CalendarId": "11158",
+      "Url": null,
+      "ChessResultsId": "1441068"
+    },
+    {
+      "Name": "Österreichische Jugendmeisterschaften 2026, Schnellschach",
+      "Federation": "AUT",
+      "StartDate": "2026-10-26",
+      "EndDate": "2026-10-26",
+      "CalendarId": null,
+      "Url": "https://www.chess.at/",
+      "ChessResultsId": null
+    },
+    {
+      "Name": "Österreichische Jugendmeisterschaften 2026, Blitzschach",
+      "Federation": "AUT",
+      "StartDate": "2026-10-27",
+      "EndDate": "2026-10-27",
+      "CalendarId": null,
+      "Url": "https://www.chess.at/",
+      "ChessResultsId": null
+    },
+    {
+      "Name": "7. Heidelberger Schachherbst",
+      "Federation": "GER",
+      "StartDate": "2026-10-29",
+      "EndDate": "2026-11-01",
+      "CalendarId": null,
+      "Url": "https://www.berndschessfactory.de/",
+      "ChessResultsId": null
+    },
+    {
+      "Name": "2. Bundesliga Ost AUT Runden 1-2 in Wien",
+      "Federation": "AUT",
+      "StartDate": "2026-10-30",
+      "EndDate": "2026-10-31",
+      "CalendarId": "11255",
+      "Url": "https://www.chess.at/spielbetrieb/bundesliga/2-bundesliga-ost.html",
+      "ChessResultsId": null
+    },
+    {
+      "Name": "U 18 Halloween Champion 2026 + U 18 Halloween Schachmatt Meister 2026",
+      "Federation": "AUT",
+      "StartDate": "2026-10-31",
+      "EndDate": "2026-10-31",
+      "CalendarId": "11287",
+      "Url": null,
+      "ChessResultsId": null
+    },
+    {
+      "Name": "4. Freundschachts-Open im Wittelsbacher Schloss Friedberg bei Augsburg",
+      "Federation": "GER",
+      "StartDate": "2026-10-31",
+      "EndDate": "2026-11-03",
+      "CalendarId": "11099",
+      "Url": "https://freundschachts-open.de/",
+      "ChessResultsId": null
+    },
+    {
+      "Name": "Brno Open 2026",
+      "Federation": "CZE",
+      "StartDate": "2026-10-31",
+      "EndDate": "2026-11-07",
+      "CalendarId": "11168",
+      "Url": "https://www.czechtour.net/brno-open/",
+      "ChessResultsId": null
+    },
+    {
+      "Name": "29. Offene Internationale Bayerische Schachmeisterschaft (OIBM)",
+      "Federation": "GER",
+      "StartDate": "2026-10-31",
+      "EndDate": "2026-11-08",
+      "CalendarId": null,
+      "Url": "https://www.schach-tegernsee.de/ ",
+      "ChessResultsId": null
+    },
+    {
+      "Name": "29. Internationale Offene Bayerische Meisterschaften",
+      "Federation": "GER",
+      "StartDate": "2026-10-31",
+      "EndDate": "2026-11-08",
+      "CalendarId": "11130",
+      "Url": "https://www.schach-tegernsee.de/",
+      "ChessResultsId": null
+    },
+    {
+      "Name": "Offene Frauenfelder Stadtmeisterschaft",
+      "Federation": "SUI",
+      "StartDate": "2026-11-01",
+      "EndDate": "2026-11-29",
+      "CalendarId": "11313",
+      "Url": "https://www.schachfrauenfeld.ch/",
+      "ChessResultsId": null
+    },
+    {
+      "Name": "1. Adolf Anderssen-Cup 2026",
+      "Federation": "GER",
+      "StartDate": "2026-11-02",
+      "EndDate": "2026-11-10",
+      "CalendarId": "11154",
+      "Url": null,
+      "ChessResultsId": null
+    },
+    {
+      "Name": "LUGANO OPEN",
+      "Federation": "SUI",
+      "StartDate": "2026-11-06",
+      "EndDate": "2026-11-08",
+      "CalendarId": null,
+      "Url": "http://www.swisschesstour.com",
+      "ChessResultsId": null
+    },
+    {
+      "Name": "Hradec Kralove Open 2026",
+      "Federation": "CZE",
+      "StartDate": "2026-11-07",
+      "EndDate": "2026-11-14",
+      "CalendarId": "11169",
+      "Url": "https://www.czechtour.net/hradec-kralove-open/",
+      "ChessResultsId": null
+    },
+    {
+      "Name": "Steirische Jugendschachrallye 2026 - Kindberg",
+      "Federation": "AUT",
+      "StartDate": "2026-11-08",
+      "EndDate": "2026-11-08",
+      "CalendarId": "10970",
+      "Url": "https://www.jugendschach.at",
+      "ChessResultsId": null
+    },
+    {
+      "Name": "Kärntner Sparkasse Schach Jugendcup Sommer/Herbst 2026 (Spittal, 15+0)",
+      "Federation": "AUT",
+      "StartDate": "2026-11-08",
+      "EndDate": "2026-11-08",
+      "CalendarId": "11129",
+      "Url": "https://www.schachportal.at/",
+      "ChessResultsId": null
+    },
+    {
+      "Name": "2. Frauenbundesliga West AUT Runde 1 in Schwaz",
+      "Federation": "AUT",
+      "StartDate": "2026-11-08",
+      "EndDate": "2026-11-08",
+      "CalendarId": "11327",
+      "Url": "https://www.chess.at/spielbetrieb/bundesliga/2-frauenbundesliga-west.html",
+      "ChessResultsId": null
+    },
+    {
+      "Name": "GM Valentin Dragnev: Das Konzept von Zeit_Ein Vortrag der ChessSports Akademie",
+      "Federation": "AUT",
+      "StartDate": "2026-11-10",
+      "EndDate": "2026-11-10",
+      "CalendarId": "11314",
+      "Url": "https://www.chesssport.eu/",
+      "ChessResultsId": null
+    },
+    {
+      "Name": "WAIDHOFEN CHESS MASTERS RAPID 2026 FIDE / AUT / DWZ gewertet 5 Runden",
+      "Federation": "AUT",
+      "StartDate": "2026-11-13",
+      "EndDate": "2026-11-14",
+      "CalendarId": null,
+      "Url": "http://www.schachburg.eu",
+      "ChessResultsId": null
+    },
+    {
+      "Name": "2. Bundesliga Mitte AUT Runden 3-5 in Neuhofen/St. Veit/Graz",
+      "Federation": "AUT",
+      "StartDate": "2026-11-13",
+      "EndDate": "2026-11-15",
+      "CalendarId": "11232",
+      "Url": "https://www.chess.at/spielbetrieb/bundesliga/2-bundesliga-mitte.html",
+      "ChessResultsId": null
+    },
+    {
+      "Name": "Burgenländische Jugendschachrallye 2026 - Purbach",
+      "Federation": "AUT",
+      "StartDate": "2026-11-14",
+      "EndDate": "2026-11-14",
+      "CalendarId": "10739",
+      "Url": "https://bsbschach.club/jugendschachrallye/",
+      "ChessResultsId": null
+    },
+    {
+      "Name": "2. WAIDHOFEN CHESS MASTERS 2026 Rapid Castle Rothschild Open 7 Round 10min+5sec",
+      "Federation": "AUT",
+      "StartDate": "2026-11-14",
+      "EndDate": "2026-11-14",
+      "CalendarId": null,
+      "Url": "http://www.schachburg.eu",
+      "ChessResultsId": null
+    },
+    {
+      "Name": "2. Frauenbundesliga Mitte AUT Runde 2 (regionale Runde)",
+      "Federation": "AUT",
+      "StartDate": "2026-11-14",
+      "EndDate": "2026-11-14",
+      "CalendarId": "11245",
+      "Url": "https://www.chess.at/spielbetrieb/bundesliga/2-frauenbundesliga-mitte.html",
+      "ChessResultsId": null
+    },
+    {
+      "Name": "Trainingsturnier: Schach Sparring Graz - Termin 3",
+      "Federation": "AUT",
+      "StartDate": "2026-11-15",
+      "EndDate": "2026-11-15",
+      "CalendarId": "11087",
+      "Url": null,
+      "ChessResultsId": null
+    },
+    {
+      "Name": "GM Elisabeth Pähtz: Kandidatenzüge finden_Ein Vortrag der ChessSports Akademie",
+      "Federation": "AUT",
+      "StartDate": "2026-11-17",
+      "EndDate": "2026-11-17",
+      "CalendarId": "11315",
+      "Url": "https://www.chesssport.eu/",
+      "ChessResultsId": null
+    },
+    {
+      "Name": "Sel Hotel Open Myvatn",
+      "Federation": "ISL",
+      "StartDate": "2026-11-19",
+      "EndDate": "2026-11-22",
+      "CalendarId": null,
+      "Url": "https://afmaelismot.godinn.is/",
+      "ChessResultsId": null
+    },
+    {
+      "Name": "2. Bundesliga West AUT Runden 4-5 in Absam",
+      "Federation": "AUT",
+      "StartDate": "2026-11-21",
+      "EndDate": "2026-11-22",
+      "CalendarId": "11228",
+      "Url": "https://www.chess.at/spielbetrieb/bundesliga/2-bundesliga-west.html",
+      "ChessResultsId": null
+    },
+    {
+      "Name": "ÖSB-Trainerfortbildung in Graz mit Adrian Mikhalchishin 10:30 - 17:00",
+      "Federation": "AUT",
+      "StartDate": "2026-11-22",
+      "EndDate": "2026-11-22",
+      "CalendarId": "10991",
+      "Url": "https://www.chess.at/",
+      "ChessResultsId": null
+    },
+    {
+      "Name": "Übungsleiterausbildung Graz - Termin 1/4",
+      "Federation": "AUT",
+      "StartDate": "2026-11-22",
+      "EndDate": "2026-11-22",
+      "CalendarId": null,
+      "Url": "https://styria.chess.at/wp-content/uploads/2026/07/Uebungsleiterausbildung_2026_",
+      "ChessResultsId": null
+    },
+    {
+      "Name": "Michael Busse: Neue Tools im Schach_Ein Vortrag der ChessSports Akademie",
+      "Federation": "AUT",
+      "StartDate": "2026-11-24",
+      "EndDate": "2026-11-24",
+      "CalendarId": "11316",
+      "Url": "https://www.chesssport.eu/",
+      "ChessResultsId": null
+    },
+    {
+      "Name": "1. Bundesliga AUT Runde 1-5 in Mayrhofen",
+      "Federation": "AUT",
+      "StartDate": "2026-11-25",
+      "EndDate": "2026-11-29",
+      "CalendarId": "11058",
+      "Url": null,
+      "ChessResultsId": "1404438"
+    },
+    {
+      "Name": "DAVOS SKI - OPEN",
+      "Federation": "SUI",
+      "StartDate": "2026-11-27",
+      "EndDate": "2026-11-29",
+      "CalendarId": null,
+      "Url": "http://www.swisschesstour.com",
+      "ChessResultsId": null
+    },
+    {
+      "Name": "1. Frauenbundesliga AUT Runden 1-4 in Mayrhofen",
+      "Federation": "AUT",
+      "StartDate": "2026-11-27",
+      "EndDate": "2026-11-29",
+      "CalendarId": "11263",
+      "Url": "https://www.chess.at/spielbetrieb/bundesliga/frauen-bundesliga.html",
+      "ChessResultsId": null
+    },
+    {
+      "Name": "Schach im Turm, Blitzschachturnier, 7 Runden, 5 Min.+3 Sek., U16",
+      "Federation": "AUT",
+      "StartDate": "2026-11-28",
+      "EndDate": "2026-11-28",
+      "CalendarId": "11093",
+      "Url": "https://www.spritzendorfer.at",
+      "ChessResultsId": null
+    },
+    {
+      "Name": "Schach im Turm, Blitzschachturnier, 7 Runden, 5 Min.+3 Sek., allg. Turnier",
+      "Federation": "AUT",
+      "StartDate": "2026-11-28",
+      "EndDate": "2026-11-28",
+      "CalendarId": "11094",
+      "Url": "https://www.spritzendorfer.at/",
+      "ChessResultsId": null
+    },
+    {
+      "Name": "Übungsleiterausbildung Graz - Termin 2/4",
+      "Federation": "AUT",
+      "StartDate": "2026-11-28",
+      "EndDate": "2026-11-28",
+      "CalendarId": null,
+      "Url": "https://styria.chess.at/wp-content/uploads/2026/07/Uebungsleiterausbildung_2026_",
+      "ChessResultsId": null
+    },
+    {
+      "Name": "Schach im Turm, Schnellschachturnier, 7 Runden, 12 Min.+5 Sek., U16",
+      "Federation": "AUT",
+      "StartDate": "2026-11-29",
+      "EndDate": "2026-11-29",
+      "CalendarId": "11095",
+      "Url": "https://www.spritzendorfer.at/",
+      "ChessResultsId": null
+    },
+    {
+      "Name": "Schach im Turm, Schnellschachturnier, 7 Runden, 12 Min.+5 Sek., allg. Turnier",
+      "Federation": "AUT",
+      "StartDate": "2026-11-29",
+      "EndDate": "2026-11-29",
+      "CalendarId": "11096",
+      "Url": "https://www.spritzendorfer.at/",
+      "ChessResultsId": null
+    },
+    {
+      "Name": "Übungsleiterausbildung Graz - Termin 3/4",
+      "Federation": "AUT",
+      "StartDate": "2026-11-29",
+      "EndDate": "2026-11-29",
+      "CalendarId": null,
+      "Url": "https://styria.chess.at/wp-content/uploads/2026/07/Uebungsleiterausbildung_2026_",
+      "ChessResultsId": null
+    },
+    {
+      "Name": "28. (Jung)-Senioren-Schach-Open Bad Griesbach",
+      "Federation": "GER",
+      "StartDate": "2026-11-29",
+      "EndDate": "2026-12-05",
+      "CalendarId": "11077",
+      "Url": null,
+      "ChessResultsId": "1415455"
+    },
+    {
+      "Name": "Eröffnungen zielgruppengerecht lernen_Ein Vortrag der ChessSports Akademie",
+      "Federation": "AUT",
+      "StartDate": "2026-12-01",
+      "EndDate": "2026-12-01",
+      "CalendarId": "11317",
+      "Url": "https://www.chesssport.eu/",
+      "ChessResultsId": null
+    },
+    {
+      "Name": "Offene Wiener Landesmeisterschaft: Rapid",
+      "Federation": "AUT",
+      "StartDate": "2026-12-04",
+      "EndDate": "2026-12-04",
+      "CalendarId": "11223",
+      "Url": null,
+      "ChessResultsId": null
+    },
+    {
+      "Name": "WAIDHOFEN CHESS MASTERS Open 2026 FIDE / AUT / DWZ gewertet 5 Runden",
+      "Federation": "AUT",
+      "StartDate": "2026-12-04",
+      "EndDate": "2026-12-08",
+      "CalendarId": null,
+      "Url": "http://www.schachburg.eu",
+      "ChessResultsId": null
+    },
+    {
+      "Name": "2. Frauenbundesliga Mitte AUT Runde 3 in Klagenfurt",
+      "Federation": "AUT",
+      "StartDate": "2026-12-05",
+      "EndDate": "2026-12-05",
+      "CalendarId": "11246",
+      "Url": "https://www.chess.at/spielbetrieb/bundesliga/2-frauenbundesliga-mitte.html",
+      "ChessResultsId": null
+    },
+    {
+      "Name": "Nikoloturnier Weinviertel 2026",
+      "Federation": "AUT",
+      "StartDate": "2026-12-05",
+      "EndDate": "2026-12-05",
+      "CalendarId": "11286",
+      "Url": null,
+      "ChessResultsId": "1476222"
+    },
+    {
+      "Name": "SCHAFFHAUSEN NEW 2DAYS OPEN",
+      "Federation": "SUI",
+      "StartDate": "2026-12-05",
+      "EndDate": "2026-12-06",
+      "CalendarId": null,
+      "Url": "http://www.swisschesstour.com",
+      "ChessResultsId": null
+    },
+    {
+      "Name": "2. Bundesliga Ost AUT Runden 3-4 in Wien",
+      "Federation": "AUT",
+      "StartDate": "2026-12-05",
+      "EndDate": "2026-12-06",
+      "CalendarId": "11256",
+      "Url": "https://www.chess.at/spielbetrieb/bundesliga/2-bundesliga-ost.html",
+      "ChessResultsId": null
+    },
+    {
+      "Name": "Übungsleiterausbildung Graz - Termin 4/4",
+      "Federation": "AUT",
+      "StartDate": "2026-12-06",
+      "EndDate": "2026-12-06",
+      "CalendarId": null,
+      "Url": "https://styria.chess.at/wp-content/uploads/2026/07/Uebungsleiterausbildung_2026_",
+      "ChessResultsId": null
+    },
+    {
+      "Name": "2. Frauenbundesliga Ost AUT Runde 3 in Wien",
+      "Federation": "AUT",
+      "StartDate": "2026-12-06",
+      "EndDate": "2026-12-06",
+      "CalendarId": "11336",
+      "Url": "https://www.chess.at/spielbetrieb/bundesliga/2-frauenbundesliga-ost.html",
+      "ChessResultsId": null
+    },
+    {
+      "Name": "Wiener Advent Open",
+      "Federation": "AUT",
+      "StartDate": "2026-12-07",
+      "EndDate": "2026-12-13",
+      "CalendarId": "11226",
+      "Url": null,
+      "ChessResultsId": null
+    },
+    {
+      "Name": "5. Halleiner Kreativ Schach Event",
+      "Federation": "AUT",
+      "StartDate": "2026-12-08",
+      "EndDate": "2026-12-08",
+      "CalendarId": "10775",
+      "Url": "https://www.schachklub-hallein.at/",
+      "ChessResultsId": null
+    },
+    {
+      "Name": "15. Bad Vöslauer Blitzgneisser Trophy",
+      "Federation": "AUT",
+      "StartDate": "2026-12-08",
+      "EndDate": "2026-12-08",
+      "CalendarId": "11300",
+      "Url": "https://www.schachclub.at",
+      "ChessResultsId": null
+    },
+    {
+      "Name": "GM Rainer Buhmann: Trainingsplan erstellen_Ein Vortrag der ChessSports Akademie",
+      "Federation": "AUT",
+      "StartDate": "2026-12-08",
+      "EndDate": "2026-12-08",
+      "CalendarId": "11318",
+      "Url": "https://www.chesssport.eu/",
+      "ChessResultsId": null
+    },
+    {
+      "Name": "MÜNCHEN CHESS HAPPENING",
+      "Federation": "GER",
+      "StartDate": "2026-12-11",
+      "EndDate": "2026-12-13",
+      "CalendarId": null,
+      "Url": "http://www.swisschesstour.com",
+      "ChessResultsId": null
+    },
+    {
+      "Name": "15. Chessence Open",
+      "Federation": "GER",
+      "StartDate": "2026-12-11",
+      "EndDate": "2026-12-13",
+      "CalendarId": null,
+      "Url": "https://kurse.chessence.de/turnier-anmeldung-5/",
+      "ChessResultsId": null
+    },
+    {
+      "Name": "Trainingsturnier: Schach Sparring Graz - Termin 4",
+      "Federation": "AUT",
+      "StartDate": "2026-12-13",
+      "EndDate": "2026-12-13",
+      "CalendarId": "11088",
+      "Url": null,
+      "ChessResultsId": null
+    },
+    {
+      "Name": "II. FORINTOS GYOZO MEMORIAL TOURNAMENT",
+      "Federation": "HUN",
+      "StartDate": "2026-12-13",
+      "EndDate": "2026-12-21",
+      "CalendarId": "11345",
+      "Url": "https://chess.hu/wp-content/uploads/2026/09/II_Forintos_Gyozo_Emlekverseny_2026-",
+      "ChessResultsId": null
+    },
+    {
+      "Name": "Dr. Anita Stangl: Schach verbindet__Ein Vortrag der ChessSports Akademie",
+      "Federation": "AUT",
+      "StartDate": "2026-12-15",
+      "EndDate": "2026-12-15",
+      "CalendarId": "11319",
+      "Url": "https://www.chesssport.eu/",
+      "ChessResultsId": null
+    },
+    {
+      "Name": "Open Braunau 2026",
+      "Federation": "AUT",
+      "StartDate": "2026-12-18",
+      "EndDate": "2026-12-20",
+      "CalendarId": null,
+      "Url": "https://braunauchessopen26.blogspot.com/",
+      "ChessResultsId": null
+    },
+    {
+      "Name": "Steirische Jugendschachrallye 2026 - Graz",
+      "Federation": "AUT",
+      "StartDate": "2026-12-20",
+      "EndDate": "2026-12-20",
+      "CalendarId": "11039",
+      "Url": "https://www.jugendschach.at",
+      "ChessResultsId": null
+    },
+    {
+      "Name": "BASEL XMAS FESTIVAL",
+      "Federation": "SUI",
+      "StartDate": "2026-12-26",
+      "EndDate": "2026-12-30",
+      "CalendarId": null,
+      "Url": "http://www.swisschesstour.com",
+      "ChessResultsId": null
+    },
+    {
+      "Name": "11. Internationales Bad Schwartauer Schachopen",
+      "Federation": "GER",
+      "StartDate": "2026-12-27",
+      "EndDate": "2026-12-30",
+      "CalendarId": "11060",
+      "Url": "http://www.schwartauer-open.de",
+      "ChessResultsId": null
+    },
+    {
+      "Name": "15 Festival Città di Palmanova",
+      "Federation": "ITA",
+      "StartDate": "2026-12-27",
+      "EndDate": "2027-01-03",
+      "CalendarId": "11326",
+      "Url": "https://vesus.org/event/YntP2Mmn",
+      "ChessResultsId": null
+    },
+    {
+      "Name": "6. Carinthian Winteropen 2027",
+      "Federation": "AUT",
+      "StartDate": "2027-01-02",
+      "EndDate": "2027-01-05",
+      "CalendarId": "11303",
+      "Url": "http://www.schach-feffernitz.com/",
+      "ChessResultsId": null
+    },
+    {
+      "Name": "Schaffahausen New Year 2027",
+      "Federation": "SUI",
+      "StartDate": "2027-01-08",
+      "EndDate": "2027-01-10",
+      "CalendarId": null,
+      "Url": "http://www.swisschesstour.com",
+      "ChessResultsId": null
+    },
+    {
+      "Name": "Prague Open 2027",
+      "Federation": "CZE",
+      "StartDate": "2027-01-08",
+      "EndDate": "2027-01-15",
+      "CalendarId": "11170",
+      "Url": "https://www.czechtour.net/prague-open/",
+      "ChessResultsId": null
+    },
+    {
+      "Name": "2. Frauenbundesliga Ost AUT Runde 4 in Wien",
+      "Federation": "AUT",
+      "StartDate": "2027-01-10",
+      "EndDate": "2027-01-10",
+      "CalendarId": "11337",
+      "Url": "https://www.chess.at/spielbetrieb/bundesliga/2-frauenbundesliga-ost.html",
+      "ChessResultsId": null
+    },
+    {
+      "Name": "Georgische Weltklassespielerinnen_Ein Vortrag der ChessSports Akademie",
+      "Federation": "AUT",
+      "StartDate": "2027-01-12",
+      "EndDate": "2027-01-12",
+      "CalendarId": "11320",
+      "Url": "https://www.chesssport.eu/",
+      "ChessResultsId": null
+    },
+    {
+      "Name": "2. Bundesliga West AUT Runden 6-8 in Hohenems",
+      "Federation": "AUT",
+      "StartDate": "2027-01-15",
+      "EndDate": "2027-01-17",
+      "CalendarId": "11229",
+      "Url": "https://www.chess.at/spielbetrieb/bundesliga/2-bundesliga-west.html",
+      "ChessResultsId": null
+    },
+    {
+      "Name": "DEAFLYMPICS CHESS INNSBRUCK OLYMPIA WOLRD 15.-24.01.2027",
+      "Federation": "AUT",
+      "StartDate": "2027-01-15",
+      "EndDate": "2027-01-24",
+      "CalendarId": null,
+      "Url": "https://www.deaflympics.com/games/innsbruck-2027",
+      "ChessResultsId": null
+    },
+    {
+      "Name": "Marienbad Open 2027",
+      "Federation": "CZE",
+      "StartDate": "2027-01-16",
+      "EndDate": "2027-01-23",
+      "CalendarId": "11171",
+      "Url": "https://www.czechtour.net/marienbad-open/",
+      "ChessResultsId": null
+    },
+    {
+      "Name": "2. Frauenbundesliga Ost AUT Runde 5 in Wien",
+      "Federation": "AUT",
+      "StartDate": "2027-01-17",
+      "EndDate": "2027-01-17",
+      "CalendarId": "11338",
+      "Url": "https://www.chess.at/spielbetrieb/bundesliga/2-frauenbundesliga-ost.html",
+      "ChessResultsId": null
+    },
+    {
+      "Name": "Human Factors: Unter Druck gut reagieren_Ein Vortrag der ChessSports Akademie",
+      "Federation": "AUT",
+      "StartDate": "2027-01-19",
+      "EndDate": "2027-01-19",
+      "CalendarId": "11321",
+      "Url": "https://www.chesssport.eu/",
+      "ChessResultsId": null
+    },
+    {
+      "Name": "GM Matthias Wahls: Macht der Einschränkung_Ein Vortrag der ChessSports Akademie",
+      "Federation": "AUT",
+      "StartDate": "2027-01-26",
+      "EndDate": "2027-01-26",
+      "CalendarId": "11322",
+      "Url": "https://www.chesssport.eu/",
+      "ChessResultsId": null
+    },
+    {
+      "Name": "WIL REBSTOCK 2DAYS",
+      "Federation": "SWZ",
+      "StartDate": "2027-01-30",
+      "EndDate": "2027-01-31",
+      "CalendarId": null,
+      "Url": "http://www.swisschesstour.com",
+      "ChessResultsId": null
+    },
+    {
+      "Name": "Erich Schwarz Gedenkturnier 2027",
+      "Federation": "AUT",
+      "StartDate": "2027-01-31",
+      "EndDate": "2027-01-31",
+      "CalendarId": "11103",
+      "Url": "https://www.sc-dieklagenfurter.at/",
+      "ChessResultsId": null
+    },
+    {
+      "Name": "Kommunikation und Mitarbeitergewinnung_Ein Vortrag der ChessSports Akademie",
+      "Federation": "AUT",
+      "StartDate": "2027-02-02",
+      "EndDate": "2027-02-02",
+      "CalendarId": "11323",
+      "Url": "https://www.chesssport.eu/",
+      "ChessResultsId": null
+    },
+    {
+      "Name": "Taktik im Endspiel__Ein Vortrag der ChessSports Akademie",
+      "Federation": "AUT",
+      "StartDate": "2027-02-09",
+      "EndDate": "2027-02-09",
+      "CalendarId": "11324",
+      "Url": "https://www.chesssport.eu/",
+      "ChessResultsId": null
+    },
+    {
+      "Name": "31. Steirische Jugendschacholympiade 2027 (Einzel)",
+      "Federation": "AUT",
+      "StartDate": "2027-02-10",
+      "EndDate": "2027-02-10",
+      "CalendarId": null,
+      "Url": "https://www.jugendschach.at",
+      "ChessResultsId": null
+    },
+    {
+      "Name": "31. Steirische Jugendschacholympiade 2027 (Team)",
+      "Federation": "AUT",
+      "StartDate": "2027-02-11",
+      "EndDate": "2027-02-11",
+      "CalendarId": null,
+      "Url": "https://www.jugendschach.at",
+      "ChessResultsId": null
+    },
+    {
+      "Name": "Vietnam-Schachreisen-Open",
+      "Federation": "VIE",
+      "StartDate": "2027-02-12",
+      "EndDate": "2027-02-21",
+      "CalendarId": null,
+      "Url": "https://www.schachreisen.eu/schachreisen/schachturnier-vietnam",
+      "ChessResultsId": null
+    },
+    {
+      "Name": "Auftaktblitzturnier Graz Open 2027",
+      "Federation": "AUT",
+      "StartDate": "2027-02-13",
+      "EndDate": "2027-02-13",
+      "CalendarId": "11341",
+      "Url": "https://www.chessopengraz.com/en",
+      "ChessResultsId": null
+    },
+    {
+      "Name": "2. Bundesliga Ost AUT Runden 5-6 in Wien",
+      "Federation": "AUT",
+      "StartDate": "2027-02-13",
+      "EndDate": "2027-02-14",
+      "CalendarId": "11257",
+      "Url": "https://www.chess.at/spielbetrieb/bundesliga/2-bundesliga-ost.html",
+      "ChessResultsId": null
+    },
+    {
+      "Name": "23. Int. DolomitenBank Lienz Open 2027",
+      "Federation": "AUT",
+      "StartDate": "2027-02-13",
+      "EndDate": "2027-02-20",
+      "CalendarId": null,
+      "Url": "https://www.schachklub-lienz.at/",
+      "ChessResultsId": null
+    },
+    {
+      "Name": "Graz Chess Open 2027",
+      "Federation": "AUT",
+      "StartDate": "2027-02-14",
+      "EndDate": "2027-02-20",
+      "CalendarId": "11310",
+      "Url": "https://www.chessopengraz.com/en",
+      "ChessResultsId": null
+    },
+    {
+      "Name": "GM Felix Blohberger: WM und Tata Steel_Ein Vortrag der ChessSports Akademie",
+      "Federation": "AUT",
+      "StartDate": "2027-02-16",
+      "EndDate": "2027-02-16",
+      "CalendarId": "11325",
+      "Url": "https://www.chesssport.eu/",
+      "ChessResultsId": null
+    },
+    {
+      "Name": "Steirische Landesmeisterschaften U16/U18",
+      "Federation": "AUT",
+      "StartDate": "2027-02-25",
+      "EndDate": "2027-02-28",
+      "CalendarId": null,
+      "Url": "https://www.jugendschach.at",
+      "ChessResultsId": null
+    },
+    {
+      "Name": "PARADISO 2DAYS Memorial PICCHI",
+      "Federation": "SUI",
+      "StartDate": "2027-02-27",
+      "EndDate": "2027-02-28",
+      "CalendarId": null,
+      "Url": "http://www.swisschesstour.com",
+      "ChessResultsId": null
+    },
+    {
+      "Name": "Steirische Aktivschach Landesmeisterschaften",
+      "Federation": "AUT",
+      "StartDate": "2027-02-28",
+      "EndDate": "2027-02-28",
+      "CalendarId": null,
+      "Url": "https://www.jugendschach.at",
+      "ChessResultsId": null
+    },
+    {
+      "Name": "Pokal des Handwerks Seiffen 2027",
+      "Federation": "GER",
+      "StartDate": "2027-03-01",
+      "EndDate": "2027-03-07",
+      "CalendarId": "11285",
+      "Url": null,
+      "ChessResultsId": null
+    },
+    {
+      "Name": "BASEL SPRING OPEN",
+      "Federation": "SUI",
+      "StartDate": "2027-03-05",
+      "EndDate": "2027-03-07",
+      "CalendarId": null,
+      "Url": "http://www.swisschesstour.com",
+      "ChessResultsId": null
+    },
+    {
+      "Name": "11. Mädchenschachtag",
+      "Federation": "AUT",
+      "StartDate": "2027-03-06",
+      "EndDate": "2027-03-06",
+      "CalendarId": null,
+      "Url": "https://www.kjsv.at/",
+      "ChessResultsId": null
+    },
+    {
+      "Name": "Steirische Jugendschachrallye 2027 - Gratwein",
+      "Federation": "AUT",
+      "StartDate": "2027-03-07",
+      "EndDate": "2027-03-07",
+      "CalendarId": "10961",
+      "Url": "https://www.jugendschach.at",
+      "ChessResultsId": null
+    },
+    {
+      "Name": "1. Bundesliga AUT Runde 6-11 in St. Veit/Glan",
+      "Federation": "AUT",
+      "StartDate": "2027-03-10",
+      "EndDate": "2027-03-14",
+      "CalendarId": "11059",
+      "Url": null,
+      "ChessResultsId": "1404438"
+    },
+    {
+      "Name": "2. Bundesliga Mitte AUT Runden 6-8 in St. Veit",
+      "Federation": "AUT",
+      "StartDate": "2027-03-12",
+      "EndDate": "2027-03-14",
+      "CalendarId": "11233",
+      "Url": "https://www.chess.at/spielbetrieb/bundesliga/2-bundesliga-mitte.html",
+      "ChessResultsId": null
+    },
+    {
+      "Name": "1. Frauenbundesliga AUT Runden 5-7 in St. Veit",
+      "Federation": "AUT",
+      "StartDate": "2027-03-12",
+      "EndDate": "2027-03-14",
+      "CalendarId": "11264",
+      "Url": "https://www.chess.at/spielbetrieb/bundesliga/frauen-bundesliga.html",
+      "ChessResultsId": null
+    },
+    {
+      "Name": "2. Frauenbundesliga Mitte AUT Runde 4 in St. Veit",
+      "Federation": "AUT",
+      "StartDate": "2027-03-13",
+      "EndDate": "2027-03-13",
+      "CalendarId": "11247",
+      "Url": "https://www.chess.at/spielbetrieb/bundesliga/2-frauenbundesliga-mitte.html",
+      "ChessResultsId": null
+    },
+    {
+      "Name": "1.Dinkelsbühler Altstadt-Open",
+      "Federation": "GER",
+      "StartDate": "2027-03-13",
+      "EndDate": "2027-03-19",
+      "CalendarId": "11113",
+      "Url": "https://dinkelsbuehl2027.schachwofi.de",
+      "ChessResultsId": null
+    },
+    {
+      "Name": "Novy Bor Open 2027",
+      "Federation": "CZE",
+      "StartDate": "2027-03-13",
+      "EndDate": "2027-03-20",
+      "CalendarId": "11172",
+      "Url": "https://www.czechtour.net/novy-bor-open/",
+      "ChessResultsId": null
+    },
+    {
+      "Name": "STEIN AM RHEIN OPEN",
+      "Federation": "SUI",
+      "StartDate": "2027-03-19",
+      "EndDate": "2027-03-21",
+      "CalendarId": null,
+      "Url": "http://www.swisschesstour.com",
+      "ChessResultsId": null
+    },
+    {
+      "Name": "Steirische Landesmeisterschaften U8/U10",
+      "Federation": "AUT",
+      "StartDate": "2027-03-19",
+      "EndDate": "2027-03-21",
+      "CalendarId": null,
+      "Url": "https://www.jugendschach.at",
+      "ChessResultsId": null
+    },
+    {
+      "Name": "9. Rapid Rabbit - Member of Penta Cup - 1. Turnier in Bad Vöslau",
+      "Federation": "AUT",
+      "StartDate": "2027-03-21",
+      "EndDate": "2027-03-21",
+      "CalendarId": "11294",
+      "Url": "https://www.schachclub.at",
+      "ChessResultsId": null
+    },
+    {
+      "Name": "Pilsen Open 2027",
+      "Federation": "CZE",
+      "StartDate": "2027-03-21",
+      "EndDate": "2027-03-28",
+      "CalendarId": "11173",
+      "Url": "https://www.czechtour.net/pilsen-open/",
+      "ChessResultsId": null
+    },
+    {
+      "Name": "1. Penta Cup Bad Vöslau Schnell- & Blitzschach Serie",
+      "Federation": "AUT",
+      "StartDate": "2027-03-21",
+      "EndDate": "2027-12-08",
+      "CalendarId": "11304",
+      "Url": "https://www.schachclub.at",
+      "ChessResultsId": null
+    },
+    {
+      "Name": "Steirische Landesmeisterschaften U12/U14",
+      "Federation": "AUT",
+      "StartDate": "2027-04-01",
+      "EndDate": "2027-04-04",
+      "CalendarId": null,
+      "Url": "https://www.jugendschach.at",
+      "ChessResultsId": null
+    },
+    {
+      "Name": "2. Bundesliga Ost AUT Runden 7-9 in Wien",
+      "Federation": "AUT",
+      "StartDate": "2027-04-02",
+      "EndDate": "2027-04-04",
+      "CalendarId": "11258",
+      "Url": "https://www.chess.at/spielbetrieb/bundesliga/2-bundesliga-ost.html",
+      "ChessResultsId": null
+    },
+    {
+      "Name": "2. Frauenbundesliga Ost AUT Runde 6 in Wien",
+      "Federation": "AUT",
+      "StartDate": "2027-04-04",
+      "EndDate": "2027-04-04",
+      "CalendarId": "11339",
+      "Url": "https://www.chess.at/spielbetrieb/bundesliga/2-frauenbundesliga-ost.html",
+      "ChessResultsId": null
+    },
+    {
+      "Name": "LOCARNO LAKE OPEN",
+      "Federation": "SUI",
+      "StartDate": "2027-04-09",
+      "EndDate": "2027-04-11",
+      "CalendarId": null,
+      "Url": "http://www.swisschesstour.com",
+      "ChessResultsId": null
+    },
+    {
+      "Name": "2. Bundesliga West AUT Runden 9-11 in Kufstein",
+      "Federation": "AUT",
+      "StartDate": "2027-04-09",
+      "EndDate": "2027-04-11",
+      "CalendarId": "11230",
+      "Url": "https://www.chess.at/spielbetrieb/bundesliga/2-bundesliga-west.html",
+      "ChessResultsId": null
+    },
+    {
+      "Name": "2. Frauenbundesliga West AUT Runden 2-3 in Kufstein",
+      "Federation": "AUT",
+      "StartDate": "2027-04-10",
+      "EndDate": "2027-04-11",
+      "CalendarId": "11328",
+      "Url": "https://www.chess.at/spielbetrieb/bundesliga/2-frauenbundesliga-west.html",
+      "ChessResultsId": null
+    },
+    {
+      "Name": "2. Bundesliga Mitte AUT Runden 9-11 in St. Valentin",
+      "Federation": "AUT",
+      "StartDate": "2027-04-16",
+      "EndDate": "2027-04-18",
+      "CalendarId": "11234",
+      "Url": "https://www.chess.at/spielbetrieb/bundesliga/2-bundesliga-mitte.html",
+      "ChessResultsId": null
+    },
+    {
+      "Name": "2. Frauenbundesliga Mitte AUT Runde 5 in Graz",
+      "Federation": "AUT",
+      "StartDate": "2027-04-17",
+      "EndDate": "2027-04-17",
+      "CalendarId": "11248",
+      "Url": "https://www.chess.at/spielbetrieb/bundesliga/2-frauenbundesliga-mitte.html",
+      "ChessResultsId": null
+    },
+    {
+      "Name": "2. Bundesliga Ost AUT Runden 10-11 in Wien",
+      "Federation": "AUT",
+      "StartDate": "2027-04-24",
+      "EndDate": "2027-04-25",
+      "CalendarId": "11259",
+      "Url": "https://www.chess.at/spielbetrieb/bundesliga/2-bundesliga-ost.html",
+      "ChessResultsId": null
+    },
+    {
+      "Name": "2. Frauenbundesliga Ost AUT Runde 7 in Wien",
+      "Federation": "AUT",
+      "StartDate": "2027-04-25",
+      "EndDate": "2027-04-25",
+      "CalendarId": "11340",
+      "Url": "https://www.chess.at/spielbetrieb/bundesliga/2-frauenbundesliga-ost.html",
+      "ChessResultsId": null
+    },
+    {
+      "Name": "24. Schachopen in Semriach",
+      "Federation": "AUT",
+      "StartDate": "2027-04-28",
+      "EndDate": "2027-05-01",
+      "CalendarId": "11343",
+      "Url": null,
+      "ChessResultsId": null
+    },
+    {
+      "Name": "SERPIANO SENIOR O50",
+      "Federation": "SUI",
+      "StartDate": "2027-04-28",
+      "EndDate": "2027-05-02",
+      "CalendarId": null,
+      "Url": "http://www.swisschesstour.com",
+      "ChessResultsId": null
+    },
+    {
+      "Name": "SERPIANO WEEKEND",
+      "Federation": "SUI",
+      "StartDate": "2027-04-30",
+      "EndDate": "2027-05-02",
+      "CalendarId": null,
+      "Url": "http://www.swisschesstour.com",
+      "ChessResultsId": null
+    },
+    {
+      "Name": "Schachwoche mit Freunden Schach, Kultur, Spiel, Sport und Wellness",
+      "Federation": "AUT",
+      "StartDate": "2027-05-05",
+      "EndDate": "2027-05-11",
+      "CalendarId": "11111",
+      "Url": "https://www.chesssport.eu/schach-orientierungslauf-in-klagenfurt-3/",
+      "ChessResultsId": null
+    },
+    {
+      "Name": "BUNDESTURNIER 2027",
+      "Federation": "SUI",
+      "StartDate": "2027-05-06",
+      "EndDate": "2027-05-09",
+      "CalendarId": null,
+      "Url": "http://www.swisschesstour.com",
+      "ChessResultsId": null
+    },
+    {
+      "Name": "31. SCHACH OPEN RATTEN",
+      "Federation": "AUT",
+      "StartDate": "2027-05-06",
+      "EndDate": "2027-05-09",
+      "CalendarId": "11161",
+      "Url": "http://horn-union-ratten.at",
+      "ChessResultsId": null
+    },
+    {
+      "Name": "19. Int. Salzkammergut Schachopen 2026 (5 Gruppen, FIDE-Wertung, 3000 Euro)",
+      "Federation": "AUT",
+      "StartDate": "2027-05-14",
+      "EndDate": "2027-05-17",
+      "CalendarId": "11167",
+      "Url": "http://salzkammergutopen.gnx.at",
+      "ChessResultsId": null
+    },
+    {
+      "Name": "PlusCity GRAND PRIX 2027",
+      "Federation": "AUT",
+      "StartDate": "2027-05-27",
+      "EndDate": "2027-05-30",
+      "CalendarId": null,
+      "Url": "https://grandprix-chess.com/home-deutsch/",
+      "ChessResultsId": null
+    },
+    {
+      "Name": "SAN BERNARDINO 2DAYS",
+      "Federation": "SUI",
+      "StartDate": "2027-06-05",
+      "EndDate": "2027-06-06",
+      "CalendarId": null,
+      "Url": "http://www.swisschesstour.com",
+      "ChessResultsId": null
+    },
+    {
+      "Name": "LENZERHEIDE FESTIVAL",
+      "Federation": "SUI",
+      "StartDate": "2027-06-18",
+      "EndDate": "2027-06-20",
+      "CalendarId": null,
+      "Url": "http://www.swisschesstour.com",
+      "ChessResultsId": null
+    },
+    {
+      "Name": "1. Summer Summit - Member of Penta Cup 2. Turnier in Bad Vöslau",
+      "Federation": "AUT",
+      "StartDate": "2027-06-20",
+      "EndDate": "2027-06-20",
+      "CalendarId": "11295",
+      "Url": "https://www.schachclub.at",
+      "ChessResultsId": null
+    },
+    {
+      "Name": "1. Penta Cup 2027 2. Turnier der Penta Cup Serie in Bad Vöslau",
+      "Federation": "AUT",
+      "StartDate": "2027-06-20",
+      "EndDate": "2027-06-20",
+      "CalendarId": "11305",
+      "Url": "https://www.schachclub.at",
+      "ChessResultsId": null
+    },
+    {
+      "Name": "3. Bad Goisern Schachopen (3 Gruppen)",
+      "Federation": "AUT",
+      "StartDate": "2027-06-25",
+      "EndDate": "2027-06-27",
+      "CalendarId": null,
+      "Url": "https://www.askoe-schachclub-bad-goisern.at/",
+      "ChessResultsId": null
+    },
+    {
+      "Name": "ANDEER SPA OPEN",
+      "Federation": "SUI",
+      "StartDate": "2027-07-02",
+      "EndDate": "2027-07-04",
+      "CalendarId": null,
+      "Url": "http://www.swisschesstour.com",
+      "ChessResultsId": null
+    },
+    {
+      "Name": "46. Internationales St. Veit Open",
+      "Federation": "AUT",
+      "StartDate": "2027-07-10",
+      "EndDate": "2027-07-17",
+      "CalendarId": null,
+      "Url": "https://stveitopen.at/",
+      "ChessResultsId": null
+    },
+    {
+      "Name": "3. Rudener Senioren Open (S60 / Frauen S50)",
+      "Federation": "AUT",
+      "StartDate": "2027-07-25",
+      "EndDate": "2027-07-31",
+      "CalendarId": "11250",
+      "Url": "https://www.facebook.com/p/Rudener-Senioren-Schachopen-61575187547484/",
+      "ChessResultsId": null
+    },
+    {
+      "Name": "43. FAAKER SEE OPEN 2027",
+      "Federation": "AUT",
+      "StartDate": "2027-08-07",
+      "EndDate": "2027-08-14",
+      "CalendarId": null,
+      "Url": "http://www.faakerseeopen.at",
+      "ChessResultsId": null
+    },
+    {
+      "Name": "38. Bad Vöslauer Blitzschach Open - Member of Penta Cup 3. Turnier",
+      "Federation": "AUT",
+      "StartDate": "2027-08-15",
+      "EndDate": "2027-08-15",
+      "CalendarId": "11296",
+      "Url": "https://www.schachclub.at",
+      "ChessResultsId": null
+    },
+    {
+      "Name": "1. Penta Cup 2027 3. Turnier in Bad Vöslau",
+      "Federation": "AUT",
+      "StartDate": "2027-08-15",
+      "EndDate": "2027-08-15",
+      "CalendarId": "11306",
+      "Url": "https://www.schachclub.at",
+      "ChessResultsId": null
+    },
+    {
+      "Name": "Innviertler Meisterschaft",
+      "Federation": "AUT",
+      "StartDate": "2027-08-27",
+      "EndDate": "2027-08-29",
+      "CalendarId": "11344",
+      "Url": "https://www.taufkirchenschach.at/index.php/turniere/einladungen/1962-innviertler",
+      "ChessResultsId": null
+    },
+    {
+      "Name": "Offene Badener Klubmeisterschaft im Blitzen 11. Rd 3+2",
+      "Federation": "AUT",
+      "StartDate": "2027-08-30",
+      "EndDate": "2027-08-30",
+      "CalendarId": null,
+      "Url": "https://www.schachklub-baden.at/",
+      "ChessResultsId": null
+    },
+    {
+      "Name": "12. Int. Sparkasse Baden Chess Open",
+      "Federation": "AUT",
+      "StartDate": "2027-08-31",
+      "EndDate": "2027-09-05",
+      "CalendarId": null,
+      "Url": "https://www.schachklub-baden.at/",
+      "ChessResultsId": null
+    },
+    {
+      "Name": "3. Klopfer - Der Blitzmarathon - Member of Penta Cup - 4. Turnier",
+      "Federation": "AUT",
+      "StartDate": "2027-10-26",
+      "EndDate": "2027-10-26",
+      "CalendarId": "11297",
+      "Url": "https://www.schchclub.at",
+      "ChessResultsId": null
+    },
+    {
+      "Name": "1. Penta Cup 2027 4. Turnier in Bad Vöslau",
+      "Federation": "AUT",
+      "StartDate": "2027-10-26",
+      "EndDate": "2027-10-26",
+      "CalendarId": "11307",
+      "Url": "https://www.schachclub.at",
+      "ChessResultsId": null
+    },
+    {
+      "Name": "16. Bad Vöslauer Blitzgneisser Trophy - Member of Penta Cup 5. Turnier",
+      "Federation": "AUT",
+      "StartDate": "2027-12-08",
+      "EndDate": "2027-12-08",
+      "CalendarId": "11298",
+      "Url": "https://www.schachclub.at",
+      "ChessResultsId": null
+    },
+    {
+      "Name": "1. Penta Cup 2027 5. Turnier in Bad Vöslau",
+      "Federation": "AUT",
+      "StartDate": "2027-12-08",
+      "EndDate": "2027-12-08",
+      "CalendarId": "11308",
+      "Url": "https://www.schachclub.at",
+      "ChessResultsId": null
+    }
+  ],
+  "ParseTournamentSearchAsync": []
+}

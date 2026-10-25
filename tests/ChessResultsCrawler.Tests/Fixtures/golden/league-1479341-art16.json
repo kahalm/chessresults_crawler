@@ -1,0 +1,1979 @@
+{
+  "ParsePlayerListAsync": [
+    {
+      "Snr": 76,
+      "Name": "Mitteregger, Johann",
+      "Title": null,
+      "FideId": "1635930",
+      "Elo": 1910,
+      "Country": "AUT",
+      "TeamName": "Sportverein Innsbruck",
+      "BoardNumber": 1
+    },
+    {
+      "Snr": 38,
+      "Name": "Gerhold, Christoph",
+      "Title": null,
+      "FideId": "1614606",
+      "Elo": 1824,
+      "Country": "AUT",
+      "TeamName": "Sk Telfs",
+      "BoardNumber": 1
+    },
+    {
+      "Snr": 1,
+      "Name": "Mayrhofer, Rudolf",
+      "Title": null,
+      "FideId": "1651730",
+      "Elo": 1801,
+      "Country": "AUT",
+      "TeamName": "Absam",
+      "BoardNumber": 1
+    },
+    {
+      "Snr": 77,
+      "Name": "Motz, Markus",
+      "Title": null,
+      "FideId": "1652427",
+      "Elo": 1801,
+      "Country": "AUT",
+      "TeamName": "Sportverein Innsbruck",
+      "BoardNumber": 2
+    },
+    {
+      "Snr": 40,
+      "Name": "Eiter, Meinhard",
+      "Title": null,
+      "FideId": "1603108",
+      "Elo": 1792,
+      "Country": "AUT",
+      "TeamName": "Sk Telfs",
+      "BoardNumber": 3
+    },
+    {
+      "Snr": 2,
+      "Name": "Hammer, David",
+      "Title": null,
+      "FideId": "1665499",
+      "Elo": 1767,
+      "Country": "AUT",
+      "TeamName": "Absam",
+      "BoardNumber": 2
+    },
+    {
+      "Snr": 27,
+      "Name": "Langer, Herbert",
+      "Title": null,
+      "FideId": "1625764",
+      "Elo": 1752,
+      "Country": "AUT",
+      "TeamName": "Raiffeisen Wattens",
+      "BoardNumber": 1
+    },
+    {
+      "Snr": 41,
+      "Name": "Killmann, Reinmar  Dr.",
+      "Title": null,
+      "FideId": "24659169",
+      "Elo": 1751,
+      "Country": "GER",
+      "TeamName": "Sk Telfs",
+      "BoardNumber": 4
+    },
+    {
+      "Snr": 39,
+      "Name": "Gstrein, Matteo",
+      "Title": null,
+      "FideId": "1679023",
+      "Elo": 1750,
+      "Country": "AUT",
+      "TeamName": "Sk Telfs",
+      "BoardNumber": 2
+    },
+    {
+      "Snr": 3,
+      "Name": "Reinalter, Gabriel",
+      "Title": null,
+      "FideId": "1677756",
+      "Elo": 1749,
+      "Country": "AUT",
+      "TeamName": "Absam",
+      "BoardNumber": 3
+    },
+    {
+      "Snr": 4,
+      "Name": "Mayr, Paul",
+      "Title": null,
+      "FideId": "1661990",
+      "Elo": 1736,
+      "Country": "AUT",
+      "TeamName": "Absam",
+      "BoardNumber": 4
+    },
+    {
+      "Snr": 56,
+      "Name": "Muehlbacher, Friedrich",
+      "Title": null,
+      "FideId": "1675761",
+      "Elo": 1735,
+      "Country": "AUT",
+      "TeamName": "Spg Rum/Hall/Mils",
+      "BoardNumber": 2
+    },
+    {
+      "Snr": 85,
+      "Name": "Kovacevic, Haris",
+      "Title": null,
+      "FideId": "1688804",
+      "Elo": 1723,
+      "Country": "AUT",
+      "TeamName": "Völs & Hak Ibk",
+      "BoardNumber": 2
+    },
+    {
+      "Snr": 5,
+      "Name": "Kiechl, Simon",
+      "Title": null,
+      "FideId": "530018617",
+      "Elo": 1715,
+      "Country": "AUT",
+      "TeamName": "Absam",
+      "BoardNumber": 5
+    },
+    {
+      "Snr": 84,
+      "Name": "Frischauf, Johanna",
+      "Title": null,
+      "FideId": "1690744",
+      "Elo": 1714,
+      "Country": "AUT",
+      "TeamName": "Völs & Hak Ibk",
+      "BoardNumber": 1
+    },
+    {
+      "Snr": 6,
+      "Name": "Kronsteiner, Andreas",
+      "Title": null,
+      "FideId": "1677497",
+      "Elo": 1701,
+      "Country": "AUT",
+      "TeamName": "Absam",
+      "BoardNumber": 6
+    },
+    {
+      "Snr": 7,
+      "Name": "Zozin, David",
+      "Title": null,
+      "FideId": "1641514",
+      "Elo": 1687,
+      "Country": "AUT",
+      "TeamName": "Absam",
+      "BoardNumber": 7
+    },
+    {
+      "Snr": 86,
+      "Name": "Halwachs, Juliane",
+      "Title": null,
+      "FideId": "1638149",
+      "Elo": 1678,
+      "Country": "AUT",
+      "TeamName": "Völs & Hak Ibk",
+      "BoardNumber": 3
+    },
+    {
+      "Snr": 87,
+      "Name": "Pribozic, Sabrina  Bed",
+      "Title": null,
+      "FideId": "1652141",
+      "Elo": 1675,
+      "Country": "AUT",
+      "TeamName": "Völs & Hak Ibk",
+      "BoardNumber": 4
+    },
+    {
+      "Snr": 42,
+      "Name": "Gerhold, Doris",
+      "Title": null,
+      "FideId": "1625616",
+      "Elo": 1673,
+      "Country": "AUT",
+      "TeamName": "Sk Telfs",
+      "BoardNumber": 5
+    },
+    {
+      "Snr": 88,
+      "Name": "Perfler, Daniel",
+      "Title": null,
+      "FideId": "1685015",
+      "Elo": 1672,
+      "Country": "AUT",
+      "TeamName": "Völs & Hak Ibk",
+      "BoardNumber": 5
+    },
+    {
+      "Snr": 33,
+      "Name": "Surbek, Dario",
+      "Title": null,
+      "FideId": "14548909",
+      "Elo": 1658,
+      "Country": "CRO",
+      "TeamName": "Raiffeisen Wattens",
+      "BoardNumber": 7
+    },
+    {
+      "Snr": 79,
+      "Name": "Eder, Arthur",
+      "Title": null,
+      "FideId": "1635905",
+      "Elo": 1651,
+      "Country": "AUT",
+      "TeamName": "Sportverein Innsbruck",
+      "BoardNumber": 4
+    },
+    {
+      "Snr": 78,
+      "Name": "Norskov, Ole",
+      "Title": null,
+      "FideId": null,
+      "Elo": 1634,
+      "Country": "DEN",
+      "TeamName": "Sportverein Innsbruck",
+      "BoardNumber": 3
+    },
+    {
+      "Snr": 89,
+      "Name": "Willmann, Florian",
+      "Title": null,
+      "FideId": "1699458",
+      "Elo": 1634,
+      "Country": "AUT",
+      "TeamName": "Völs & Hak Ibk",
+      "BoardNumber": 6
+    },
+    {
+      "Snr": 32,
+      "Name": "Arnold, Johann",
+      "Title": null,
+      "FideId": "1625713",
+      "Elo": 1628,
+      "Country": "AUT",
+      "TeamName": "Raiffeisen Wattens",
+      "BoardNumber": 6
+    },
+    {
+      "Snr": 30,
+      "Name": "Prenner, Robert",
+      "Title": null,
+      "FideId": "1674641",
+      "Elo": 1625,
+      "Country": "AUT",
+      "TeamName": "Raiffeisen Wattens",
+      "BoardNumber": 4
+    },
+    {
+      "Snr": 80,
+      "Name": "Rauter, Manfred",
+      "Title": null,
+      "FideId": null,
+      "Elo": 1622,
+      "Country": "AUT",
+      "TeamName": "Sportverein Innsbruck",
+      "BoardNumber": 5
+    },
+    {
+      "Snr": 29,
+      "Name": "Staudacher, Karl-Heinz",
+      "Title": null,
+      "FideId": "1670247",
+      "Elo": 1621,
+      "Country": "AUT",
+      "TeamName": "Raiffeisen Wattens",
+      "BoardNumber": 3
+    },
+    {
+      "Snr": 90,
+      "Name": "Maleczek, Kian",
+      "Title": null,
+      "FideId": "1699385",
+      "Elo": 1612,
+      "Country": "AUT",
+      "TeamName": "Völs & Hak Ibk",
+      "BoardNumber": 7
+    },
+    {
+      "Snr": 8,
+      "Name": "Brunner, Roman",
+      "Title": null,
+      "FideId": "530010500",
+      "Elo": 1600,
+      "Country": "AUT",
+      "TeamName": "Absam",
+      "BoardNumber": 8
+    },
+    {
+      "Snr": 81,
+      "Name": "Kislikow, Viktor",
+      "Title": null,
+      "FideId": "1682741",
+      "Elo": 1596,
+      "Country": "AUT",
+      "TeamName": "Sportverein Innsbruck",
+      "BoardNumber": 6
+    },
+    {
+      "Snr": 43,
+      "Name": "Haid, Luis",
+      "Title": null,
+      "FideId": "530001544",
+      "Elo": 1582,
+      "Country": "AUT",
+      "TeamName": "Sk Telfs",
+      "BoardNumber": 6
+    },
+    {
+      "Snr": 10,
+      "Name": "Wesely, Reinhard",
+      "Title": null,
+      "FideId": null,
+      "Elo": 1577,
+      "Country": "AUT",
+      "TeamName": "Absam",
+      "BoardNumber": 10
+    },
+    {
+      "Snr": 92,
+      "Name": "Schett, Franz  Mag.",
+      "Title": null,
+      "FideId": "1611135",
+      "Elo": 1576,
+      "Country": "AUT",
+      "TeamName": "Völs & Hak Ibk",
+      "BoardNumber": 9
+    },
+    {
+      "Snr": 55,
+      "Name": "Ungerer, Albert  Mag.",
+      "Title": null,
+      "FideId": "1674439",
+      "Elo": 1576,
+      "Country": "AUT",
+      "TeamName": "Spg Rum/Hall/Mils",
+      "BoardNumber": 1
+    },
+    {
+      "Snr": 93,
+      "Name": "Hauser, Benjamin",
+      "Title": null,
+      "FideId": null,
+      "Elo": 1562,
+      "Country": "AUT",
+      "TeamName": "Völs & Hak Ibk",
+      "BoardNumber": 10
+    },
+    {
+      "Snr": 91,
+      "Name": "Kampl, Florian",
+      "Title": null,
+      "FideId": "1667009",
+      "Elo": 1555,
+      "Country": "AUT",
+      "TeamName": "Völs & Hak Ibk",
+      "BoardNumber": 8
+    },
+    {
+      "Snr": 31,
+      "Name": "Balzanelli, Andres",
+      "Title": null,
+      "FideId": null,
+      "Elo": 1544,
+      "Country": "ITA",
+      "TeamName": "Raiffeisen Wattens",
+      "BoardNumber": 5
+    },
+    {
+      "Snr": 58,
+      "Name": "Schwarzl, Luka",
+      "Title": null,
+      "FideId": "1677772",
+      "Elo": 1536,
+      "Country": "AUT",
+      "TeamName": "Spg Rum/Hall/Mils",
+      "BoardNumber": 4
+    },
+    {
+      "Snr": 94,
+      "Name": "Krapf, Matthias",
+      "Title": null,
+      "FideId": "1665480",
+      "Elo": 1529,
+      "Country": "AUT",
+      "TeamName": "Völs & Hak Ibk",
+      "BoardNumber": 11
+    },
+    {
+      "Snr": 82,
+      "Name": "Watschinger, Peter Paul",
+      "Title": null,
+      "FideId": "1674811",
+      "Elo": 1529,
+      "Country": "AUT",
+      "TeamName": "Sportverein Innsbruck",
+      "BoardNumber": 7
+    },
+    {
+      "Snr": 61,
+      "Name": "Rokita, Reinhold",
+      "Title": null,
+      "FideId": null,
+      "Elo": 1527,
+      "Country": "AUT",
+      "TeamName": "Spg Rum/Hall/Mils",
+      "BoardNumber": 7
+    },
+    {
+      "Snr": 83,
+      "Name": "Unterweger, Andreas",
+      "Title": null,
+      "FideId": null,
+      "Elo": 1524,
+      "Country": "AUT",
+      "TeamName": "Sportverein Innsbruck",
+      "BoardNumber": 8
+    },
+    {
+      "Snr": 44,
+      "Name": "Fiegl, Julian",
+      "Title": null,
+      "FideId": "530002869",
+      "Elo": 1514,
+      "Country": "AUT",
+      "TeamName": "Sk Telfs",
+      "BoardNumber": 7
+    },
+    {
+      "Snr": 28,
+      "Name": "Omer, Hogr",
+      "Title": null,
+      "FideId": "1671073",
+      "Elo": 1513,
+      "Country": "AUT",
+      "TeamName": "Raiffeisen Wattens",
+      "BoardNumber": 2
+    },
+    {
+      "Snr": 45,
+      "Name": "Kamleitner, Tobias",
+      "Title": null,
+      "FideId": "1693808",
+      "Elo": 1511,
+      "Country": "AUT",
+      "TeamName": "Sk Telfs",
+      "BoardNumber": 8
+    },
+    {
+      "Snr": 35,
+      "Name": "Werdinig, Manfred",
+      "Title": null,
+      "FideId": "1693921",
+      "Elo": 1487,
+      "Country": "AUT",
+      "TeamName": "Raiffeisen Wattens",
+      "BoardNumber": 9
+    },
+    {
+      "Snr": 34,
+      "Name": "Kataev, Ruslan",
+      "Title": null,
+      "FideId": null,
+      "Elo": 1477,
+      "Country": "RUS",
+      "TeamName": "Raiffeisen Wattens",
+      "BoardNumber": 8
+    },
+    {
+      "Snr": 95,
+      "Name": "Lerch, Kornelia",
+      "Title": null,
+      "FideId": "1669109",
+      "Elo": 1465,
+      "Country": "AUT",
+      "TeamName": "Völs & Hak Ibk",
+      "BoardNumber": 12
+    },
+    {
+      "Snr": 46,
+      "Name": "Grass, Lukas",
+      "Title": null,
+      "FideId": "1691562",
+      "Elo": 1459,
+      "Country": "AUT",
+      "TeamName": "Sk Telfs",
+      "BoardNumber": 9
+    },
+    {
+      "Snr": 11,
+      "Name": "Gmeiner, Bernhard",
+      "Title": null,
+      "FideId": "530007186",
+      "Elo": 1452,
+      "Country": "AUT",
+      "TeamName": "Absam",
+      "BoardNumber": 11
+    },
+    {
+      "Snr": 57,
+      "Name": "Kraft-Fish, Martin",
+      "Title": null,
+      "FideId": null,
+      "Elo": 1449,
+      "Country": "AUT",
+      "TeamName": "Spg Rum/Hall/Mils",
+      "BoardNumber": 3
+    },
+    {
+      "Snr": 12,
+      "Name": "Mader, Wolfgang",
+      "Title": null,
+      "FideId": "1674277",
+      "Elo": 1448,
+      "Country": "AUT",
+      "TeamName": "Absam",
+      "BoardNumber": 12
+    },
+    {
+      "Snr": 9,
+      "Name": "Lutz, Rudolf",
+      "Title": null,
+      "FideId": "1662309",
+      "Elo": 1433,
+      "Country": "AUT",
+      "TeamName": "Absam",
+      "BoardNumber": 9
+    },
+    {
+      "Snr": 13,
+      "Name": "Schwaizer, Herbert",
+      "Title": null,
+      "FideId": "1658085",
+      "Elo": 1432,
+      "Country": "AUT",
+      "TeamName": "Absam",
+      "BoardNumber": 13
+    },
+    {
+      "Snr": 59,
+      "Name": "Studt, Heiko  Dipl. Inf.",
+      "Title": null,
+      "FideId": "530012783",
+      "Elo": 1422,
+      "Country": "AUT",
+      "TeamName": "Spg Rum/Hall/Mils",
+      "BoardNumber": 5
+    },
+    {
+      "Snr": 62,
+      "Name": "Berger, Jan",
+      "Title": null,
+      "FideId": "530000815",
+      "Elo": 1418,
+      "Country": "AUT",
+      "TeamName": "Spg Rum/Hall/Mils",
+      "BoardNumber": 8
+    },
+    {
+      "Snr": 60,
+      "Name": "Ollram, Horst",
+      "Title": null,
+      "FideId": "1675346",
+      "Elo": 1406,
+      "Country": "AUT",
+      "TeamName": "Spg Rum/Hall/Mils",
+      "BoardNumber": 6
+    },
+    {
+      "Snr": 15,
+      "Name": "Arnold, Katharina",
+      "Title": null,
+      "FideId": "1673360",
+      "Elo": 1401,
+      "Country": "AUT",
+      "TeamName": "Absam",
+      "BoardNumber": 15
+    },
+    {
+      "Snr": 14,
+      "Name": "Hollnbuchner, August",
+      "Title": null,
+      "FideId": "1603329",
+      "Elo": 1401,
+      "Country": "AUT",
+      "TeamName": "Absam",
+      "BoardNumber": 14
+    },
+    {
+      "Snr": 63,
+      "Name": "Mayr, Aeneas",
+      "Title": null,
+      "FideId": "1677764",
+      "Elo": 1399,
+      "Country": "AUT",
+      "TeamName": "Spg Rum/Hall/Mils",
+      "BoardNumber": 9
+    },
+    {
+      "Snr": 64,
+      "Name": "Wurzer, Valentin",
+      "Title": null,
+      "FideId": null,
+      "Elo": 1395,
+      "Country": "AUT",
+      "TeamName": "Spg Rum/Hall/Mils",
+      "BoardNumber": 10
+    },
+    {
+      "Snr": 47,
+      "Name": "Erdei, Simon",
+      "Title": null,
+      "FideId": "530000564",
+      "Elo": 1374,
+      "Country": "AUT",
+      "TeamName": "Sk Telfs",
+      "BoardNumber": 10
+    },
+    {
+      "Snr": 17,
+      "Name": "Weber, Ernst",
+      "Title": null,
+      "FideId": null,
+      "Elo": 1347,
+      "Country": "AUT",
+      "TeamName": "Absam",
+      "BoardNumber": 17
+    },
+    {
+      "Snr": 16,
+      "Name": "Wesely, Matthias",
+      "Title": null,
+      "FideId": null,
+      "Elo": 1308,
+      "Country": "AUT",
+      "TeamName": "Absam",
+      "BoardNumber": 16
+    },
+    {
+      "Snr": 96,
+      "Name": "Kluckner, Max",
+      "Title": null,
+      "FideId": "530008301",
+      "Elo": 1307,
+      "Country": "AUT",
+      "TeamName": "Völs & Hak Ibk",
+      "BoardNumber": 13
+    },
+    {
+      "Snr": 18,
+      "Name": "Tovmirzoev, Yusuf",
+      "Title": null,
+      "FideId": null,
+      "Elo": 1289,
+      "Country": "RUS",
+      "TeamName": "Absam",
+      "BoardNumber": 18
+    },
+    {
+      "Snr": 20,
+      "Name": "Holzhammer, David",
+      "Title": null,
+      "FideId": null,
+      "Elo": 1287,
+      "Country": "AUT",
+      "TeamName": "Absam",
+      "BoardNumber": 20
+    },
+    {
+      "Snr": 65,
+      "Name": "Aydemir, Benjamin",
+      "Title": null,
+      "FideId": "530006961",
+      "Elo": 1285,
+      "Country": "AUT",
+      "TeamName": "Spg Rum/Hall/Mils",
+      "BoardNumber": 11
+    },
+    {
+      "Snr": 97,
+      "Name": "Thomsen, Paul",
+      "Title": null,
+      "FideId": null,
+      "Elo": 1284,
+      "Country": "GER",
+      "TeamName": "Völs & Hak Ibk",
+      "BoardNumber": 14
+    },
+    {
+      "Snr": 50,
+      "Name": "Erdei, Mark",
+      "Title": null,
+      "FideId": "530006830",
+      "Elo": 1276,
+      "Country": "AUT",
+      "TeamName": "Sk Telfs",
+      "BoardNumber": 13
+    },
+    {
+      "Snr": 21,
+      "Name": "Friedle, Valentin",
+      "Title": null,
+      "FideId": null,
+      "Elo": 1272,
+      "Country": "AUT",
+      "TeamName": "Absam",
+      "BoardNumber": 21
+    },
+    {
+      "Snr": 19,
+      "Name": "Tovmirzoev, Sayfullah",
+      "Title": null,
+      "FideId": null,
+      "Elo": 1254,
+      "Country": "RUS",
+      "TeamName": "Absam",
+      "BoardNumber": 19
+    },
+    {
+      "Snr": 98,
+      "Name": "Vögele, Benjamin",
+      "Title": null,
+      "FideId": null,
+      "Elo": 1253,
+      "Country": "AUT",
+      "TeamName": "Völs & Hak Ibk",
+      "BoardNumber": 15
+    },
+    {
+      "Snr": 105,
+      "Name": "Bliem, Philipp",
+      "Title": null,
+      "FideId": null,
+      "Elo": 1248,
+      "Country": "AUT",
+      "TeamName": "Völs & Hak Ibk",
+      "BoardNumber": 21
+    },
+    {
+      "Snr": 48,
+      "Name": "Gstrein-Gutkauf, Oliver",
+      "Title": null,
+      "FideId": "1681222",
+      "Elo": 1237,
+      "Country": "AUT",
+      "TeamName": "Sk Telfs",
+      "BoardNumber": 11
+    },
+    {
+      "Snr": 67,
+      "Name": "Marczynski, Rene",
+      "Title": null,
+      "FideId": "530010276",
+      "Elo": 1237,
+      "Country": "AUT",
+      "TeamName": "Spg Rum/Hall/Mils",
+      "BoardNumber": 13
+    },
+    {
+      "Snr": 99,
+      "Name": "Thomsen, Tim",
+      "Title": null,
+      "FideId": null,
+      "Elo": 1228,
+      "Country": "GER",
+      "TeamName": "Völs & Hak Ibk",
+      "BoardNumber": 16
+    },
+    {
+      "Snr": 100,
+      "Name": "Thomsen, Mats",
+      "Title": null,
+      "FideId": null,
+      "Elo": 1218,
+      "Country": "GER",
+      "TeamName": "Völs & Hak Ibk",
+      "BoardNumber": 17
+    },
+    {
+      "Snr": 66,
+      "Name": "Sharapova, Maria",
+      "Title": null,
+      "FideId": "530009057",
+      "Elo": 1211,
+      "Country": "AUT",
+      "TeamName": "Spg Rum/Hall/Mils",
+      "BoardNumber": 12
+    },
+    {
+      "Snr": 22,
+      "Name": "Ghelani, Nav",
+      "Title": null,
+      "FideId": null,
+      "Elo": 1204,
+      "Country": "AUT",
+      "TeamName": "Absam",
+      "BoardNumber": 22
+    },
+    {
+      "Snr": 51,
+      "Name": "Gruber-Deutsch, Michael",
+      "Title": null,
+      "FideId": "530011647",
+      "Elo": 1200,
+      "Country": "AUT",
+      "TeamName": "Sk Telfs",
+      "BoardNumber": 14
+    },
+    {
+      "Snr": 49,
+      "Name": "Juen, Emil",
+      "Title": null,
+      "FideId": null,
+      "Elo": 1200,
+      "Country": "AUT",
+      "TeamName": "Sk Telfs",
+      "BoardNumber": 12
+    },
+    {
+      "Snr": 23,
+      "Name": "Moser, Theo",
+      "Title": null,
+      "FideId": null,
+      "Elo": 1200,
+      "Country": "AUT",
+      "TeamName": "Absam",
+      "BoardNumber": 23
+    },
+    {
+      "Snr": 68,
+      "Name": "Struve, Benjamin",
+      "Title": null,
+      "FideId": null,
+      "Elo": 1200,
+      "Country": "AUT",
+      "TeamName": "Spg Rum/Hall/Mils",
+      "BoardNumber": 14
+    },
+    {
+      "Snr": 69,
+      "Name": "Struve, Maximilian",
+      "Title": null,
+      "FideId": null,
+      "Elo": 1200,
+      "Country": "AUT",
+      "TeamName": "Spg Rum/Hall/Mils",
+      "BoardNumber": 15
+    },
+    {
+      "Snr": 101,
+      "Name": "Alglwd Almhamd, Abdalazez",
+      "Title": null,
+      "FideId": null,
+      "Elo": 0,
+      "Country": "AUT",
+      "TeamName": "Völs & Hak Ibk",
+      "BoardNumber": 18
+    },
+    {
+      "Snr": 52,
+      "Name": "Allahyari, Mohammad",
+      "Title": null,
+      "FideId": "530017904",
+      "Elo": 0,
+      "Country": "AUT",
+      "TeamName": "Sk Telfs",
+      "BoardNumber": 15
+    },
+    {
+      "Snr": 70,
+      "Name": "Damhofer, Martin",
+      "Title": null,
+      "FideId": null,
+      "Elo": 0,
+      "Country": "AUT",
+      "TeamName": "Spg Rum/Hall/Mils",
+      "BoardNumber": 16
+    },
+    {
+      "Snr": 53,
+      "Name": "Erdei, Gergely",
+      "Title": null,
+      "FideId": "530018382",
+      "Elo": 0,
+      "Country": "AUT",
+      "TeamName": "Sk Telfs",
+      "BoardNumber": 16
+    },
+    {
+      "Snr": 26,
+      "Name": "Freund, Martin  Dr.",
+      "Title": null,
+      "FideId": null,
+      "Elo": 0,
+      "Country": "AUT",
+      "TeamName": "Absam",
+      "BoardNumber": 26
+    },
+    {
+      "Snr": 25,
+      "Name": "Ghelani, Pravin",
+      "Title": null,
+      "FideId": null,
+      "Elo": 0,
+      "Country": "AUT",
+      "TeamName": "Absam",
+      "BoardNumber": 25
+    },
+    {
+      "Snr": 72,
+      "Name": "Gleißner, Valentin",
+      "Title": null,
+      "FideId": "530021260",
+      "Elo": 0,
+      "Country": "AUT",
+      "TeamName": "Spg Rum/Hall/Mils",
+      "BoardNumber": 18
+    },
+    {
+      "Snr": 73,
+      "Name": "Gsaller, Paul",
+      "Title": null,
+      "FideId": null,
+      "Elo": 0,
+      "Country": "AUT",
+      "TeamName": "Spg Rum/Hall/Mils",
+      "BoardNumber": 19
+    },
+    {
+      "Snr": 102,
+      "Name": "Hotter, Eva-Maria",
+      "Title": null,
+      "FideId": "1675931",
+      "Elo": 0,
+      "Country": "AUT",
+      "TeamName": "Völs & Hak Ibk",
+      "BoardNumber": 19
+    },
+    {
+      "Snr": 37,
+      "Name": "Ihnen, Andrea",
+      "Title": null,
+      "FideId": "530022657",
+      "Elo": 0,
+      "Country": "AUT",
+      "TeamName": "Raiffeisen Wattens",
+      "BoardNumber": 11
+    },
+    {
+      "Snr": 54,
+      "Name": "Mitov, Boris",
+      "Title": null,
+      "FideId": null,
+      "Elo": 0,
+      "Country": "AUT",
+      "TeamName": "Sk Telfs",
+      "BoardNumber": 17
+    },
+    {
+      "Snr": 103,
+      "Name": "Oberleiter, Mia Silvia",
+      "Title": null,
+      "FideId": "530019419",
+      "Elo": 0,
+      "Country": "AUT",
+      "TeamName": "Völs & Hak Ibk",
+      "BoardNumber": 20
+    },
+    {
+      "Snr": 36,
+      "Name": "Sandbichler, Sandra",
+      "Title": null,
+      "FideId": null,
+      "Elo": 0,
+      "Country": "AUT",
+      "TeamName": "Raiffeisen Wattens",
+      "BoardNumber": 10
+    },
+    {
+      "Snr": 71,
+      "Name": "Steiner, Hermann",
+      "Title": null,
+      "FideId": "1674420",
+      "Elo": 0,
+      "Country": "AUT",
+      "TeamName": "Spg Rum/Hall/Mils",
+      "BoardNumber": 17
+    },
+    {
+      "Snr": 104,
+      "Name": "Stroj, Michael",
+      "Title": null,
+      "FideId": "1647636",
+      "Elo": 0,
+      "Country": "AUT",
+      "TeamName": "Sk Telfs",
+      "BoardNumber": 18
+    },
+    {
+      "Snr": 74,
+      "Name": "Struve, Sebastian",
+      "Title": null,
+      "FideId": null,
+      "Elo": 0,
+      "Country": "AUT",
+      "TeamName": "Spg Rum/Hall/Mils",
+      "BoardNumber": 20
+    },
+    {
+      "Snr": 24,
+      "Name": "Tiefenbrunner, Alexander",
+      "Title": null,
+      "FideId": "530016304",
+      "Elo": 0,
+      "Country": "AUT",
+      "TeamName": "Absam",
+      "BoardNumber": 24
+    },
+    {
+      "Snr": 75,
+      "Name": "Wolf, Alexander",
+      "Title": null,
+      "FideId": null,
+      "Elo": 0,
+      "Country": "AUT",
+      "TeamName": "Spg Rum/Hall/Mils",
+      "BoardNumber": 21
+    }
+  ],
+  "ParseTeamPairingsAsync": [
+    {
+      "MatchNumber": 11,
+      "HomeTeamName": "AIM",
+      "AwayTeamName": "Mayr, Paul",
+      "HomeScore": 1661990,
+      "AwayScore": null
+    }
+  ],
+  "ParseIndividualPairingsAsync": [],
+  "IsTeamPairingsPageAsync": true,
+  "HasPairingsTableAsync": true,
+  "ParseTotalRoundsAsync": 5,
+  "ParseAvailableRoundsAsync": [
+    1
+  ],
+  "ParseAvailableRoundsAsync(max=5)": [
+    1
+  ],
+  "ParseTournamentNameAsync": "TMM Gebietsklasse West 2026/2027",
+  "ParseTournamentDetailsAsync": {
+    "DateText": null,
+    "Location": "Tirol",
+    "TimeControl": "90min/40 Züge + 30min + 30s/Zug",
+    "TimeControlKind": "Standard",
+    "Groups": [
+      {
+        "ChessResultsId": "1479345",
+        "Label": "Landesliga",
+        "IsCurrent": false
+      },
+      {
+        "ChessResultsId": "1479344",
+        "Label": "1. Klasse",
+        "IsCurrent": false
+      },
+      {
+        "ChessResultsId": "1479343",
+        "Label": "2. Klasse",
+        "IsCurrent": false
+      },
+      {
+        "ChessResultsId": "1479342",
+        "Label": "Gebietsklasse Ost",
+        "IsCurrent": false
+      },
+      {
+        "ChessResultsId": null,
+        "Label": "Gebietsklasse West",
+        "IsCurrent": true
+      }
+    ]
+  },
+  "ParsePlayerSearchAsync": [
+    {
+      "Name": "Mitteregger, Johann",
+      "FideId": "1635930",
+      "ChessResultsId": null,
+      "Elo": 1910,
+      "Country": "AUT",
+      "Title": null
+    },
+    {
+      "Name": "Gerhold, Christoph",
+      "FideId": "1614606",
+      "ChessResultsId": null,
+      "Elo": 1824,
+      "Country": "AUT",
+      "Title": null
+    },
+    {
+      "Name": "Mayrhofer, Rudolf",
+      "FideId": "1651730",
+      "ChessResultsId": null,
+      "Elo": 1801,
+      "Country": "AUT",
+      "Title": null
+    },
+    {
+      "Name": "Motz, Markus",
+      "FideId": "1652427",
+      "ChessResultsId": null,
+      "Elo": 1801,
+      "Country": "AUT",
+      "Title": null
+    },
+    {
+      "Name": "Eiter, Meinhard",
+      "FideId": "1603108",
+      "ChessResultsId": null,
+      "Elo": 1792,
+      "Country": "AUT",
+      "Title": null
+    },
+    {
+      "Name": "Hammer, David",
+      "FideId": "1665499",
+      "ChessResultsId": null,
+      "Elo": 1767,
+      "Country": "AUT",
+      "Title": null
+    },
+    {
+      "Name": "Langer, Herbert",
+      "FideId": "1625764",
+      "ChessResultsId": null,
+      "Elo": 1752,
+      "Country": "AUT",
+      "Title": null
+    },
+    {
+      "Name": "Killmann, Reinmar  Dr.",
+      "FideId": "24659169",
+      "ChessResultsId": null,
+      "Elo": 1751,
+      "Country": "GER",
+      "Title": null
+    },
+    {
+      "Name": "Gstrein, Matteo",
+      "FideId": "1679023",
+      "ChessResultsId": null,
+      "Elo": 1750,
+      "Country": "AUT",
+      "Title": null
+    },
+    {
+      "Name": "Reinalter, Gabriel",
+      "FideId": "1677756",
+      "ChessResultsId": null,
+      "Elo": 1749,
+      "Country": "AUT",
+      "Title": null
+    },
+    {
+      "Name": "Mayr, Paul",
+      "FideId": "1661990",
+      "ChessResultsId": null,
+      "Elo": 1736,
+      "Country": "AUT",
+      "Title": null
+    },
+    {
+      "Name": "Muehlbacher, Friedrich",
+      "FideId": "1675761",
+      "ChessResultsId": null,
+      "Elo": 1735,
+      "Country": "AUT",
+      "Title": null
+    },
+    {
+      "Name": "Kovacevic, Haris",
+      "FideId": "1688804",
+      "ChessResultsId": null,
+      "Elo": 1723,
+      "Country": "AUT",
+      "Title": null
+    },
+    {
+      "Name": "Kiechl, Simon",
+      "FideId": "530018617",
+      "ChessResultsId": null,
+      "Elo": 1715,
+      "Country": "AUT",
+      "Title": null
+    },
+    {
+      "Name": "Frischauf, Johanna",
+      "FideId": "1690744",
+      "ChessResultsId": null,
+      "Elo": 1714,
+      "Country": "AUT",
+      "Title": null
+    },
+    {
+      "Name": "Kronsteiner, Andreas",
+      "FideId": "1677497",
+      "ChessResultsId": null,
+      "Elo": 1701,
+      "Country": "AUT",
+      "Title": null
+    },
+    {
+      "Name": "Zozin, David",
+      "FideId": "1641514",
+      "ChessResultsId": null,
+      "Elo": 1687,
+      "Country": "AUT",
+      "Title": null
+    },
+    {
+      "Name": "Halwachs, Juliane",
+      "FideId": "1638149",
+      "ChessResultsId": null,
+      "Elo": 1678,
+      "Country": "AUT",
+      "Title": null
+    },
+    {
+      "Name": "Pribozic, Sabrina  Bed",
+      "FideId": "1652141",
+      "ChessResultsId": null,
+      "Elo": 1675,
+      "Country": "AUT",
+      "Title": null
+    },
+    {
+      "Name": "Gerhold, Doris",
+      "FideId": "1625616",
+      "ChessResultsId": null,
+      "Elo": 1673,
+      "Country": "AUT",
+      "Title": null
+    },
+    {
+      "Name": "Perfler, Daniel",
+      "FideId": "1685015",
+      "ChessResultsId": null,
+      "Elo": 1672,
+      "Country": "AUT",
+      "Title": null
+    },
+    {
+      "Name": "Surbek, Dario",
+      "FideId": "14548909",
+      "ChessResultsId": null,
+      "Elo": 1658,
+      "Country": "CRO",
+      "Title": null
+    },
+    {
+      "Name": "Eder, Arthur",
+      "FideId": "1635905",
+      "ChessResultsId": null,
+      "Elo": 1651,
+      "Country": "AUT",
+      "Title": null
+    },
+    {
+      "Name": "Norskov, Ole",
+      "FideId": null,
+      "ChessResultsId": null,
+      "Elo": 1634,
+      "Country": "DEN",
+      "Title": null
+    },
+    {
+      "Name": "Willmann, Florian",
+      "FideId": "1699458",
+      "ChessResultsId": null,
+      "Elo": 1634,
+      "Country": "AUT",
+      "Title": null
+    },
+    {
+      "Name": "Arnold, Johann",
+      "FideId": "1625713",
+      "ChessResultsId": null,
+      "Elo": 1628,
+      "Country": "AUT",
+      "Title": null
+    },
+    {
+      "Name": "Prenner, Robert",
+      "FideId": "1674641",
+      "ChessResultsId": null,
+      "Elo": 1625,
+      "Country": "AUT",
+      "Title": null
+    },
+    {
+      "Name": "Rauter, Manfred",
+      "FideId": null,
+      "ChessResultsId": null,
+      "Elo": 1622,
+      "Country": "AUT",
+      "Title": null
+    },
+    {
+      "Name": "Staudacher, Karl-Heinz",
+      "FideId": "1670247",
+      "ChessResultsId": null,
+      "Elo": 1621,
+      "Country": "AUT",
+      "Title": null
+    },
+    {
+      "Name": "Maleczek, Kian",
+      "FideId": "1699385",
+      "ChessResultsId": null,
+      "Elo": 1612,
+      "Country": "AUT",
+      "Title": null
+    },
+    {
+      "Name": "Brunner, Roman",
+      "FideId": "530010500",
+      "ChessResultsId": null,
+      "Elo": 1600,
+      "Country": "AUT",
+      "Title": null
+    },
+    {
+      "Name": "Kislikow, Viktor",
+      "FideId": "1682741",
+      "ChessResultsId": null,
+      "Elo": 1596,
+      "Country": "AUT",
+      "Title": null
+    },
+    {
+      "Name": "Haid, Luis",
+      "FideId": "530001544",
+      "ChessResultsId": null,
+      "Elo": 1582,
+      "Country": "AUT",
+      "Title": null
+    },
+    {
+      "Name": "Wesely, Reinhard",
+      "FideId": null,
+      "ChessResultsId": null,
+      "Elo": 1577,
+      "Country": "AUT",
+      "Title": null
+    },
+    {
+      "Name": "Schett, Franz  Mag.",
+      "FideId": "1611135",
+      "ChessResultsId": null,
+      "Elo": 1576,
+      "Country": "AUT",
+      "Title": null
+    },
+    {
+      "Name": "Ungerer, Albert  Mag.",
+      "FideId": "1674439",
+      "ChessResultsId": null,
+      "Elo": 1576,
+      "Country": "AUT",
+      "Title": null
+    },
+    {
+      "Name": "Hauser, Benjamin",
+      "FideId": null,
+      "ChessResultsId": null,
+      "Elo": 1562,
+      "Country": "AUT",
+      "Title": null
+    },
+    {
+      "Name": "Kampl, Florian",
+      "FideId": "1667009",
+      "ChessResultsId": null,
+      "Elo": 1555,
+      "Country": "AUT",
+      "Title": null
+    },
+    {
+      "Name": "Balzanelli, Andres",
+      "FideId": null,
+      "ChessResultsId": null,
+      "Elo": 1544,
+      "Country": "ITA",
+      "Title": null
+    },
+    {
+      "Name": "Schwarzl, Luka",
+      "FideId": "1677772",
+      "ChessResultsId": null,
+      "Elo": 1536,
+      "Country": "AUT",
+      "Title": null
+    },
+    {
+      "Name": "Krapf, Matthias",
+      "FideId": "1665480",
+      "ChessResultsId": null,
+      "Elo": 1529,
+      "Country": "AUT",
+      "Title": null
+    },
+    {
+      "Name": "Watschinger, Peter Paul",
+      "FideId": "1674811",
+      "ChessResultsId": null,
+      "Elo": 1529,
+      "Country": "AUT",
+      "Title": null
+    },
+    {
+      "Name": "Rokita, Reinhold",
+      "FideId": null,
+      "ChessResultsId": null,
+      "Elo": 1527,
+      "Country": "AUT",
+      "Title": null
+    },
+    {
+      "Name": "Unterweger, Andreas",
+      "FideId": null,
+      "ChessResultsId": null,
+      "Elo": 1524,
+      "Country": "AUT",
+      "Title": null
+    },
+    {
+      "Name": "Fiegl, Julian",
+      "FideId": "530002869",
+      "ChessResultsId": null,
+      "Elo": 1514,
+      "Country": "AUT",
+      "Title": null
+    },
+    {
+      "Name": "Omer, Hogr",
+      "FideId": "1671073",
+      "ChessResultsId": null,
+      "Elo": 1513,
+      "Country": "AUT",
+      "Title": null
+    },
+    {
+      "Name": "Kamleitner, Tobias",
+      "FideId": "1693808",
+      "ChessResultsId": null,
+      "Elo": 1511,
+      "Country": "AUT",
+      "Title": null
+    },
+    {
+      "Name": "Werdinig, Manfred",
+      "FideId": "1693921",
+      "ChessResultsId": null,
+      "Elo": 1487,
+      "Country": "AUT",
+      "Title": null
+    },
+    {
+      "Name": "Kataev, Ruslan",
+      "FideId": null,
+      "ChessResultsId": null,
+      "Elo": 1477,
+      "Country": "RUS",
+      "Title": null
+    },
+    {
+      "Name": "Lerch, Kornelia",
+      "FideId": "1669109",
+      "ChessResultsId": null,
+      "Elo": 1465,
+      "Country": "AUT",
+      "Title": null
+    },
+    {
+      "Name": "Grass, Lukas",
+      "FideId": "1691562",
+      "ChessResultsId": null,
+      "Elo": 1459,
+      "Country": "AUT",
+      "Title": null
+    },
+    {
+      "Name": "Gmeiner, Bernhard",
+      "FideId": "530007186",
+      "ChessResultsId": null,
+      "Elo": 1452,
+      "Country": "AUT",
+      "Title": null
+    },
+    {
+      "Name": "Kraft-Fish, Martin",
+      "FideId": null,
+      "ChessResultsId": null,
+      "Elo": 1449,
+      "Country": "AUT",
+      "Title": null
+    },
+    {
+      "Name": "Mader, Wolfgang",
+      "FideId": "1674277",
+      "ChessResultsId": null,
+      "Elo": 1448,
+      "Country": "AUT",
+      "Title": null
+    },
+    {
+      "Name": "Lutz, Rudolf",
+      "FideId": "1662309",
+      "ChessResultsId": null,
+      "Elo": 1433,
+      "Country": "AUT",
+      "Title": null
+    },
+    {
+      "Name": "Schwaizer, Herbert",
+      "FideId": "1658085",
+      "ChessResultsId": null,
+      "Elo": 1432,
+      "Country": "AUT",
+      "Title": null
+    },
+    {
+      "Name": "Studt, Heiko  Dipl. Inf.",
+      "FideId": "530012783",
+      "ChessResultsId": null,
+      "Elo": 1422,
+      "Country": "AUT",
+      "Title": null
+    },
+    {
+      "Name": "Berger, Jan",
+      "FideId": "530000815",
+      "ChessResultsId": null,
+      "Elo": 1418,
+      "Country": "AUT",
+      "Title": null
+    },
+    {
+      "Name": "Ollram, Horst",
+      "FideId": "1675346",
+      "ChessResultsId": null,
+      "Elo": 1406,
+      "Country": "AUT",
+      "Title": null
+    },
+    {
+      "Name": "Arnold, Katharina",
+      "FideId": "1673360",
+      "ChessResultsId": null,
+      "Elo": 1401,
+      "Country": "AUT",
+      "Title": null
+    },
+    {
+      "Name": "Hollnbuchner, August",
+      "FideId": "1603329",
+      "ChessResultsId": null,
+      "Elo": 1401,
+      "Country": "AUT",
+      "Title": null
+    },
+    {
+      "Name": "Mayr, Aeneas",
+      "FideId": "1677764",
+      "ChessResultsId": null,
+      "Elo": 1399,
+      "Country": "AUT",
+      "Title": null
+    },
+    {
+      "Name": "Wurzer, Valentin",
+      "FideId": null,
+      "ChessResultsId": null,
+      "Elo": 1395,
+      "Country": "AUT",
+      "Title": null
+    },
+    {
+      "Name": "Erdei, Simon",
+      "FideId": "530000564",
+      "ChessResultsId": null,
+      "Elo": 1374,
+      "Country": "AUT",
+      "Title": null
+    },
+    {
+      "Name": "Weber, Ernst",
+      "FideId": null,
+      "ChessResultsId": null,
+      "Elo": 1347,
+      "Country": "AUT",
+      "Title": null
+    },
+    {
+      "Name": "Wesely, Matthias",
+      "FideId": null,
+      "ChessResultsId": null,
+      "Elo": 1308,
+      "Country": "AUT",
+      "Title": null
+    },
+    {
+      "Name": "Kluckner, Max",
+      "FideId": "530008301",
+      "ChessResultsId": null,
+      "Elo": 1307,
+      "Country": "AUT",
+      "Title": null
+    },
+    {
+      "Name": "Tovmirzoev, Yusuf",
+      "FideId": null,
+      "ChessResultsId": null,
+      "Elo": 1289,
+      "Country": "RUS",
+      "Title": null
+    },
+    {
+      "Name": "Holzhammer, David",
+      "FideId": null,
+      "ChessResultsId": null,
+      "Elo": 1287,
+      "Country": "AUT",
+      "Title": null
+    },
+    {
+      "Name": "Aydemir, Benjamin",
+      "FideId": "530006961",
+      "ChessResultsId": null,
+      "Elo": 1285,
+      "Country": "AUT",
+      "Title": null
+    },
+    {
+      "Name": "Thomsen, Paul",
+      "FideId": null,
+      "ChessResultsId": null,
+      "Elo": 1284,
+      "Country": "GER",
+      "Title": null
+    },
+    {
+      "Name": "Erdei, Mark",
+      "FideId": "530006830",
+      "ChessResultsId": null,
+      "Elo": 1276,
+      "Country": "AUT",
+      "Title": null
+    },
+    {
+      "Name": "Friedle, Valentin",
+      "FideId": null,
+      "ChessResultsId": null,
+      "Elo": 1272,
+      "Country": "AUT",
+      "Title": null
+    },
+    {
+      "Name": "Tovmirzoev, Sayfullah",
+      "FideId": null,
+      "ChessResultsId": null,
+      "Elo": 1254,
+      "Country": "RUS",
+      "Title": null
+    },
+    {
+      "Name": "Vögele, Benjamin",
+      "FideId": null,
+      "ChessResultsId": null,
+      "Elo": 1253,
+      "Country": "AUT",
+      "Title": null
+    },
+    {
+      "Name": "Bliem, Philipp",
+      "FideId": null,
+      "ChessResultsId": null,
+      "Elo": 1248,
+      "Country": "AUT",
+      "Title": null
+    },
+    {
+      "Name": "Gstrein-Gutkauf, Oliver",
+      "FideId": "1681222",
+      "ChessResultsId": null,
+      "Elo": 1237,
+      "Country": "AUT",
+      "Title": null
+    },
+    {
+      "Name": "Marczynski, Rene",
+      "FideId": "530010276",
+      "ChessResultsId": null,
+      "Elo": 1237,
+      "Country": "AUT",
+      "Title": null
+    },
+    {
+      "Name": "Thomsen, Tim",
+      "FideId": null,
+      "ChessResultsId": null,
+      "Elo": 1228,
+      "Country": "GER",
+      "Title": null
+    },
+    {
+      "Name": "Thomsen, Mats",
+      "FideId": null,
+      "ChessResultsId": null,
+      "Elo": 1218,
+      "Country": "GER",
+      "Title": null
+    },
+    {
+      "Name": "Sharapova, Maria",
+      "FideId": "530009057",
+      "ChessResultsId": null,
+      "Elo": 1211,
+      "Country": "AUT",
+      "Title": null
+    },
+    {
+      "Name": "Ghelani, Nav",
+      "FideId": null,
+      "ChessResultsId": null,
+      "Elo": 1204,
+      "Country": "AUT",
+      "Title": null
+    },
+    {
+      "Name": "Gruber-Deutsch, Michael",
+      "FideId": "530011647",
+      "ChessResultsId": null,
+      "Elo": 1200,
+      "Country": "AUT",
+      "Title": null
+    },
+    {
+      "Name": "Juen, Emil",
+      "FideId": null,
+      "ChessResultsId": null,
+      "Elo": 1200,
+      "Country": "AUT",
+      "Title": null
+    },
+    {
+      "Name": "Moser, Theo",
+      "FideId": null,
+      "ChessResultsId": null,
+      "Elo": 1200,
+      "Country": "AUT",
+      "Title": null
+    },
+    {
+      "Name": "Struve, Benjamin",
+      "FideId": null,
+      "ChessResultsId": null,
+      "Elo": 1200,
+      "Country": "AUT",
+      "Title": null
+    },
+    {
+      "Name": "Struve, Maximilian",
+      "FideId": null,
+      "ChessResultsId": null,
+      "Elo": 1200,
+      "Country": "AUT",
+      "Title": null
+    },
+    {
+      "Name": "Alglwd Almhamd, Abdalazez",
+      "FideId": null,
+      "ChessResultsId": null,
+      "Elo": 0,
+      "Country": "AUT",
+      "Title": null
+    },
+    {
+      "Name": "Allahyari, Mohammad",
+      "FideId": "530017904",
+      "ChessResultsId": null,
+      "Elo": 0,
+      "Country": "AUT",
+      "Title": null
+    },
+    {
+      "Name": "Damhofer, Martin",
+      "FideId": null,
+      "ChessResultsId": null,
+      "Elo": 0,
+      "Country": "AUT",
+      "Title": null
+    },
+    {
+      "Name": "Erdei, Gergely",
+      "FideId": "530018382",
+      "ChessResultsId": null,
+      "Elo": 0,
+      "Country": "AUT",
+      "Title": null
+    },
+    {
+      "Name": "Freund, Martin  Dr.",
+      "FideId": null,
+      "ChessResultsId": null,
+      "Elo": 0,
+      "Country": "AUT",
+      "Title": null
+    },
+    {
+      "Name": "Ghelani, Pravin",
+      "FideId": null,
+      "ChessResultsId": null,
+      "Elo": 0,
+      "Country": "AUT",
+      "Title": null
+    },
+    {
+      "Name": "Gleißner, Valentin",
+      "FideId": "530021260",
+      "ChessResultsId": null,
+      "Elo": 0,
+      "Country": "AUT",
+      "Title": null
+    },
+    {
+      "Name": "Gsaller, Paul",
+      "FideId": null,
+      "ChessResultsId": null,
+      "Elo": 0,
+      "Country": "AUT",
+      "Title": null
+    },
+    {
+      "Name": "Hotter, Eva-Maria",
+      "FideId": "1675931",
+      "ChessResultsId": null,
+      "Elo": 0,
+      "Country": "AUT",
+      "Title": null
+    },
+    {
+      "Name": "Ihnen, Andrea",
+      "FideId": "530022657",
+      "ChessResultsId": null,
+      "Elo": 0,
+      "Country": "AUT",
+      "Title": null
+    },
+    {
+      "Name": "Mitov, Boris",
+      "FideId": null,
+      "ChessResultsId": null,
+      "Elo": 0,
+      "Country": "AUT",
+      "Title": null
+    },
+    {
+      "Name": "Oberleiter, Mia Silvia",
+      "FideId": "530019419",
+      "ChessResultsId": null,
+      "Elo": 0,
+      "Country": "AUT",
+      "Title": null
+    },
+    {
+      "Name": "Sandbichler, Sandra",
+      "FideId": null,
+      "ChessResultsId": null,
+      "Elo": 0,
+      "Country": "AUT",
+      "Title": null
+    },
+    {
+      "Name": "Steiner, Hermann",
+      "FideId": "1674420",
+      "ChessResultsId": null,
+      "Elo": 0,
+      "Country": "AUT",
+      "Title": null
+    },
+    {
+      "Name": "Stroj, Michael",
+      "FideId": "1647636",
+      "ChessResultsId": null,
+      "Elo": 0,
+      "Country": "AUT",
+      "Title": null
+    },
+    {
+      "Name": "Struve, Sebastian",
+      "FideId": null,
+      "ChessResultsId": null,
+      "Elo": 0,
+      "Country": "AUT",
+      "Title": null
+    },
+    {
+      "Name": "Tiefenbrunner, Alexander",
+      "FideId": "530016304",
+      "ChessResultsId": null,
+      "Elo": 0,
+      "Country": "AUT",
+      "Title": null
+    },
+    {
+      "Name": "Wolf, Alexander",
+      "FideId": null,
+      "ChessResultsId": null,
+      "Elo": 0,
+      "Country": "AUT",
+      "Title": null
+    }
+  ],
+  "ParsePlayerTournamentsAsync": [],
+  "ParsePlayerDetailPageAsync": [],
+  "ParseRoundPlanAsync": [],
+  "ParsePlayerCardAsync": {
+    "GamesPlayed": 105,
+    "Name": null,
+    "Federation": null,
+    "Club": null,
+    "IdentNumber": null,
+    "FideId": null,
+    "StartingRank": null,
+    "RatingNational": null,
+    "RatingInternational": null,
+    "PerformanceRating": null,
+    "Rank": null,
+    "YearOfBirth": null,
+    "Points": null,
+    "RatingChange": null,
+    "HasResult": false
+  },
+  "ParseTeamNamesAsync": [
+    "Sportverein Innsbruck",
+    "Sk Telfs",
+    "Absam",
+    "Raiffeisen Wattens",
+    "Spg Rum/Hall/Mils",
+    "Völs & Hak Ibk"
+  ],
+  "ParseCalendarAsync": [],
+  "ParseTournamentSearchAsync": []
+}

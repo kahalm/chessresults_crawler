@@ -1,0 +1,149 @@
+{
+  "ParsePlayerListAsync": [],
+  "ParseTeamPairingsAsync": [],
+  "ParseIndividualPairingsAsync": [],
+  "IsTeamPairingsPageAsync": false,
+  "HasPairingsTableAsync": true,
+  "ParseTotalRoundsAsync": null,
+  "ParseAvailableRoundsAsync": [],
+  "ParseAvailableRoundsAsync(max=5)": [],
+  "ParseTournamentNameAsync": "Player info",
+  "ParseTournamentDetailsAsync": {
+    "DateText": null,
+    "Location": null,
+    "TimeControl": null,
+    "TimeControlKind": null,
+    "Groups": []
+  },
+  "ParsePlayerSearchAsync": [
+    {
+      "Name": "Starting rank",
+      "FideId": null,
+      "ChessResultsId": null,
+      "Elo": null,
+      "Country": null,
+      "Title": null
+    },
+    {
+      "Name": "Rating national",
+      "FideId": null,
+      "ChessResultsId": null,
+      "Elo": null,
+      "Country": null,
+      "Title": null
+    },
+    {
+      "Name": "Rating international",
+      "FideId": null,
+      "ChessResultsId": null,
+      "Elo": null,
+      "Country": null,
+      "Title": null
+    },
+    {
+      "Name": "Performance rating",
+      "FideId": null,
+      "ChessResultsId": null,
+      "Elo": null,
+      "Country": null,
+      "Title": null
+    },
+    {
+      "Name": "FIDE rtg +/-",
+      "FideId": null,
+      "ChessResultsId": null,
+      "Elo": null,
+      "Country": null,
+      "Title": null
+    },
+    {
+      "Name": "Points",
+      "FideId": null,
+      "ChessResultsId": null,
+      "Elo": null,
+      "Country": null,
+      "Title": null
+    },
+    {
+      "Name": "Rank",
+      "FideId": null,
+      "ChessResultsId": null,
+      "Elo": null,
+      "Country": null,
+      "Title": null
+    },
+    {
+      "Name": "Federation",
+      "FideId": null,
+      "ChessResultsId": null,
+      "Elo": null,
+      "Country": null,
+      "Title": null
+    },
+    {
+      "Name": "Club/City",
+      "FideId": null,
+      "ChessResultsId": null,
+      "Elo": null,
+      "Country": null,
+      "Title": null
+    },
+    {
+      "Name": "Ident-Number",
+      "FideId": null,
+      "ChessResultsId": null,
+      "Elo": null,
+      "Country": null,
+      "Title": null
+    },
+    {
+      "Name": "Fide-ID",
+      "FideId": null,
+      "ChessResultsId": null,
+      "Elo": null,
+      "Country": null,
+      "Title": null
+    },
+    {
+      "Name": "Year of birth",
+      "FideId": null,
+      "ChessResultsId": null,
+      "Elo": null,
+      "Country": null,
+      "Title": null
+    }
+  ],
+  "ParsePlayerTournamentsAsync": [],
+  "ParsePlayerDetailPageAsync": [
+    {
+      "RoundNumber": 1,
+      "BoardNumber": 16,
+      "OpponentSnr": 16,
+      "OpponentName": "Bodrov Timofey",
+      "OpponentElo": 2129,
+      "Points": "2",
+      "Result": "½"
+    }
+  ],
+  "ParseRoundPlanAsync": [],
+  "ParsePlayerCardAsync": {
+    "GamesPlayed": 1,
+    "Name": "Oberschmid Patrik",
+    "Federation": "AUT",
+    "Club": "Schwaz",
+    "IdentNumber": "144749",
+    "FideId": "1693034",
+    "StartingRank": 44,
+    "RatingNational": 1854,
+    "RatingInternational": 1923,
+    "PerformanceRating": 1740,
+    "Rank": 56,
+    "YearOfBirth": 1983,
+    "Points": 1.5,
+    "RatingChange": -51.6,
+    "HasResult": true
+  },
+  "ParseTeamNamesAsync": [],
+  "ParseCalendarAsync": [],
+  "ParseTournamentSearchAsync": []
+}

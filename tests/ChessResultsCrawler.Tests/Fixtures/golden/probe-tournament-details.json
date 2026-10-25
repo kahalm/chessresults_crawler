@@ -1,0 +1,58 @@
+{
+  "ParsePlayerListAsync": [],
+  "ParseTeamPairingsAsync": [],
+  "ParseIndividualPairingsAsync": [],
+  "IsTeamPairingsPageAsync": false,
+  "HasPairingsTableAsync": true,
+  "ParseTotalRoundsAsync": 11,
+  "ParseAvailableRoundsAsync": [],
+  "ParseAvailableRoundsAsync(max=5)": [],
+  "ParseTournamentNameAsync": "Probe Rallye 2026 - Gruppe B",
+  "ParseTournamentDetailsAsync": {
+    "DateText": "2026/09/26 bis 2027/04/17",
+    "Location": "Mayrhofen, St.Veit",
+    "TimeControl": "90 Min. / 40 Zuege + 30 Min. + 30 Sekunden ab Zug 1",
+    "TimeControlKind": "Standard",
+    "Groups": [
+      {
+        "ChessResultsId": "1001",
+        "Label": "Gruppe A",
+        "IsCurrent": false
+      },
+      {
+        "ChessResultsId": null,
+        "Label": "Gruppe B",
+        "IsCurrent": true
+      },
+      {
+        "ChessResultsId": "1003",
+        "Label": "Mädchen",
+        "IsCurrent": false
+      }
+    ]
+  },
+  "ParsePlayerSearchAsync": [],
+  "ParsePlayerTournamentsAsync": [],
+  "ParsePlayerDetailPageAsync": [],
+  "ParseRoundPlanAsync": [],
+  "ParsePlayerCardAsync": {
+    "GamesPlayed": null,
+    "Name": null,
+    "Federation": null,
+    "Club": null,
+    "IdentNumber": null,
+    "FideId": null,
+    "StartingRank": null,
+    "RatingNational": null,
+    "RatingInternational": null,
+    "PerformanceRating": null,
+    "Rank": null,
+    "YearOfBirth": null,
+    "Points": null,
+    "RatingChange": null,
+    "HasResult": false
+  },
+  "ParseTeamNamesAsync": [],
+  "ParseCalendarAsync": [],
+  "ParseTournamentSearchAsync": []
+}
