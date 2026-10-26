@@ -24,7 +24,7 @@ internal sealed class ChessResultsTransport
     private static readonly SemaphoreSlim _rateLimiter = new(1, 1);
 
     /// <summary>
-    /// Derselbe Riegel, den <see cref="ThrottleAsync"/> haelt — sichtbar, weil der Wechsel des
+    /// Derselbe Riegel, den <see cref="RateLimitAsync"/> haelt — sichtbar, weil der Wechsel des
     /// VPN-Ausgangs ihn ebenfalls braucht: waehrend stop→pause→start ist der Tunnel unten, und in
     /// diesem Fenster darf keine Crawl-Anfrage unterwegs sein. Die Rotation selbst liegt seit
     /// 2026-09-09 in <see cref="VpnReadinessGate"/>, weil sie auch von den Quellen-Abrufen
