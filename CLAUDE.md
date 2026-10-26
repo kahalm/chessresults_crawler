@@ -141,6 +141,7 @@ src/ChessResultsCrawler/
   Models/                  Tournament, Team, Player, Round, TeamPairing, PlayerResult, CrawlJob
   DTOs/                    CrawlDtos (CrawlRequest, CrawlJobResponse), TournamentDtos
   Data/                    AppDbContext (alle Relationships + Indexes)
+  Logging/                 SerilogLevels (Mindest-Level + Overrides des Serilog-Bootstraps, Spiegel von rookhub)
   Program.cs               Startup-Konfiguration, Auto-Migration
 tests/ChessResultsCrawler.Tests/
   Services/                HtmlParserServiceTests, TournamentServiceTests

@@ -1,4 +1,5 @@
 using ChessResultsCrawler.Data;
+using ChessResultsCrawler.Logging;
 using ChessResultsCrawler.Middleware;
 using ChessResultsCrawler.Services;
 using Microsoft.EntityFrameworkCore;
@@ -22,9 +23,7 @@ try
     builder.Host.UseSerilog((context, services, configuration) =>
     {
         configuration
-            .MinimumLevel.Information()
-            .MinimumLevel.Override("Microsoft.AspNetCore", LogEventLevel.Warning)
-            .MinimumLevel.Override("Microsoft.EntityFrameworkCore", LogEventLevel.Warning)
+            .ApplyCrawlerLevels()
             .Enrich.FromLogContext()
             .Enrich.WithMachineName()
             .Enrich.WithProperty("Application", "ChessResultsCrawler")
