@@ -1,0 +1,67 @@
+{
+  "ParsePlayerListAsync": [],
+  "ParseTeamPairingsAsync": [
+    {
+      "MatchNumber": 1,
+      "HomeTeamName": "4",
+      "AwayTeamName": "FM",
+      "HomeScore": null,
+      "AwayScore": 2310
+    }
+  ],
+  "ParseIndividualPairingsAsync": [
+    {
+      "BoardNumber": 1,
+      "WhiteName": "Huber, Hans",
+      "BlackName": "Maier, Max",
+      "WhiteSnr": 4,
+      "BlackSnr": 1,
+      "Result": "1-0"
+    },
+    {
+      "BoardNumber": 2,
+      "WhiteName": "Gruber, Greta",
+      "BlackName": "Schmid, Sepp",
+      "WhiteSnr": 2,
+      "BlackSnr": 6,
+      "Result": "½-½"
+    },
+    {
+      "BoardNumber": 3,
+      "WhiteName": "Wolf, Walter",
+      "BlackName": "Berger, Berta",
+      "WhiteSnr": 5,
+      "BlackSnr": 3,
+      "Result": "0-1"
+    },
+    {
+      "BoardNumber": 4,
+      "WhiteName": "Lang, Lukas",
+      "BlackName": "spielfrei",
+      "WhiteSnr": 7,
+      "BlackSnr": 0,
+      "Result": "+--"
+    }
+  ],
+  "IsTeamPairingsPageAsync": false,
+  "HasPairingsTableAsync": true,
+  "ParseTotalRoundsAsync": null,
+  "ParseAvailableRoundsAsync": [],
+  "ParseAvailableRoundsAsync(max=5)": [],
+  "ParseTournamentNameAsync": "Probe-Open Innsbruck 2026",
+  "ParseTournamentDetailsAsync": {
+    "DateText": null,
+    "Location": null,
+    "TimeControl": null,
+    "TimeControlKind": null,
+    "Groups": []
+  },
+  "ParsePlayerSearchAsync": [],
+  "ParsePlayerTournamentsAsync": [],
+  "ParsePlayerDetailPageAsync": [],
+  "ParseRoundPlanAsync": [],
+  "ParsePlayerCardAsync": null,
+  "ParseTeamNamesAsync": [],
+  "ParseCalendarAsync": [],
+  "ParseTournamentSearchAsync": []
+}

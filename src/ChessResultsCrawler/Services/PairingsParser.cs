@@ -146,6 +146,8 @@ internal static class PairingsParser
     /// <summary>
     /// Parses art=2 page for individual (non-team) pairings.
     /// Format: Br | Nr | Title | Name | Elo | Pts | Result | Pts | Title | Name | Elo | Nr | (PGN)
+    /// Die Spalten kommen aus der Kopfzeile (<see cref="FindIndividualPairingColumns"/>); fehlt sie oder
+    /// nennt sie die Spalten nicht, gelten die festen Positionen dieses Standardlayouts.
     /// </summary>
     public static async Task<List<ParsedPairing>> ParseIndividualPairingsAsync(string html)
     {
@@ -157,23 +159,23 @@ internal static class PairingsParser
         if (table is null) return pairings;
 
         var allRows = table.QuerySelectorAll(":scope > tr, :scope > tbody > tr");
+        var col = FindIndividualPairingColumns(allRows) ?? StandardIndividualColumns;
 
         foreach (var row in allRows)
         {
             var cells = row.QuerySelectorAll(":scope > td").ToList();
-            if (cells.Count < 10) continue;
+            if (cells.Count < col.MinCells) continue;
             if (row.QuerySelectorAll(":scope > th").Length > 0) continue;
 
-            var boardText = cells[0].TextContent.Trim();
+            var boardText = cells[col.Board].TextContent.Trim();
             if (!int.TryParse(boardText, out var board)) continue;
 
-            // cells: Br(0) | Nr(1) | Title(2) | Name(3) | Elo(4) | Pts(5) | Result(6) | Pts(7) | Title(8) | Name(9) | Elo(10) | Nr(11)
-            var whiteName = cells[3].TextContent.Trim();
-            var blackName = cells[9].TextContent.Trim();
-            var result = cells[6].TextContent.Trim().Replace(" ", "");
+            var whiteName = cells[col.White].TextContent.Trim();
+            var blackName = cells[col.Black].TextContent.Trim();
+            var result = cells[col.Result].TextContent.Trim().Replace(" ", "");
 
-            int.TryParse(cells[1].TextContent.Trim(), out var whiteSnr);
-            int.TryParse(cells.Count > 11 ? cells[11].TextContent.Trim() : "", out var blackSnr);
+            int.TryParse(col.WhiteSnr >= 0 ? cells[col.WhiteSnr].TextContent.Trim() : "", out var whiteSnr);
+            int.TryParse(col.BlackSnr >= 0 && cells.Count > col.BlackSnr ? cells[col.BlackSnr].TextContent.Trim() : "", out var blackSnr);
 
             pairings.Add(new ParsedPairing
             {
@@ -187,6 +189,63 @@ internal static class PairingsParser
         }
 
         return pairings;
+    }
+
+    /// <summary>Spalten einer Einzelpaarung; <c>-1</c> = Spalte fehlt. MinCells: Zeilen mit weniger Zellen sind keine Paarung.</summary>
+    private readonly record struct IndividualColumns(int Board, int WhiteSnr, int White, int Result, int Black, int BlackSnr, int MinCells);
+
+    /// <summary>Das Standardlayout Br(0) | Nr(1) | Ti(2) | Name(3) | Elo(4) | Pkt(5) | Erg(6) | Pkt(7) | Ti(8) | Name(9) | Elo(10) | Nr(11).</summary>
+    private static readonly IndividualColumns StandardIndividualColumns = new(0, 1, 3, 6, 9, 11, 10);
+
+    private static readonly string[] BoardHeaders = ["Br.", "Br", "Bo.", "Bo", "Brett", "Board"];
+    private static readonly string[] SnrHeaders = ["Nr.", "Nr", "No.", "No", "SNr", "Snr", "SNo"];
+    private static readonly string[] WhiteHeaders = ["Weiß", "Weiss", "White"];
+    private static readonly string[] BlackHeaders = ["Schwarz", "Black"];
+    private static readonly string[] ResultHeaders = ["Ergebnis", "Erg.", "Result", "Res."];
+
+    /// <summary>
+    /// Die Spalten der Einzelpaarung aus der KOPFZEILE (erste Zeile mit <c>th</c>), wie
+    /// <see cref="FindTeamPairingColumns"/> fuer Mannschaften: Brett, Weiss/Schwarz (oder zweimal „Name"),
+    /// Ergebnis, die Setznummer links vor Weiss und rechts nach Schwarz. Noetig, weil chess-results je nach
+    /// Turnier Spalten ein- oder ausblendet (Titel, Land/FED, Verein) — mit festen Indizes landete dann
+    /// Elo oder Punktestand als Name bzw. Ergebnis (S3-015). <c>null</c>, wenn die Kopfzeile fehlt oder
+    /// Brett, beide Namen und Ergebnis nicht eindeutig nennt — dann greifen die festen Positionen.
+    /// </summary>
+    private static IndividualColumns? FindIndividualPairingColumns(IEnumerable<IElement> rows)
+    {
+        var header = rows.FirstOrDefault(r => r.QuerySelectorAll(":scope > th").Length > 0);
+        if (header is null) return null;
+
+        var names = header.QuerySelectorAll(":scope > th, :scope > td")
+            .Select(c => c.TextContent.Trim())
+            .ToList();
+        int First(string[] wanted, int from = 0)
+        {
+            for (var i = from; i < names.Count; i++)
+                if (wanted.Any(w => names[i].Equals(w, StringComparison.OrdinalIgnoreCase))) return i;
+            return -1;
+        }
+
+        var board = First(BoardHeaders);
+        var white = First(WhiteHeaders);
+        var black = First(BlackHeaders);
+        if (white < 0 || black < 0)
+        {
+            // Manche Seiten nennen beide Spieler-Spalten nur „Name".
+            white = First(["Name"]);
+            black = white < 0 ? -1 : First(["Name"], white + 1);
+        }
+        var result = white < 0 ? -1 : First(ResultHeaders, white + 1);
+        if (board < 0 || white < 0 || black <= white || result <= white || result >= black) return null;
+
+        var whiteSnr = -1;
+        for (var i = white - 1; i > board; i--)
+            if (SnrHeaders.Any(h => names[i].Equals(h, StringComparison.OrdinalIgnoreCase))) { whiteSnr = i; break; }
+        var blackSnr = First(SnrHeaders, black + 1);
+
+        // Die Setznummer von Schwarz darf fehlen (spielfrei), alles andere muss in der Zeile stehen.
+        var minCells = new[] { board, whiteSnr, white, result, black }.Max() + 1;
+        return new IndividualColumns(board, whiteSnr, white, result, black, blackSnr, minCells);
     }
 
     /// <summary>
