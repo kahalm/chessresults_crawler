@@ -47,7 +47,7 @@ public class CrawlerService
     // internal (statt private) nur für den Regressionstest mit doppelten Teamnamen.
     internal Task CrawlTeamPairingsAsync(Tournament tournament, string baseUrl, List<int> availableRounds,
         CancellationToken ct, bool playersFresh = false) =>
-        _job.CrawlTeamPairingsAsync(tournament, baseUrl, availableRounds, ct, playersFresh);
+        _job.Pairings.CrawlTeamPairingsAsync(tournament, baseUrl, availableRounds, ct, playersFresh);
 
     /// <inheritdoc cref="TeamNameMatching.BuildTeamNameMap"/>
     public static Dictionary<string, Team> BuildTeamNameMap(IEnumerable<Team> teams) =>
