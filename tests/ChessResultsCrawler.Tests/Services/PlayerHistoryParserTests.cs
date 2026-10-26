@@ -148,6 +148,29 @@ public class PlayerHistoryParserTests
         Assert.Equal(-51.6m, card!.RatingChange);
     }
 
+    /// <summary>
+    /// Deutsche Fassung (lan=0) der Spielerkarte: dort heissen die Wertungszeilen
+    /// „Elo national" / „Elo international" (wie „Elorechnung: Elo national" auf den
+    /// Turnierseiten). Der Rueckfall nannte frueher zweimal den englischen Namen.
+    /// </summary>
+    [Fact]
+    public async Task ParsePlayerCardAsync_GermanLabels_ReadsRatings()
+    {
+        var html = """
+            <html><body>
+              <table><tr><td>Name</td><td>Oberschmid Patrik</td></tr>
+                     <tr><td>Elo national</td><td>1854</td></tr>
+                     <tr><td>Elo international</td><td>1923</td></tr>
+                     <tr><td>Punkte</td><td>1,5</td></tr></table>
+            </body></html>
+            """;
+
+        var card = await _parser.ParsePlayerCardAsync(html);
+
+        Assert.Equal(1854, card!.RatingNational);
+        Assert.Equal(1923, card.RatingInternational);
+    }
+
     [Fact]
     public async Task ParsePlayerCardAsync_PageWithoutTheBlock_ReturnsNull()
     {
