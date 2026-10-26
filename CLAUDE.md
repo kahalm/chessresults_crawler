@@ -1,6 +1,6 @@
 # ChessResults Crawler
 
-Spezialisierter Web-Crawler der Turnierdaten von chess-results.com extrahiert. Gehoert zusammen mit **RookHub** (`C:/git/rookhub`) – bei Aenderungen immer beide Projekte beruecksichtigen.
+Spezialisierter Web-Crawler der Turnierdaten von chess-results.com extrahiert. Gehoert zusammen mit **RookHub** (Schwester-Repo `../rookhub` im Stack-Ordner) – bei Aenderungen immer beide Projekte beruecksichtigen.
 
 
 ## Zweite Quelle: der FIDE-Kalender
@@ -58,18 +58,21 @@ RookHub API (.NET :5001)  -- proxy -->  Crawler API (.NET :8080)  -- crawl -->  
 ```
 
 - **chessresults_crawler** (dieses Projekt): Backend-only REST-API. Crawlt chess-results.com und speichert Turniere, Spieler, Teams, Paarungen in eigener MariaDB (`chessresults`). Kein Frontend.
-- **RookHub** (`C:/git/rookhub`): Webportal mit Angular-Frontend + eigener .NET API. Leitet Turnier-Anfragen als Proxy an diesen Crawler weiter (`CrawlerProxyService` / `TournamentProxyController`). Eigene Datenbank `rookhub`.
+- **RookHub** (`../rookhub`): Webportal mit Angular-Frontend + eigener .NET API. Leitet Turnier-Anfragen als Proxy an diesen Crawler weiter (`CrawlerProxyService` / `TournamentProxyController`). Eigene Datenbank `rookhub`.
 
-**Wichtig**: Aenderungen an API-Endpoints hier muessen in RookHub's `src/api/RookHub.Api/Services/CrawlerProxyService.cs` und `src/api/RookHub.Api/Controllers/TournamentProxyController.cs` nachgezogen werden.
+**Wichtig**: Aenderungen an API-Endpoints hier muessen in RookHub's `src/api/RookHub.Api/Services/Tournaments/CrawlerProxyService.cs` und `src/api/RookHub.Api/Controllers/Tournaments/TournamentProxyController.cs` nachgezogen werden.
 
-**Wichtig – Checkliste vor JEDEM Commit (beide Projekte)**:
-1. [ ] Tests vorhanden fuer die Aenderung?
-2. [ ] `version` und `changelog`-Array in `C:/git/rookhub/src/frontend/app/src/environments/environment.ts` aktualisiert? (Patch fuer Fixes, Minor fuer Features)
-3. [ ] `Aktuelle Version` in `C:/git/rookhub/CLAUDE.md` angepasst?
-4. [ ] Versionsaenderung in RookHub committet?
-5. [ ] **Nach jedem Commit dem User die aktuelle Version mitteilen** (z.B. "Version: 0.6.6")
+**SPIEGEL – Antwort-Felder sind Vertrag (I2-006)**: RookHub reicht die Crawler-Antworten als `JsonElement` ungetypt bis in die
+Turnierseite durch und liest per Feldnamen. Die goldene Fassung liegt in rookhub unter
+`tests/RookHub.Api.Tests/Fixtures/CrawlerContract/*.json` (`Tournaments/CrawlerContractTests`; CI-Job `test-crawler-contract`
+prueft gegen den zuletzt getaggten Crawler). Wer hier ein Antwort-Feld in `DTOs/TournamentDtos.cs`, `DTOs/PlayerSearchDtos.cs`
+oder `RoundCheckResult` (`Services/RoundDetectionService.cs`) umbenennt oder entfernt, zieht die goldene Datei in rookhub nach —
+und damit jeden Leser. Neue Felder brechen nichts.
 
-**NIEMALS committen ohne diese Checkliste abzuarbeiten.** Auch reine Test- oder Doku-Aenderungen erhoehen die Patch-Version.
+**Commits**: je Punkt ein Commit (`fix|feat|refactor|test|docs(<bereich>): …`), Tests (`dotnet test`) vorher gruen.
+Der Crawler hat keine eigene Versionsnummer: Version und zweisprachiger Changelog laufen in rookhub
+(`src/frontend/app/src/environments/changelog.ts` + `changelog-data.ts`, Hausregel `/rh-commit` dort); Crawler-Tags tragen
+die RookHub-Version (`v0.x.y`) und werden nur auf ausdruecklichen Zuruf gesetzt.
 
 ## Tech Stack
 
@@ -188,7 +191,7 @@ Danach startet der Crawler normal und wendet nur zukuenftige Migrations an.
 
 Der komplette Stack (Crawler + RookHub) wird ueber RookHub's Compose-Dateien gestartet:
 ```bash
-cd C:/git/rookhub
+cd ../rookhub
 # Development (ohne VPN):
 docker compose -f compose.dev.yml --env-file .env.dev up --build
 
