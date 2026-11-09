@@ -10,6 +10,14 @@ public class TournamentResponse
     public string Name { get; set; } = "";
     public int TotalRounds { get; set; }
     public int KnownRounds { get; set; }
+
+    /// <summary>
+    /// Die Rundenzahl ist UNBEKANNT (<see cref="TotalRounds"/> 0): weder die Turnierdetails noch die
+    /// Paarungsseite nannten eine. Dann gibt es auch keine Rundenauswahl — ohne dieses Feld sah das
+    /// aus wie „noch nicht geholt" (tnr1221888). Ein kommendes Turnier ohne Auslosung kann es auch
+    /// tragen; es ist ein Hinweis, kein Fehler.
+    /// </summary>
+    public bool RoundCountUnknown { get; set; }
     public string? Date { get; set; }
     public string? Location { get; set; }
     public DateTime CreatedAt { get; set; }
@@ -29,6 +37,7 @@ public class TournamentResponse
         Name = t.Name,
         TotalRounds = t.TotalRounds,
         KnownRounds = t.Rounds?.Count ?? 0,
+        RoundCountUnknown = t.TotalRounds <= 0,
         Date = t.DateText,
         Location = t.Location,
         CreatedAt = t.CreatedAt,

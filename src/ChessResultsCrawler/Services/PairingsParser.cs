@@ -281,6 +281,39 @@ internal static class PairingsParser
             || document.QuerySelector("table.CRs2") is not null;
     }
 
+    /// <summary>
+    /// Die Rundennummern aus den Zwischenueberschriften einer art=2-Seite („1. Runde" …
+    /// „11. Runde", lan=1 „Round 1"). So sieht die „Teamauslosung aller Runden" einer Liga aus: alle
+    /// Runden auf EINER Seite, kein einziger <c>rd=</c>-Link — und weil der GET auf
+    /// <c>art=0&amp;turdet=YES</c> die Turnierdetails nicht ausklappt, steht dort auch keine
+    /// „Rundenanzahl". Ohne diese Ueberschriften blieb <c>TotalRounds</c> 0 und der Crawl holte KEINE
+    /// Runde (tnr1221888, 2. Bundesliga West AUT 2025-26: 208 Spieler, 11 Teams, 0 Paarungen).
+    /// Gelesen werden nur Zellen INNERHALB der Paarungstabelle, deren ganzer Text die Ueberschrift
+    /// ist — Navigation oder Fliesstext („nach 7 Runden") zaehlen nicht.
+    /// </summary>
+    public static async Task<List<int>> ParseRoundHeadingsAsync(string html)
+    {
+        var document = await OpenAsync(html);
+        var rounds = new SortedSet<int>();
+        foreach (var cell in document.QuerySelectorAll("table.CRs1 td, table.CRs2 td"))
+        {
+            var text = cell.TextContent.Trim();
+            if (text.Length is 0 or > 20) continue;
+            var m = RoundHeading.Match(text);
+            if (!m.Success) continue;
+            var digits = m.Groups[1].Success ? m.Groups[1].Value : m.Groups[2].Value;
+            if (int.TryParse(digits, out var rd) && rd is >= 1 and <= MaxHeadingRound) rounds.Add(rd);
+        }
+        return [.. rounds];
+    }
+
+    /// <summary>Obergrenze gegen Unsinn (eine Jahreszahl o. Ae. in einer Kopfzelle).</summary>
+    private const int MaxHeadingRound = 99;
+
+    private static readonly System.Text.RegularExpressions.Regex RoundHeading = new(
+        @"^(?:(\d{1,2})\.\s*Runde|Round\s+(\d{1,2}))$",
+        System.Text.RegularExpressions.RegexOptions.IgnoreCase | System.Text.RegularExpressions.RegexOptions.CultureInvariant);
+
     private static string NormalizeResult(string result)
     {
         return result.Replace("&frac12;", "½");

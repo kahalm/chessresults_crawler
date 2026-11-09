@@ -1,0 +1,502 @@
+{
+  "ParsePlayerListAsync": [],
+  "ParseTeamPairingsAsync": [
+    {
+      "MatchNumber": 1,
+      "HomeTeamName": "SPG Kufstein/Wörgl",
+      "AwayTeamName": "Schachclub Schwaz",
+      "HomeScore": 1.5,
+      "AwayScore": 4.5
+    },
+    {
+      "MatchNumber": 2,
+      "HomeTeamName": "SK Absam",
+      "AwayTeamName": "SK Sparkasse Jenbach",
+      "HomeScore": 4.5,
+      "AwayScore": 1.5
+    },
+    {
+      "MatchNumber": 3,
+      "HomeTeamName": "Götzis 1",
+      "AwayTeamName": "SK Hohenems",
+      "HomeScore": 4,
+      "AwayScore": 2
+    },
+    {
+      "MatchNumber": 4,
+      "HomeTeamName": "SK Dornbirn 1",
+      "AwayTeamName": "Sonnenberg",
+      "HomeScore": 4,
+      "AwayScore": 2
+    },
+    {
+      "MatchNumber": 5,
+      "HomeTeamName": "ASK Salzburg",
+      "AwayTeamName": "Ranshofen",
+      "HomeScore": 3.5,
+      "AwayScore": 2.5
+    },
+    {
+      "MatchNumber": 6,
+      "HomeTeamName": "SK Schwarzach",
+      "AwayTeamName": "spielfrei",
+      "HomeScore": null,
+      "AwayScore": null
+    },
+    {
+      "MatchNumber": 1,
+      "HomeTeamName": "SK Sparkasse Jenbach",
+      "AwayTeamName": "SPG Kufstein/Wörgl",
+      "HomeScore": 3,
+      "AwayScore": 3
+    },
+    {
+      "MatchNumber": 2,
+      "HomeTeamName": "SK Absam",
+      "AwayTeamName": "Schachclub Schwaz",
+      "HomeScore": 2.5,
+      "AwayScore": 3.5
+    },
+    {
+      "MatchNumber": 3,
+      "HomeTeamName": "Sonnenberg",
+      "AwayTeamName": "Götzis 1",
+      "HomeScore": 2.5,
+      "AwayScore": 3.5
+    },
+    {
+      "MatchNumber": 4,
+      "HomeTeamName": "SK Hohenems",
+      "AwayTeamName": "SK Dornbirn 1",
+      "HomeScore": 5.5,
+      "AwayScore": 0.5
+    },
+    {
+      "MatchNumber": 5,
+      "HomeTeamName": "SK Schwarzach",
+      "AwayTeamName": "Ranshofen",
+      "HomeScore": 2.5,
+      "AwayScore": 3.5
+    },
+    {
+      "MatchNumber": 6,
+      "HomeTeamName": "ASK Salzburg",
+      "AwayTeamName": "spielfrei",
+      "HomeScore": null,
+      "AwayScore": null
+    },
+    {
+      "MatchNumber": 1,
+      "HomeTeamName": "SPG Kufstein/Wörgl",
+      "AwayTeamName": "SK Absam",
+      "HomeScore": 1.5,
+      "AwayScore": 4.5
+    },
+    {
+      "MatchNumber": 2,
+      "HomeTeamName": "Schachclub Schwaz",
+      "AwayTeamName": "SK Sparkasse Jenbach",
+      "HomeScore": 1,
+      "AwayScore": 5
+    },
+    {
+      "MatchNumber": 3,
+      "HomeTeamName": "Götzis 1",
+      "AwayTeamName": "SK Dornbirn 1",
+      "HomeScore": 4,
+      "AwayScore": 2
+    },
+    {
+      "MatchNumber": 4,
+      "HomeTeamName": "SK Hohenems",
+      "AwayTeamName": "Sonnenberg",
+      "HomeScore": 5,
+      "AwayScore": 1
+    },
+    {
+      "MatchNumber": 5,
+      "HomeTeamName": "ASK Salzburg",
+      "AwayTeamName": "SK Schwarzach",
+      "HomeScore": 3.5,
+      "AwayScore": 2.5
+    },
+    {
+      "MatchNumber": 6,
+      "HomeTeamName": "Ranshofen",
+      "AwayTeamName": "spielfrei",
+      "HomeScore": null,
+      "AwayScore": null
+    },
+    {
+      "MatchNumber": 1,
+      "HomeTeamName": "Götzis 1",
+      "AwayTeamName": "SK Absam",
+      "HomeScore": 2,
+      "AwayScore": 4
+    },
+    {
+      "MatchNumber": 2,
+      "HomeTeamName": "SK Dornbirn 1",
+      "AwayTeamName": "SPG Kufstein/Wörgl",
+      "HomeScore": 2,
+      "AwayScore": 4
+    },
+    {
+      "MatchNumber": 3,
+      "HomeTeamName": "ASK Salzburg",
+      "AwayTeamName": "SK Hohenems",
+      "HomeScore": 1,
+      "AwayScore": 5
+    },
+    {
+      "MatchNumber": 4,
+      "HomeTeamName": "SK Schwarzach",
+      "AwayTeamName": "Sonnenberg",
+      "HomeScore": 5.5,
+      "AwayScore": 0.5
+    },
+    {
+      "MatchNumber": 5,
+      "HomeTeamName": "SK Sparkasse Jenbach",
+      "AwayTeamName": "Ranshofen",
+      "HomeScore": 4,
+      "AwayScore": 2
+    },
+    {
+      "MatchNumber": 6,
+      "HomeTeamName": "Schachclub Schwaz",
+      "AwayTeamName": "spielfrei",
+      "HomeScore": null,
+      "AwayScore": null
+    },
+    {
+      "MatchNumber": 1,
+      "HomeTeamName": "SPG Kufstein/Wörgl",
+      "AwayTeamName": "Götzis 1",
+      "HomeScore": 5,
+      "AwayScore": 1
+    },
+    {
+      "MatchNumber": 2,
+      "HomeTeamName": "SK Absam",
+      "AwayTeamName": "SK Dornbirn 1",
+      "HomeScore": 4.5,
+      "AwayScore": 1.5
+    },
+    {
+      "MatchNumber": 3,
+      "HomeTeamName": "Sonnenberg",
+      "AwayTeamName": "ASK Salzburg",
+      "HomeScore": 2.5,
+      "AwayScore": 3.5
+    },
+    {
+      "MatchNumber": 4,
+      "HomeTeamName": "SK Hohenems",
+      "AwayTeamName": "SK Schwarzach",
+      "HomeScore": 4.5,
+      "AwayScore": 1.5
+    },
+    {
+      "MatchNumber": 5,
+      "HomeTeamName": "Ranshofen",
+      "AwayTeamName": "Schachclub Schwaz",
+      "HomeScore": 2,
+      "AwayScore": 4
+    },
+    {
+      "MatchNumber": 6,
+      "HomeTeamName": "SK Sparkasse Jenbach",
+      "AwayTeamName": "spielfrei",
+      "HomeScore": null,
+      "AwayScore": null
+    },
+    {
+      "MatchNumber": 1,
+      "HomeTeamName": "Sonnenberg",
+      "AwayTeamName": "SK Absam",
+      "HomeScore": 1,
+      "AwayScore": 5
+    },
+    {
+      "MatchNumber": 2,
+      "HomeTeamName": "SK Hohenems",
+      "AwayTeamName": "SPG Kufstein/Wörgl",
+      "HomeScore": 3,
+      "AwayScore": 3
+    },
+    {
+      "MatchNumber": 3,
+      "HomeTeamName": "ASK Salzburg",
+      "AwayTeamName": "Schachclub Schwaz",
+      "HomeScore": 2,
+      "AwayScore": 4
+    },
+    {
+      "MatchNumber": 4,
+      "HomeTeamName": "SK Schwarzach",
+      "AwayTeamName": "SK Sparkasse Jenbach",
+      "HomeScore": 3.5,
+      "AwayScore": 2.5
+    },
+    {
+      "MatchNumber": 5,
+      "HomeTeamName": "Götzis 1",
+      "AwayTeamName": "Ranshofen",
+      "HomeScore": 3,
+      "AwayScore": 3
+    },
+    {
+      "MatchNumber": 6,
+      "HomeTeamName": "SK Dornbirn 1",
+      "AwayTeamName": "spielfrei",
+      "HomeScore": null,
+      "AwayScore": null
+    },
+    {
+      "MatchNumber": 1,
+      "HomeTeamName": "SK Sparkasse Jenbach",
+      "AwayTeamName": "Sonnenberg",
+      "HomeScore": 5,
+      "AwayScore": 1
+    },
+    {
+      "MatchNumber": 2,
+      "HomeTeamName": "Schachclub Schwaz",
+      "AwayTeamName": "SK Hohenems",
+      "HomeScore": 3.5,
+      "AwayScore": 2.5
+    },
+    {
+      "MatchNumber": 3,
+      "HomeTeamName": "Götzis 1",
+      "AwayTeamName": "ASK Salzburg",
+      "HomeScore": 2,
+      "AwayScore": 4
+    },
+    {
+      "MatchNumber": 4,
+      "HomeTeamName": "SK Dornbirn 1",
+      "AwayTeamName": "SK Schwarzach",
+      "HomeScore": 1.5,
+      "AwayScore": 4.5
+    },
+    {
+      "MatchNumber": 5,
+      "HomeTeamName": "Ranshofen",
+      "AwayTeamName": "SK Absam",
+      "HomeScore": 0,
+      "AwayScore": 6
+    },
+    {
+      "MatchNumber": 6,
+      "HomeTeamName": "SPG Kufstein/Wörgl",
+      "AwayTeamName": "spielfrei",
+      "HomeScore": null,
+      "AwayScore": null
+    },
+    {
+      "MatchNumber": 1,
+      "HomeTeamName": "SPG Kufstein/Wörgl",
+      "AwayTeamName": "Sonnenberg",
+      "HomeScore": 5,
+      "AwayScore": 1
+    },
+    {
+      "MatchNumber": 2,
+      "HomeTeamName": "SK Absam",
+      "AwayTeamName": "SK Hohenems",
+      "HomeScore": 4.5,
+      "AwayScore": 1.5
+    },
+    {
+      "MatchNumber": 3,
+      "HomeTeamName": "SK Sparkasse Jenbach",
+      "AwayTeamName": "ASK Salzburg",
+      "HomeScore": 4.5,
+      "AwayScore": 1.5
+    },
+    {
+      "MatchNumber": 4,
+      "HomeTeamName": "Schachclub Schwaz",
+      "AwayTeamName": "SK Schwarzach",
+      "HomeScore": 0,
+      "AwayScore": 6
+    },
+    {
+      "MatchNumber": 5,
+      "HomeTeamName": "Ranshofen",
+      "AwayTeamName": "SK Dornbirn 1",
+      "HomeScore": 4.5,
+      "AwayScore": 1.5
+    },
+    {
+      "MatchNumber": 6,
+      "HomeTeamName": "Götzis 1",
+      "AwayTeamName": "spielfrei",
+      "HomeScore": null,
+      "AwayScore": null
+    },
+    {
+      "MatchNumber": 1,
+      "HomeTeamName": "SK Hohenems",
+      "AwayTeamName": "SK Sparkasse Jenbach",
+      "HomeScore": 2.5,
+      "AwayScore": 3.5
+    },
+    {
+      "MatchNumber": 2,
+      "HomeTeamName": "Sonnenberg",
+      "AwayTeamName": "Schachclub Schwaz",
+      "HomeScore": 1,
+      "AwayScore": 5
+    },
+    {
+      "MatchNumber": 3,
+      "HomeTeamName": "SK Schwarzach",
+      "AwayTeamName": "Götzis 1",
+      "HomeScore": 2.5,
+      "AwayScore": 3.5
+    },
+    {
+      "MatchNumber": 4,
+      "HomeTeamName": "SK Dornbirn 1",
+      "AwayTeamName": "ASK Salzburg",
+      "HomeScore": 3,
+      "AwayScore": 3
+    },
+    {
+      "MatchNumber": 5,
+      "HomeTeamName": "Ranshofen",
+      "AwayTeamName": "SPG Kufstein/Wörgl",
+      "HomeScore": 0.5,
+      "AwayScore": 5.5
+    },
+    {
+      "MatchNumber": 6,
+      "HomeTeamName": "SK Absam",
+      "AwayTeamName": "spielfrei",
+      "HomeScore": null,
+      "AwayScore": null
+    },
+    {
+      "MatchNumber": 1,
+      "HomeTeamName": "SK Schwarzach",
+      "AwayTeamName": "SPG Kufstein/Wörgl",
+      "HomeScore": 2.5,
+      "AwayScore": 3.5
+    },
+    {
+      "MatchNumber": 2,
+      "HomeTeamName": "ASK Salzburg",
+      "AwayTeamName": "SK Absam",
+      "HomeScore": 2,
+      "AwayScore": 4
+    },
+    {
+      "MatchNumber": 3,
+      "HomeTeamName": "SK Dornbirn 1",
+      "AwayTeamName": "SK Sparkasse Jenbach",
+      "HomeScore": 3,
+      "AwayScore": 3
+    },
+    {
+      "MatchNumber": 4,
+      "HomeTeamName": "Schachclub Schwaz",
+      "AwayTeamName": "Götzis 1",
+      "HomeScore": 3,
+      "AwayScore": 3
+    },
+    {
+      "MatchNumber": 5,
+      "HomeTeamName": "Sonnenberg",
+      "AwayTeamName": "Ranshofen",
+      "HomeScore": 1.5,
+      "AwayScore": 4.5
+    },
+    {
+      "MatchNumber": 6,
+      "HomeTeamName": "SK Hohenems",
+      "AwayTeamName": "spielfrei",
+      "HomeScore": null,
+      "AwayScore": null
+    },
+    {
+      "MatchNumber": 1,
+      "HomeTeamName": "SPG Kufstein/Wörgl",
+      "AwayTeamName": "ASK Salzburg",
+      "HomeScore": 5,
+      "AwayScore": 1
+    },
+    {
+      "MatchNumber": 2,
+      "HomeTeamName": "SK Absam",
+      "AwayTeamName": "SK Schwarzach",
+      "HomeScore": 2,
+      "AwayScore": 4
+    },
+    {
+      "MatchNumber": 3,
+      "HomeTeamName": "SK Sparkasse Jenbach",
+      "AwayTeamName": "Götzis 1",
+      "HomeScore": 3.5,
+      "AwayScore": 2.5
+    },
+    {
+      "MatchNumber": 4,
+      "HomeTeamName": "Schachclub Schwaz",
+      "AwayTeamName": "SK Dornbirn 1",
+      "HomeScore": 4,
+      "AwayScore": 2
+    },
+    {
+      "MatchNumber": 5,
+      "HomeTeamName": "Ranshofen",
+      "AwayTeamName": "SK Hohenems",
+      "HomeScore": 0.5,
+      "AwayScore": 5.5
+    },
+    {
+      "MatchNumber": 6,
+      "HomeTeamName": "Sonnenberg",
+      "AwayTeamName": "spielfrei",
+      "HomeScore": null,
+      "AwayScore": null
+    }
+  ],
+  "ParseIndividualPairingsAsync": [],
+  "IsTeamPairingsPageAsync": true,
+  "HasPairingsTableAsync": true,
+  "ParseTotalRoundsAsync": null,
+  "ParseAvailableRoundsAsync": [],
+  "ParseAvailableRoundsAsync(max=5)": [],
+  "ParseRoundHeadingsAsync": [
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7,
+    8,
+    9,
+    10,
+    11
+  ],
+  "ParseTournamentNameAsync": "2. Bundesliga West AUT 2025-26",
+  "ParseTournamentDetailsAsync": {
+    "DateText": null,
+    "Location": null,
+    "TimeControl": null,
+    "TimeControlKind": null,
+    "Groups": []
+  },
+  "ParsePlayerSearchAsync": [],
+  "ParsePlayerTournamentsAsync": [],
+  "ParsePlayerDetailPageAsync": [],
+  "ParseRoundPlanAsync": [],
+  "ParsePlayerCardAsync": null,
+  "ParseTeamNamesAsync": [],
+  "ParseCalendarAsync": [],
+  "ParseTournamentSearchAsync": []
+}

@@ -40,6 +40,20 @@ internal sealed class PairingsCrawl
 
         // First discover available rounds from art=2
         var art2Html = await _transport.FetchPageAsync(baseUrl, "art=2", ct);
+
+        // Rundenzahl aus den Zwischenueberschriften („1. Runde" … „11. Runde"), wenn die
+        // Turnierdetails keine nennen (Liga, tnr1221888) — oder weniger, als schon ausgelost sind.
+        // Die ausgelosten Runden koennen die geplante Zahl nie uebersteigen, das Maximum ist also
+        // sicher. Muss VOR ParseAvailableRoundsAsync stehen, das mit TotalRounds klemmt.
+        var headed = await _parser.ParseRoundHeadingsAsync(art2Html);
+        if (headed.Count > 0 && headed[^1] > tournament.TotalRounds)
+        {
+            _logger.LogInformation(
+                "Tournament {Id}: round count {Rounds} taken from the round headings of art=2 (details said {Before})",
+                tournament.ChessResultsId, headed[^1], tournament.TotalRounds);
+            tournament.TotalRounds = headed[^1];
+        }
+
         var availableRounds = await _parser.ParseAvailableRoundsAsync(art2Html, tournament.TotalRounds);
 
         // Ohne Rundenlinks alle Runden 1..TotalRounds annehmen — so sieht es bei Mannschafts-
@@ -53,6 +67,16 @@ internal sealed class PairingsCrawl
             && await _parser.HasPairingsTableAsync(art2Html))
         {
             availableRounds = Enumerable.Range(1, tournament.TotalRounds).ToList();
+        }
+
+        // Paarungen stehen da, aber keine Runde ist zu erkennen: ohne diesen Eintrag sah das aus
+        // wie „noch nicht geholt" — leer, ohne Fehler, ohne Hinweis (tnr1221888 bis 2026-11).
+        // Die Antwort traegt es als roundCountUnknown (TournamentResponse).
+        if (availableRounds.Count == 0 && await _parser.HasPairingsTableAsync(art2Html))
+        {
+            _logger.LogWarning(
+                "Tournament {Id}: art=2 shows pairings but neither round links, round headings nor a round count — no rounds imported",
+                tournament.ChessResultsId);
         }
 
         // Detect tournament type from first round page

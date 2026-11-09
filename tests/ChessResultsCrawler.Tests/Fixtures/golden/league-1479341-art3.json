@@ -11,6 +11,7 @@
   "ParseAvailableRoundsAsync(max=5)": [
     1
   ],
+  "ParseRoundHeadingsAsync": [],
   "ParseTournamentNameAsync": "TMM Gebietsklasse West 2026/2027",
   "ParseTournamentDetailsAsync": {
     "DateText": null,

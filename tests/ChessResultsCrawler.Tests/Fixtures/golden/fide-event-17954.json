@@ -7,6 +7,7 @@
   "ParseTotalRoundsAsync": null,
   "ParseAvailableRoundsAsync": [],
   "ParseAvailableRoundsAsync(max=5)": [],
+  "ParseRoundHeadingsAsync": [],
   "ParseTournamentNameAsync": "I Cerrado Internacional GM MyInvestor",
   "ParseTournamentDetailsAsync": {
     "DateText": null,

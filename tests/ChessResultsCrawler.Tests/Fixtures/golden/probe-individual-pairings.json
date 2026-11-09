@@ -57,6 +57,7 @@
     2,
     3
   ],
+  "ParseRoundHeadingsAsync": [],
   "ParseTournamentNameAsync": "Probe Open 2026",
   "ParseTournamentDetailsAsync": {
     "DateText": null,

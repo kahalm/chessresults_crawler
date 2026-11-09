@@ -32,6 +32,10 @@ public class HtmlParserService
     public Task<bool> HasPairingsTableAsync(string html) =>
         PairingsParser.HasPairingsTableAsync(html);
 
+    /// <inheritdoc cref="PairingsParser.ParseRoundHeadingsAsync"/>
+    public Task<List<int>> ParseRoundHeadingsAsync(string html) =>
+        PairingsParser.ParseRoundHeadingsAsync(html);
+
     /// <inheritdoc cref="TournamentPagesParser.ParseTotalRoundsAsync"/>
     public Task<int?> ParseTotalRoundsAsync(string html) =>
         TournamentPagesParser.ParseTotalRoundsAsync(html);

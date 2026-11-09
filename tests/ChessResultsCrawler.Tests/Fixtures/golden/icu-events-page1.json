@@ -7,6 +7,7 @@
   "ParseTotalRoundsAsync": null,
   "ParseAvailableRoundsAsync": [],
   "ParseAvailableRoundsAsync(max=5)": [],
+  "ParseRoundHeadingsAsync": [],
   "ParseTournamentNameAsync": null,
   "ParseTournamentDetailsAsync": {
     "DateText": null,

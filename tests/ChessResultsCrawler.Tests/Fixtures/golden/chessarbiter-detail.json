@@ -7,6 +7,7 @@
   "ParseTotalRoundsAsync": null,
   "ParseAvailableRoundsAsync": [],
   "ParseAvailableRoundsAsync(max=5)": [],
+  "ParseRoundHeadingsAsync": [],
   "ParseTournamentNameAsync": "Eliminacje Strefowe PL-LU do Finału OOM do lat 12  w 2027 roku - d11",
   "ParseTournamentDetailsAsync": {
     "DateText": null,

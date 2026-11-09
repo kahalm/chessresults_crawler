@@ -34,6 +34,7 @@ public class HtmlParserGoldenTests
         ("ParseTotalRoundsAsync", async h => await Parser.ParseTotalRoundsAsync(h)),
         ("ParseAvailableRoundsAsync", async h => await Parser.ParseAvailableRoundsAsync(h)),
         ("ParseAvailableRoundsAsync(max=5)", async h => await Parser.ParseAvailableRoundsAsync(h, 5)),
+        ("ParseRoundHeadingsAsync", async h => await Parser.ParseRoundHeadingsAsync(h)),
         ("ParseTournamentNameAsync", async h => await Parser.ParseTournamentNameAsync(h)),
         ("ParseTournamentDetailsAsync", async h => await Parser.ParseTournamentDetailsAsync(h)),
         ("ParsePlayerSearchAsync", async h => await Parser.ParsePlayerSearchAsync(h)),

@@ -69,6 +69,7 @@
   "ParseTotalRoundsAsync": null,
   "ParseAvailableRoundsAsync": [],
   "ParseAvailableRoundsAsync(max=5)": [],
+  "ParseRoundHeadingsAsync": [],
   "ParseTournamentNameAsync": "Turnierdatenbank von Chess Results",
   "ParseTournamentDetailsAsync": {
     "DateText": null,

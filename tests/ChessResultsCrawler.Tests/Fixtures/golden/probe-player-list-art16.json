@@ -53,6 +53,7 @@
   "ParseTotalRoundsAsync": null,
   "ParseAvailableRoundsAsync": [],
   "ParseAvailableRoundsAsync(max=5)": [],
+  "ParseRoundHeadingsAsync": [],
   "ParseTournamentNameAsync": "Probe Mannschaftsturnier 2026",
   "ParseTournamentDetailsAsync": {
     "DateText": null,

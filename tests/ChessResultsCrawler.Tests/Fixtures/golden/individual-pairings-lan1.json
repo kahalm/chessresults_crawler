@@ -69,6 +69,7 @@
   "ParseTotalRoundsAsync": null,
   "ParseAvailableRoundsAsync": [],
   "ParseAvailableRoundsAsync(max=5)": [],
+  "ParseRoundHeadingsAsync": [],
   "ParseTournamentNameAsync": "Probe Open Innsbruck 2026",
   "ParseTournamentDetailsAsync": {
     "DateText": null,

@@ -20,6 +20,7 @@
     4,
     5
   ],
+  "ParseRoundHeadingsAsync": [],
   "ParseTournamentNameAsync": null,
   "ParseTournamentDetailsAsync": {
     "DateText": null,

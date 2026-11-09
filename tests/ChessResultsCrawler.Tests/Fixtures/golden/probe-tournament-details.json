@@ -7,6 +7,7 @@
   "ParseTotalRoundsAsync": 11,
   "ParseAvailableRoundsAsync": [],
   "ParseAvailableRoundsAsync(max=5)": [],
+  "ParseRoundHeadingsAsync": [],
   "ParseTournamentNameAsync": "Probe Rallye 2026 - Gruppe B",
   "ParseTournamentDetailsAsync": {
     "DateText": "2026/09/26 bis 2027/04/17",

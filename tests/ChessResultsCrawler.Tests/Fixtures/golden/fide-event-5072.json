@@ -7,6 +7,7 @@
   "ParseTotalRoundsAsync": null,
   "ParseAvailableRoundsAsync": [],
   "ParseAvailableRoundsAsync(max=5)": [],
+  "ParseRoundHeadingsAsync": [],
   "ParseTournamentNameAsync": "46th Chess Olympiad 2026",
   "ParseTournamentDetailsAsync": {
     "DateText": null,

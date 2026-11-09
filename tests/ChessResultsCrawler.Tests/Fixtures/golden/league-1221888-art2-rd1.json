@@ -1,0 +1,72 @@
+{
+  "ParsePlayerListAsync": [],
+  "ParseTeamPairingsAsync": [
+    {
+      "MatchNumber": 1,
+      "HomeTeamName": "SPG Kufstein/Wörgl",
+      "AwayTeamName": "Schachclub Schwaz",
+      "HomeScore": 1.5,
+      "AwayScore": 4.5
+    },
+    {
+      "MatchNumber": 2,
+      "HomeTeamName": "SK Absam",
+      "AwayTeamName": "SK Sparkasse Jenbach",
+      "HomeScore": 4.5,
+      "AwayScore": 1.5
+    },
+    {
+      "MatchNumber": 3,
+      "HomeTeamName": "Götzis 1",
+      "AwayTeamName": "SK Hohenems",
+      "HomeScore": 4,
+      "AwayScore": 2
+    },
+    {
+      "MatchNumber": 4,
+      "HomeTeamName": "SK Dornbirn 1",
+      "AwayTeamName": "Sonnenberg",
+      "HomeScore": 4,
+      "AwayScore": 2
+    },
+    {
+      "MatchNumber": 5,
+      "HomeTeamName": "ASK Salzburg",
+      "AwayTeamName": "Ranshofen",
+      "HomeScore": 3.5,
+      "AwayScore": 2.5
+    },
+    {
+      "MatchNumber": 6,
+      "HomeTeamName": "SK Schwarzach",
+      "AwayTeamName": "spielfrei",
+      "HomeScore": null,
+      "AwayScore": null
+    }
+  ],
+  "ParseIndividualPairingsAsync": [],
+  "IsTeamPairingsPageAsync": true,
+  "HasPairingsTableAsync": true,
+  "ParseTotalRoundsAsync": null,
+  "ParseAvailableRoundsAsync": [],
+  "ParseAvailableRoundsAsync(max=5)": [],
+  "ParseRoundHeadingsAsync": [
+    1
+  ],
+  "ParseTournamentNameAsync": "2. Bundesliga West AUT 2025-26",
+  "ParseTournamentDetailsAsync": {
+    "DateText": null,
+    "Location": null,
+    "TimeControl": null,
+    "TimeControlKind": null,
+    "Groups": []
+  },
+  "ParsePlayerSearchAsync": [],
+  "ParsePlayerTournamentsAsync": [],
+  "ParsePlayerDetailPageAsync": [],
+  "ParseRoundPlanAsync": [],
+  "ParsePlayerCardAsync": null,
+  "ParseTeamNamesAsync": [],
+  "ParseCalendarAsync": [],
+  "ParseTournamentSearchAsync": []
+}

@@ -1,0 +1,206 @@
+{
+  "ParsePlayerListAsync": [],
+  "ParseTeamPairingsAsync": [
+    {
+      "MatchNumber": 1,
+      "HomeTeamName": "SK Absam",
+      "AwayTeamName": "*",
+      "HomeScore": 2.5,
+      "AwayScore": 4.5
+    },
+    {
+      "MatchNumber": 2,
+      "HomeTeamName": "Schachclub Schwaz",
+      "AwayTeamName": "3½",
+      "HomeScore": null,
+      "AwayScore": 1
+    },
+    {
+      "MatchNumber": 3,
+      "HomeTeamName": "SPG Kufstein/Wörgl",
+      "AwayTeamName": "1½",
+      "HomeScore": 1.5,
+      "AwayScore": 3
+    },
+    {
+      "MatchNumber": 4,
+      "HomeTeamName": "SK Sparkasse Jenbach",
+      "AwayTeamName": "1½",
+      "HomeScore": 5,
+      "AwayScore": null
+    },
+    {
+      "MatchNumber": 5,
+      "HomeTeamName": "SK Hohenems",
+      "AwayTeamName": "1½",
+      "HomeScore": 2.5,
+      "AwayScore": 2.5
+    },
+    {
+      "MatchNumber": 6,
+      "HomeTeamName": "SK Schwarzach",
+      "AwayTeamName": "4",
+      "HomeScore": 6,
+      "AwayScore": 3.5
+    },
+    {
+      "MatchNumber": 7,
+      "HomeTeamName": "Götzis 1",
+      "AwayTeamName": "2",
+      "HomeScore": 3,
+      "AwayScore": 2.5
+    },
+    {
+      "MatchNumber": 8,
+      "HomeTeamName": "ASK Salzburg",
+      "AwayTeamName": "2",
+      "HomeScore": 2,
+      "AwayScore": 1.5
+    },
+    {
+      "MatchNumber": 9,
+      "HomeTeamName": "Ranshofen",
+      "AwayTeamName": "0",
+      "HomeScore": 2,
+      "AwayScore": 2
+    },
+    {
+      "MatchNumber": 10,
+      "HomeTeamName": "SK Dornbirn 1",
+      "AwayTeamName": "1½",
+      "HomeScore": 2,
+      "AwayScore": 3
+    },
+    {
+      "MatchNumber": 11,
+      "HomeTeamName": "Sonnenberg",
+      "AwayTeamName": "1",
+      "HomeScore": 1,
+      "AwayScore": 1
+    }
+  ],
+  "ParseIndividualPairingsAsync": [
+    {
+      "BoardNumber": 1,
+      "WhiteName": "2½",
+      "BlackName": "4",
+      "WhiteSnr": 0,
+      "BlackSnr": 0,
+      "Result": "4½"
+    },
+    {
+      "BoardNumber": 2,
+      "WhiteName": "*",
+      "BlackName": "4",
+      "WhiteSnr": 0,
+      "BlackSnr": 4,
+      "Result": "3½"
+    },
+    {
+      "BoardNumber": 3,
+      "WhiteName": "1½",
+      "BlackName": "5",
+      "WhiteSnr": 0,
+      "BlackSnr": 4,
+      "Result": "3"
+    },
+    {
+      "BoardNumber": 4,
+      "WhiteName": "5",
+      "BlackName": "4½",
+      "WhiteSnr": 0,
+      "BlackSnr": 3,
+      "Result": "3½"
+    },
+    {
+      "BoardNumber": 5,
+      "WhiteName": "2½",
+      "BlackName": "5",
+      "WhiteSnr": 0,
+      "BlackSnr": 0,
+      "Result": "*"
+    },
+    {
+      "BoardNumber": 6,
+      "WhiteName": "6",
+      "BlackName": "2½",
+      "WhiteSnr": 0,
+      "BlackSnr": 0,
+      "Result": "1½"
+    },
+    {
+      "BoardNumber": 7,
+      "WhiteName": "3",
+      "BlackName": "2",
+      "WhiteSnr": 0,
+      "BlackSnr": 4,
+      "Result": "4"
+    },
+    {
+      "BoardNumber": 8,
+      "WhiteName": "2",
+      "BlackName": "*",
+      "WhiteSnr": 0,
+      "BlackSnr": 3,
+      "Result": "1"
+    },
+    {
+      "BoardNumber": 9,
+      "WhiteName": "2",
+      "BlackName": "2½",
+      "WhiteSnr": 0,
+      "BlackSnr": 0,
+      "Result": "½"
+    },
+    {
+      "BoardNumber": 10,
+      "WhiteName": "2",
+      "BlackName": "3",
+      "WhiteSnr": 0,
+      "BlackSnr": 0,
+      "Result": "½"
+    },
+    {
+      "BoardNumber": 11,
+      "WhiteName": "1",
+      "BlackName": "2½",
+      "WhiteSnr": 0,
+      "BlackSnr": 2,
+      "Result": "1"
+    }
+  ],
+  "IsTeamPairingsPageAsync": false,
+  "HasPairingsTableAsync": true,
+  "ParseTotalRoundsAsync": null,
+  "ParseAvailableRoundsAsync": [],
+  "ParseAvailableRoundsAsync(max=5)": [],
+  "ParseRoundHeadingsAsync": [],
+  "ParseTournamentNameAsync": "2. Bundesliga West AUT 2025-26",
+  "ParseTournamentDetailsAsync": {
+    "DateText": null,
+    "Location": null,
+    "TimeControl": null,
+    "TimeControlKind": null,
+    "Groups": []
+  },
+  "ParsePlayerSearchAsync": [],
+  "ParsePlayerTournamentsAsync": [],
+  "ParsePlayerDetailPageAsync": [],
+  "ParseRoundPlanAsync": [],
+  "ParsePlayerCardAsync": null,
+  "ParseTeamNamesAsync": [
+    "SK Absam",
+    "Schachclub Schwaz",
+    "SPG Kufstein/Wörgl",
+    "SK Sparkasse Jenbach",
+    "SK Hohenems",
+    "SK Schwarzach",
+    "Götzis 1",
+    "ASK Salzburg",
+    "Ranshofen",
+    "SK Dornbirn 1",
+    "Sonnenberg"
+  ],
+  "ParseCalendarAsync": [],
+  "ParseTournamentSearchAsync": []
+}
