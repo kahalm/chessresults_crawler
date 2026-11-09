@@ -69,6 +69,9 @@ internal sealed class TournamentCrawlJob
         // nach VPN-Rotation/Deploy), wird gestuft erneut versucht statt sofort als Failed markiert.
         // Das Upsert ist idempotent (find-or-create + RemoveRange/Insert pro Runde in Transaktion),
         // ein erneuter Anlauf ist daher gefahrlos.
+        // S2-011: blieb ein Abruf nach allen Versuchen auf 429 (Ausgang gedrosselt), wird EINMAL je
+        // Auftrag der VPN-Ausgang gewechselt und der Crawl neu angesetzt; beim zweiten Mal Failed.
+        var rotatedAfterThrottle = false;
         for (int attempt = 1; ; attempt++)
         {
             try
@@ -106,13 +109,36 @@ internal sealed class TournamentCrawlJob
                 }
                 // nächster Schleifendurchlauf = erneuter Anlauf
             }
+            catch (Exception ex) when (!rotatedAfterThrottle && ChessResultsTransport.IsExhaustedThrottle(ex))
+            {
+                rotatedAfterThrottle = true;
+                _logger.LogWarning(
+                    "Crawl {ChessResultsId}: 429 nach allen Versuchen, wechsle den Ausgang und setze neu an",
+                    job.ChessResultsId);
+                bool rotated;
+                try
+                {
+                    rotated = await _transport.RotateExitAsync(ct);
+                }
+                catch (OperationCanceledException) when (ct.IsCancellationRequested)
+                {
+                    job.Status = CrawlJobStatus.Failed;
+                    job.ErrorMessage = "Cancelled";
+                    job.CompletedAt = DateTime.UtcNow;
+                    break;
+                }
+                if (!rotated)
+                {
+                    _logger.LogError(ex, "Crawl failed for {ChessResultsId}", job.ChessResultsId);
+                    FailWith(job, ex);
+                    break;
+                }
+                // nächster Schleifendurchlauf = erneuter Anlauf über den neuen Ausgang
+            }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Crawl failed for {ChessResultsId}", job.ChessResultsId);
-                job.Status = CrawlJobStatus.Failed;
-                var msg = ex.Message ?? "Unknown error";
-                job.ErrorMessage = msg[..Math.Min(msg.Length, 2000)];
-                job.CompletedAt = DateTime.UtcNow;
+                FailWith(job, ex);
                 break;
             }
         }
@@ -121,6 +147,14 @@ internal sealed class TournamentCrawlJob
         // ct würde dieser Save erneut werfen → der Job bliebe für immer auf Running stehen.
         await _db.SaveChangesAsync(CancellationToken.None);
         return job;
+    }
+
+    private static void FailWith(CrawlJob job, Exception ex)
+    {
+        job.Status = CrawlJobStatus.Failed;
+        var msg = ex.Message ?? "Unknown error";
+        job.ErrorMessage = msg[..Math.Min(msg.Length, 2000)];
+        job.CompletedAt = DateTime.UtcNow;
     }
 
     /// <summary>Ein Anlauf des Crawls: Turnier aufloesen/anlegen, Kopfdaten (art=0 mit turdet=YES),

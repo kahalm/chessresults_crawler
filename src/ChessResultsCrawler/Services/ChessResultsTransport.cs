@@ -209,7 +209,8 @@ internal sealed class ChessResultsTransport
     /// werden reine Verbindungsfehler (kein HTTP-Status, z.B. Tunnel kurz weg) sowie 429/5xx-
     /// Antworten; die Wartezeit kommt aus dem Retry-After-Header, sonst exponentiell aus
     /// <see cref="FetchBackoff"/>. Andere 4xx werfen sofort. Nach dem letzten Versuch propagiert
-    /// die HttpRequestException wie bisher (Crawl-Job → Failed bzw. Re-Queue-Logik im Aufrufer).
+    /// die HttpRequestException wie bisher (Crawl-Job → Failed bzw. Re-Queue-Logik im Aufrufer;
+    /// ein erschoepftes 429 wechselt dort einmal je Auftrag den Ausgang, S2-011).
     /// </summary>
     private async Task<(string Url, string Body)> FetchWithRetriesAsync(string url, CancellationToken ct)
     {
@@ -263,6 +264,20 @@ internal sealed class ChessResultsTransport
             await Task.Delay(delay, ct);
         }
     }
+
+    /// <summary>Ein 429, das auch nach allen Fetch-Versuchen blieb (Drosselung des Ausgangs) — irgendwo
+    /// in der Ausnahmekette. Der Crawl-Auftrag wechselt darauf EINMAL den Ausgang (S2-011).</summary>
+    internal static bool IsExhaustedThrottle(Exception ex)
+    {
+        for (Exception? e = ex; e is not null; e = e.InnerException)
+            if (e is HttpRequestException { StatusCode: HttpStatusCode.TooManyRequests })
+                return true;
+        return false;
+    }
+
+    /// <summary>Wechselt den VPN-Ausgang ausserhalb einer laufenden Anfrage (nimmt den Riegel selbst);
+    /// false, wenn der Riegel nicht zu bekommen war.</summary>
+    internal Task<bool> RotateExitAsync(CancellationToken ct) => _vpnGate.RotateAsync(ct);
 
     /// <summary>
     /// Erkennt reine Verbindungs-/Transportfehler (kein HTTP-Status erhalten) — typisch wenn der
