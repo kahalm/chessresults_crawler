@@ -63,6 +63,12 @@ public class FideEventDetailResponse
 
     public string? Website { get; set; }
 
+    /// <summary>Veranstalter („Name (FED)"), mit „; " verbunden.</summary>
+    public string? Organizers { get; set; }
+
+    /// <summary>Hauptschiedsrichter („Name (FED)") — nur, wenn FIDE die Rolle „Chief Arbiter" nennt.</summary>
+    public string? ChiefArbiter { get; set; }
+
     public static FideEventDetailResponse FromParsed(ParsedFideEventDetail d) => new()
     {
         EventId = d.EventId,
@@ -76,5 +82,7 @@ public class FideEventDetailResponse
         City = d.City,
         VenueAddress = d.VenueAddress,
         Website = d.Website,
+        Organizers = d.Organizers,
+        ChiefArbiter = d.ChiefArbiter,
     };
 }

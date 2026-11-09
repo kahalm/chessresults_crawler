@@ -62,6 +62,19 @@ public class ParsedFideEventDetail
     public string? VenueAddress { get; set; }
 
     public string? Website { get; set; }
+
+    /// <summary>
+    /// Die Veranstalter, wie FIDE sie im Abschnitt „Organizers" fuehrt („Adla, Diego (ARG)"),
+    /// mit „; " verbunden. <c>null</c>, wenn der Abschnitt fehlt (die Schacholympiade hat keinen).
+    /// </summary>
+    public string? Organizers { get; set; }
+
+    /// <summary>
+    /// Der Hauptschiedsrichter: die Person im Abschnitt „Arbiters", deren Rolle „Chief Arbiter"
+    /// lautet (genau so, nicht „Deputy Chief Arbiter"). Ein Schiedsrichter OHNE diese Rolle wird
+    /// nicht hochgestuft — lieber nichts als eine falsche Angabe.
+    /// </summary>
+    public string? ChiefArbiter { get; set; }
 }
 
 /// <summary>
@@ -242,7 +255,43 @@ public class FideCalendarService
             City = Field(fields, "City"),
             VenueAddress = Field(fields, "Address"),
             Website = Field(fields, "Website"),
+            Organizers = JoinOrNull(People(document, "Organizers").Select(p => p.Name)),
+            ChiefArbiter = People(document, "Arbiters")
+                .FirstOrDefault(p => string.Equals(p.Role, "Chief Arbiter", StringComparison.OrdinalIgnoreCase))
+                .Name,
         };
+    }
+
+    /// <summary>
+    /// Die Personen eines Abschnitts („Organizers", „Arbiters"). Sie stehen NICHT in
+    /// <c>div.event-info-row</c>, sondern als Karten hinter einer <c>h4</c>-Ueberschrift:
+    /// <c>div.event-info-right-card</c> mit <c>.event-organizers h6</c> (Name, „Adla, Diego (ARG)")
+    /// und <c>p</c> (Rolle, „Organizer"/„Chief Arbiter"). Gelesen werden die Karten, die der
+    /// Ueberschrift als Geschwister folgen, bis zur naechsten Ueberschrift — beide Abschnitte
+    /// stehen im selben Elternknoten hintereinander.
+    /// </summary>
+    private static List<(string Name, string? Role)> People(IDocument document, string heading)
+    {
+        var people = new List<(string Name, string? Role)>();
+        var h4 = document.QuerySelectorAll("h4")
+            .FirstOrDefault(h => string.Equals(h.TextContent.Trim(), heading, StringComparison.OrdinalIgnoreCase));
+        for (var node = h4?.NextElementSibling; node is not null; node = node.NextElementSibling)
+        {
+            if (node.LocalName is "h4" or "h3" or "h2") break;
+            if (!node.ClassList.Contains("event-info-right-card")) continue;
+
+            var name = Collapse(node.QuerySelector(".event-organizers h6")?.TextContent.Trim() ?? "");
+            if (name.Length == 0) continue;
+            var role = node.QuerySelector(".event-organizers p")?.TextContent.Trim();
+            people.Add((name, string.IsNullOrEmpty(role) ? null : Collapse(role)));
+        }
+        return people;
+    }
+
+    private static string? JoinOrNull(IEnumerable<string> parts)
+    {
+        var joined = string.Join("; ", parts.Distinct(StringComparer.Ordinal));
+        return joined.Length == 0 ? null : joined;
     }
 
     private static string? Field(Dictionary<string, string> fields, string label) =>

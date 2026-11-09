@@ -176,6 +176,9 @@ public class FideCalendarServiceTests
         // Der eigentliche Gewinn: eine Anschrift MIT Postleitzahl.
         Assert.Contains("50012", d.VenueAddress);
         Assert.Contains("Zaragoza", d.VenueAddress);
+        // Personen stehen als Karten hinter einer h4-Ueberschrift, nicht in event-info-row.
+        Assert.Equal("Adla, Diego (ARG); Glavina, Pablo (ESP)", d.Organizers);
+        Assert.Equal("Cajo Esteban, Ruben (ESP)", d.ChiefArbiter);
     }
 
     /// <summary>
@@ -197,6 +200,50 @@ public class FideCalendarServiceTests
         Assert.Null(d.Rounds);
         Assert.Null(d.Players);
         Assert.Null(d.VenueAddress);
+        // Weder Veranstalter- noch Schiedsrichter-Abschnitt.
+        Assert.Null(d.Organizers);
+        Assert.Null(d.ChiefArbiter);
+    }
+
+    /// <summary>
+    /// Ein Schiedsrichter OHNE genau die Rolle „Chief Arbiter" wird nicht zum Hauptschiedsrichter
+    /// hochgestuft, und die Organisator-Karten enden an der naechsten Ueberschrift — sonst liefe
+    /// der Schiedsrichter in die Veranstalterliste. Nachgebaut im Aufbau des echten Fragments.
+    /// </summary>
+    [Fact]
+    public async Task ParseEventAsync_ArbiterWithoutChiefRole_IsNotPromoted()
+    {
+        const string html = """
+            <div class="event-info">
+              <h4>Organizers</h4>
+              <div class="event-info-right-card"><div class="event-organizers"><h6><a href="#">Muster, Max (AUT)</a></h6><p>Organizer</p></div></div>
+              <h4>Arbiters</h4>
+              <div class="event-info-right-card"><div class="event-organizers"><h6><a href="#">Beispiel, Bea (GER)</a></h6><p>Deputy Chief Arbiter</p></div></div>
+              <div class="event-info-right-card"><div class="event-organizers"><h6><a href="#">Probe, Paul (SUI)</a></h6><p>Arbiter</p></div></div>
+            </div>
+            """;
+
+        var d = await FideCalendarService.ParseEventAsync(html, "990001");
+
+        Assert.Equal("Muster, Max (AUT)", d.Organizers);
+        // Weder „Deputy Chief Arbiter" noch „Arbiter" ist der Hauptschiedsrichter.
+        Assert.Null(d.ChiefArbiter);
+    }
+
+    /// <summary>Ein leeres oder fremdes Fragment liefert lauter <c>null</c> statt einer Ausnahme.</summary>
+    [Fact]
+    public async Task ParseEventAsync_EmptyFragment_ReturnsAllNull()
+    {
+        var d = await FideCalendarService.ParseEventAsync("<div>nichts</div>", "990002");
+
+        Assert.Equal("990002", d.EventId);
+        Assert.Null(d.EventType);
+        Assert.Null(d.TimeControl);
+        Assert.Null(d.System);
+        Assert.Null(d.Rounds);
+        Assert.Null(d.VenueAddress);
+        Assert.Null(d.Organizers);
+        Assert.Null(d.ChiefArbiter);
     }
 
     /// <summary>

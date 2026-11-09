@@ -105,6 +105,8 @@ die RookHub-Version (`v0.x.y`) und werden nur auf ausdruecklichen Zuruf gesetzt.
 | GET | `/api/tournament-search?fed=&from=&to=&maxRows=` | Turnierverzeichnis: Trefferliste der chess-results-Turniersuche fuer eine Foederation + Zeitfenster (zustandslos, nichts wird gespeichert). Datumsfilter greift auf das END-Datum. |
 | GET | `/api/tournament-search/player-history?lastName=&firstName=` | Turnierhistorie eines Spielers per Name (alle Teilnahmen mit Startnummer, Ident-Nr., Fide-ID). Namen werden getrimmt und auf 100 Zeichen gekuerzt, Nachname mind. 2 Zeichen. |
 | GET | `/api/players/tournaments?lastName=&firstName=` | **Alias** von `player-history` — dieselbe Pruefung und Antwort (`Controllers/PlayerNameQuery.cs`). Bleibt, solange RookHubs `AutoSubscriptionService` ihn ruft; neue Aufrufer nehmen `player-history`. |
+| GET | `/api/fide-calendar?year=` | FIDE-Kalender: Ereignisse eines Jahres (Jahresansicht, Name/Termin/Ort) |
+| GET | `/api/fide-calendar/event?id=` | FIDE-Kalender: Detailangaben EINES Ereignisses (`calendar_server.php?id=&preview=0`): Bedenkzeit-Klasse + -Text, Turniersystem, Runden, Teilnehmer, Land/Stadt, Anschrift (mit PLZ), Website, Veranstalter, Hauptschiedsrichter. Fehlende Felder = `null`; 404 nur bei einer Nummer, die keine Zahl ist. RookHub holt jedes Ereignis einmal (`FideEventDetailService`). |
 | GET | `/api/health` | Health Check |
 | GET | `/api/health/ip` | Aktuelle IP (VPN-Verifizierung) |
 
