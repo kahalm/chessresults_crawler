@@ -109,6 +109,20 @@ internal sealed class PairingsCrawl
             var existingPairings = await _db.TeamPairings
                 .Where(tp => tp.RoundId == round.Id)
                 .ToListAsync(ct);
+
+            // S2-001: Ergibt die Seite keine einzige zuordenbare Paarung (Layout nicht erkannt,
+            // 200-Seite ohne Tabelle, alle Teamnamen unbekannt), den gespeicherten Stand behalten
+            // statt die Runde zu leeren und ResultsPublished zurueckzusetzen.
+            var resolvable = parsedPairings.Count(pp =>
+                FindTeam(teams, pp.HomeTeamName) is not null && FindTeam(teams, pp.AwayTeamName) is not null);
+            if (resolvable == 0 && existingPairings.Count > 0)
+            {
+                _logger.LogWarning(
+                    "Round {Round} of {Id}: page yielded no usable team pairings ({Parsed} parsed), keeping {Existing} stored pairings",
+                    roundNum, tournament.ChessResultsId, parsedPairings.Count, existingPairings.Count);
+                continue;
+            }
+
             _db.TeamPairings.RemoveRange(existingPairings);
 
             foreach (var pp in parsedPairings)
@@ -183,6 +197,17 @@ internal sealed class PairingsCrawl
             var existingPairings = await _db.Pairings
                 .Where(p => p.RoundId == round.Id)
                 .ToListAsync(ct);
+
+            // S2-001: 0 geparste Paarungen (Layout nicht erkannt, Seite ohne Tabelle) loeschen den
+            // gespeicherten Stand nicht und setzen ResultsPublished nicht zurueck.
+            if (parsedPairings.Count == 0 && existingPairings.Count > 0)
+            {
+                _logger.LogWarning(
+                    "Round {Round} of {Id}: page yielded no individual pairings, keeping {Existing} stored pairings",
+                    roundNum, tournament.ChessResultsId, existingPairings.Count);
+                continue;
+            }
+
             _db.Pairings.RemoveRange(existingPairings);
 
             foreach (var pp in parsedPairings)

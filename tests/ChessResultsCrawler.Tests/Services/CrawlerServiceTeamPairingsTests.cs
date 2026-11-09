@@ -95,7 +95,7 @@ public class CrawlerServiceTeamPairingsTests : IDisposable
             });
     }
 
-    private CrawlerService CreateService(Func<string, string> route)
+    private CrawlerService CreateService(Func<string, string> route, ILogger<CrawlerService>? logger = null)
     {
         var config = new ConfigurationBuilder().AddInMemoryCollection(new Dictionary<string, string?>
         {
@@ -107,7 +107,7 @@ public class CrawlerServiceTeamPairingsTests : IDisposable
             ["Crawler:RotateAfterRequests"] = "1000000",
         }).Build();
         return new CrawlerService(new HttpClient(new RoutingHandler(route)), new HtmlParserService(),
-            _db, Mock.Of<ILogger<CrawlerService>>(), config, TestVpnGate.Unused());
+            _db, logger ?? Mock.Of<ILogger<CrawlerService>>(), config, TestVpnGate.Unused());
     }
 
     private async Task<Tournament> SeedTournamentAsync(string chessResultsId, params string[] teamNames)
@@ -207,5 +207,67 @@ public class CrawlerServiceTeamPairingsTests : IDisposable
         var second = Assert.Single(_db.TeamPairings.Where(tp => tp.RoundId == rounds[1].Id));
         Assert.Equal("Team C", teams[second.HomeTeamId]);
         Assert.Null(second.HomeScore);
+    }
+    private static int WarningCount(Mock<ILogger<CrawlerService>> logger) =>
+        logger.Invocations.Count(i => i.Method.Name == nameof(ILogger.Log)
+                                      && (LogLevel)i.Arguments[0] == LogLevel.Warning);
+
+    private async Task<Round> SeedRoundAsync(Tournament tournament, int roundNumber)
+    {
+        var round = new Round { TournamentId = tournament.Id, RoundNumber = roundNumber, PairingsPublished = true, ResultsPublished = true };
+        _db.Rounds.Add(round);
+        await _db.SaveChangesAsync();
+        return round;
+    }
+
+    [Theory]
+    [InlineData("<html><body><h2>Wartung</h2><p>Bitte spaeter erneut versuchen.</p></body></html>")]
+    // Tabelle erkannt, aber alle Teamnamen unbekannt.
+    [InlineData("<html><body><table class='CRs1'><tr><th>Nr.</th><th>Home</th><th>Away</th><th>Erg.</th></tr>" +
+                "<tr><td>1</td><td>Fremd X</td><td>Fremd Y</td><td>2:2</td></tr></table></body></html>")]
+    public async Task CrawlTeamPairingsAsync_NoUsablePairings_KeepsStoredRound(string html)
+    {
+        // S2-001: Ein Re-Crawl, dessen Seite keine einzige zuordenbare Paarung liefert, leerte die
+        // Runde und setzte ResultsPublished zurueck. Jetzt bleibt der Stand stehen, mit Warnung.
+        var tournament = await SeedTournamentAsync("2001", "Team A", "Team B", "Team C", "Team D");
+        var round = await SeedRoundAsync(tournament, 1);
+        var ids = _db.Teams.Where(t => t.TournamentId == tournament.Id).OrderBy(t => t.Snr).Select(t => t.Id).ToList();
+        _db.TeamPairings.AddRange(
+            new TeamPairing { RoundId = round.Id, MatchNumber = 1, HomeTeamId = ids[0], AwayTeamId = ids[1], HomeScore = 3, AwayScore = 1 },
+            new TeamPairing { RoundId = round.Id, MatchNumber = 2, HomeTeamId = ids[2], AwayTeamId = ids[3], HomeScore = 2, AwayScore = 2 });
+        await _db.SaveChangesAsync();
+
+        var logger = new Mock<ILogger<CrawlerService>>();
+        // playersFresh: kein Spieler-Nachcrawl fuer die unbekannten Namen.
+        await CreateService(_ => html, logger.Object).CrawlTeamPairingsAsync(tournament,
+            "https://chess-results.com/tnr2001.aspx?lan=0", new List<int> { 1 }, CancellationToken.None, playersFresh: true);
+
+        Assert.Equal(2, _db.TeamPairings.Count(tp => tp.RoundId == round.Id));
+        Assert.True(_db.Rounds.Single(r => r.Id == round.Id).ResultsPublished);
+        Assert.Equal(1, WarningCount(logger));
+    }
+
+    [Fact]
+    public async Task ExecuteCrawlAsync_IndividualRoundPageWithoutTable_KeepsStoredPairings()
+    {
+        // S2-001, Einzelturnier: art=2 nennt Runde 1, die Rundenseite liefert aber keine Tabelle
+        // (Layout/Sperrseite) — die vier gespeicherten Paarungen bleiben.
+        var tournament = await SeedTournamentAsync("2002");
+        var round = await SeedRoundAsync(tournament, 1);
+        _db.Pairings.AddRange(Enumerable.Range(1, 4).Select(b => new Pairing { RoundId = round.Id, BoardNumber = b, Result = "1-0" }));
+        await _db.SaveChangesAsync();
+        const string details = "<html><body><h2>Open</h2><table>" +
+                               "<tr><td class='CR'>Rundenanzahl</td><td class='CR'>1</td></tr></table></body></html>";
+        const string art2 = "<html><body><h2>Paarungen</h2><a href='tnr2002.aspx?lan=0&art=2&rd=1'>Rd.1</a></body></html>";
+        const string empty = "<html><body><p>Keine Daten</p></body></html>";
+
+        var logger = new Mock<ILogger<CrawlerService>>();
+        var job = await RunPairingsOnlyAsync(CreateService(url =>
+            url.Contains("rd=1") ? empty : url.Contains("art=2") ? art2 : details, logger.Object), "2002");
+
+        Assert.Equal(CrawlJobStatus.Completed, job.Status);
+        Assert.Equal(4, _db.Pairings.Count(p => p.RoundId == round.Id));
+        Assert.True(_db.Rounds.Single(r => r.Id == round.Id).ResultsPublished);
+        Assert.True(WarningCount(logger) >= 1);
     }
 }
