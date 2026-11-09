@@ -36,6 +36,8 @@ public class SourceResponseTests
             () => SourceResponse.EnsureJson("KNSB", 200, "text/html", body));
 
         Assert.Equal("KNSB", ex.Source);
+        // S2-010: auch ueber den Basistyp gelesen (Serilog, generische Handler) der Quellname.
+        Assert.Equal("KNSB", ((Exception)ex).Source);
         Assert.Equal(200, ex.StatusCode);
         Assert.Equal("text/html", ex.ContentType);
         Assert.Contains("One moment, please", ex.Excerpt);

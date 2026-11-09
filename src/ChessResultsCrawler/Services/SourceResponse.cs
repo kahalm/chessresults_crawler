@@ -16,7 +16,9 @@ namespace ChessResultsCrawler.Services;
 /// </summary>
 public class SourceResponseException : Exception
 {
-    public string Source { get; }
+    // Der Quellname steht im geerbten Exception.Source (S2-010): eine eigene Eigenschaft gleichen
+    // Namens verdeckte es (CS0114) — ueber Exception gelesen (Serilog, generische Handler) stand
+    // dann der Assemblyname statt der Quelle da.
     public int StatusCode { get; }
     public string? ContentType { get; }
 
