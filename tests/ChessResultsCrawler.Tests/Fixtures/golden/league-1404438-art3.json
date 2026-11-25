@@ -1,0 +1,88 @@
+{
+  "ParsePlayerListAsync": [],
+  "ParseTeamPairingsAsync": [],
+  "ParseIndividualPairingsAsync": [],
+  "IsTeamPairingsPageAsync": true,
+  "HasPairingsTableAsync": true,
+  "ParseTotalRoundsAsync": 11,
+  "ParseAvailableRoundsAsync": [
+    1
+  ],
+  "ParseAvailableRoundsAsync(max=5)": [
+    1
+  ],
+  "ParseRoundHeadingsAsync": [],
+  "ParseTournamentNameAsync": "1. BUNDESLIGA AUT 2026/2027",
+  "ParseTournamentDetailsAsync": {
+    "DateText": null,
+    "Location": null,
+    "TimeControl": "40 moves in 90 minutes, plus 30 minutes, plus 30 seconds per move from move 1",
+    "TimeControlKind": "Standard",
+    "Groups": [
+      {
+        "ChessResultsId": null,
+        "Label": "1BL",
+        "IsCurrent": true
+      },
+      {
+        "ChessResultsId": "1410724",
+        "Label": "2BLW",
+        "IsCurrent": false
+      },
+      {
+        "ChessResultsId": "1409864",
+        "Label": "2BLM",
+        "IsCurrent": false
+      },
+      {
+        "ChessResultsId": "1418722",
+        "Label": "2BLO",
+        "IsCurrent": false
+      },
+      {
+        "ChessResultsId": "1405166",
+        "Label": "1FBL",
+        "IsCurrent": false
+      },
+      {
+        "ChessResultsId": "1439423",
+        "Label": "2FBLW",
+        "IsCurrent": false
+      },
+      {
+        "ChessResultsId": "1439870",
+        "Label": "2FBLM",
+        "IsCurrent": false
+      },
+      {
+        "ChessResultsId": "1468487",
+        "Label": "2FBLO",
+        "IsCurrent": false
+      }
+    ]
+  },
+  "ParsePlayerSearchAsync": [],
+  "ParsePlayerTournamentsAsync": [],
+  "ParsePlayerDetailPageAsync": [],
+  "ParseRoundPlanAsync": [],
+  "ParsePlayerCardAsync": {
+    "GamesPlayed": null,
+    "Name": null,
+    "Federation": null,
+    "Club": null,
+    "IdentNumber": null,
+    "FideId": null,
+    "StartingRank": null,
+    "RatingNational": null,
+    "RatingInternational": null,
+    "PerformanceRating": null,
+    "Rank": null,
+    "YearOfBirth": null,
+    "Points": null,
+    "RatingChange": null,
+    "HasResult": false
+  },
+  "ParseTeamNamesAsync": [],
+  "ParseCalendarAsync": [],
+  "ParseTournamentSearchAsync": []
+}

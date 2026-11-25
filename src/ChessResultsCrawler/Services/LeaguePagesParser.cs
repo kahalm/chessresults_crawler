@@ -105,6 +105,7 @@ public static class LeaguePagesParser
         {
             int? rnd = null;
             (string Home, string Away)? match = null;
+            GameColumns? cols = null;
             foreach (var tr in tbl.Rows)
             {
                 var cs = tr.Cells.ToList();
@@ -121,23 +122,30 @@ public static class LeaguePagesParser
                 }
                 if (tr.QuerySelector("th") is not null)
                 {
-                    // Br. | snr | Heim | - | snr | Gast | Ergebnis
-                    var teams = cs.Select((c, i) => (c, i)).Where(x => IsClass(x.c, "CR")).Select(x => txt[x.i]).ToList();
-                    if (teams.Count >= 2) match = (teams[0], teams[1]);
+                    cols = GameColumns.FromHeader(txt);
+                    match = cols is null ? null : (txt[cols.Home], txt[cols.Away]);
                     continue;
                 }
-                if (match is null || rnd is null) continue;
-                var pcells = cs.Select((c, i) => (c, i)).Where(x => x.c.QuerySelector("table") is not null).Select(x => x.i).ToList();
-                if (pcells.Count != 2)
-                {
-                    // „Brett nicht besetzt" ohne innere Tabelle: Namen stehen in CR-Zellen
-                    pcells = cs.Select((c, i) => (c, i)).Where(x => IsClass(x.c, "CR")).Select(x => x.i).ToList();
-                    if (pcells.Count != 2) continue;
-                }
+                if (match is null || rnd is null || cols is null) continue;
                 var b = BoardRe.Match(txt[0]);
                 if (!b.Success) continue;
-                // Ergebnis = letzte Zelle im Muster „x - y" (danach kann noch eine PGN-Spalte folgen, LL 2022/23)
-                var res = txt.AsEnumerable().Reverse().FirstOrDefault(x => ResultRe.IsMatch(x)) ?? "";
+                List<int> pcells;
+                if (cs.Count == cols.Width)
+                    pcells = [cols.Home, cols.Away];   // Datenzeilen stehen Spalte für Spalte unter der Kopfzeile
+                else
+                {
+                    pcells = cs.Select((c, i) => (c, i)).Where(x => x.c.QuerySelector("table") is not null).Select(x => x.i).ToList();
+                    if (pcells.Count != 2)
+                    {
+                        // „Brett nicht besetzt" ohne innere Tabelle: Namen stehen in CR-Zellen
+                        pcells = cs.Select((c, i) => (c, i)).Where(x => IsClass(x.c, "CR")).Select(x => x.i).ToList();
+                        if (pcells.Count != 2) continue;
+                    }
+                }
+                // Ergebnis: die Spalte unter dem Mannschaftsstand der Kopfzeile; sonst die letzte Zelle im Muster „x - y"
+                // (danach kann noch eine PGN-Spalte folgen, LL 2022/23)
+                var res = cols.Result is { } ri && ri < txt.Count && (ResultRe.IsMatch(txt[ri]) || txt[ri] == "") ? txt[ri]
+                    : txt.AsEnumerable().Reverse().FirstOrDefault(x => ResultRe.IsMatch(x)) ?? "";
                 var pgn = tr.QuerySelectorAll("a[href]").Select(a => PgnIdRe.Match(a.GetAttribute("href") ?? ""))
                     .FirstOrDefault(m => m.Success)?.Groups[1].Value;
                 var hasScore = Results.TryGetValue(res, out var sc);
@@ -158,6 +166,41 @@ public static class LeaguePagesParser
             }
         }
         return (games, dates);
+    }
+
+    private static readonly Regex TeamScoreRe = new(@"^\d+(?:[.,]\d+|½)?\s*:\s*\d+(?:[.,]\d+|½)?$", RegexOptions.Compiled);
+
+    /// <summary>Spaltenbeschriftungen der art=3-Kopfzeile, die KEIN Mannschaftsname sind.</summary>
+    private static readonly HashSet<string> GameHeaderLabels = new(StringComparer.OrdinalIgnoreCase)
+    {
+        "", "-", "Br.", "Bo.", "Elo", "Rtg", "DWZ", "TWZ", "FED", "Fed", "Land", "Verein", "Club", "PGN",
+    };
+
+    /// <summary>
+    /// Spalten einer Begegnung in art=3, aus ihrer Kopfzeile gelesen — die Datenzeilen darunter stehen Spalte für Spalte
+    /// darunter. Tirol: <c>Br. | snr | Heim | Elo | - | snr | Gast | Elo | 3 : 1</c>; ÖSB-Bundesliga zusätzlich je Seite eine
+    /// Föderations-Spalte <c>Br. | snr | Heim | Elo | FED | - | snr | Gast | Elo | FED | 0 : 0 [| PGN]</c> (2026/27 mit
+    /// Beschriftung „FED", 2025/26 2. BL ohne). Bis 1.019.3 (November 2026) nahm der Parser die ersten zwei Kopfzellen mit Klasse „CR" als
+    /// Mannschaften — in der Bundesliga war der Gast damit „FED" bzw. leer (Prod 25.11.2026: sechs Ligen, alle 396 Zeilen).
+    /// Heim = erste Spalte vor dem Trenner „-", die weder Nummer noch Beschriftung ist; Gast ebenso dahinter; Ergebnis = der
+    /// Mannschaftsstand „x : y" hinter dem Gast.
+    /// </summary>
+    internal sealed record GameColumns(int Width, int Home, int Away, int? Result)
+    {
+        private static bool IsTeam(string t) => !GameHeaderLabels.Contains(t) && !Regex.IsMatch(t, @"^\d+$") && !TeamScoreRe.IsMatch(t);
+
+        public static GameColumns? FromHeader(IReadOnlyList<string> hdr)
+        {
+            var sep = -1;
+            for (var i = 1; i < hdr.Count; i++) if (hdr[i] == "-") { sep = i; break; }
+            if (sep < 0) return null;
+            int? home = null, away = null, result = null;
+            for (var i = 1; i < sep && home is null; i++) if (IsTeam(hdr[i])) home = i;
+            for (var i = sep + 1; i < hdr.Count && away is null; i++) if (IsTeam(hdr[i])) away = i;
+            if (home is null || away is null) return null;
+            for (var i = away.Value + 1; i < hdr.Count && result is null; i++) if (TeamScoreRe.IsMatch(hdr[i])) result = i;
+            return new GameColumns(hdr.Count, home.Value, away.Value, result);
+        }
     }
 
     /// <summary>art=16: alle gemeldeten Spieler mit Team und Meldebrett.</summary>
